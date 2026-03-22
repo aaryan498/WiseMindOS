@@ -1,15 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Target, TrendingUp, Sparkles, BarChart3 } from 'lucide-react';
+// import { Home, Target, TrendingUp, Sparkles, BarChart3 } from 'lucide-react';
+import { Home, ListChecks, Focus, Sparkles } from 'lucide-react';
 
 const BottomNav = () => {
   const location = useLocation();
   
   const navItems = [
-    { path: '/dashboard', icon: Home, label: 'Home' },
-    { path: '/tracker', icon: TrendingUp, label: 'Tracker' },
-    { path: '/goals', icon: Target, label: 'Goals' },
-    { path: '/future', icon: Sparkles, label: 'FutureTwin' },
-    { path: '/reports', icon: BarChart3, label: 'Reports' },
+    { path: '/dashboard', icon: Home, label: 'Dashboard' },
+    { path: '/trackers', icon: ListChecks, label: 'Trackers' },
+    { path: '/focus-room', icon: Focus, label: 'Focus Room' },
+    { path: '/future-twin', icon: Sparkles, label: 'FutureTwin' },
   ];
 
   return (

@@ -29,7 +29,13 @@ const Login = () => {
 
     // Mock login - in real app would call API
     localStorage.setItem('wisemind_user', JSON.stringify({ email: formData.email }));
-    navigate('/dashboard');
+    // Check if user has completed onboarding
+    const hasOnboarded = localStorage.getItem('wisemind_hasOnboarded');
+    if (hasOnboarded === 'true') {
+      navigate('/dashboard');
+    } else {
+      navigate('/onboarding');
+    }
   };
 
   return (

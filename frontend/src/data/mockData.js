@@ -86,21 +86,27 @@ export const mockDailyLog = {
 
 export const futureTwinMockResponse = {
   query: '',
-  impact: 'Positive',
-  achievability: 'High',
-  requiredHabits: [
-    'Consistent daily practice',
-    'Regular breaks to avoid burnout',
-    'Weekly progress reviews'
+  feasibility: 'High',
+  isGood: true,
+  benefits: [
+    'Significant improvement in skills and knowledge within 3 months',
+    'Enhanced cognitive abilities and focus',
+    'Better career opportunities and growth',
+    'Increased confidence and self-discipline',
+    'Long-term habit formation for continuous learning'
   ],
-  habitsToAvoid: [
-    'Procrastination',
-    'Irregular sleep schedule',
-    'Skipping breaks'
+  consequences: [
+    'Requires consistent daily commitment of 4+ hours',
+    'May need to sacrifice some leisure activities initially',
+    'Potential burnout if proper rest is not maintained',
+    'Social life adjustments might be necessary',
+    'Initial difficulty in maintaining the routine'
   ],
   insights: [
-    'Maintaining 4 hours of focused study daily will significantly improve your skills within 3 months.',
-    'You\'ll need to ensure proper rest (7-8 hours sleep) to sustain this routine.',
-    'Consistency is more important than intensity - small daily progress compounds over time.'
+    'Maintaining 4 hours of focused study daily will significantly improve your skills within 3 months. The compound effect of daily practice is exponential.',
+    'You\'ll need to ensure proper rest (7-8 hours sleep) to sustain this routine. Sleep is crucial for memory consolidation and learning.',
+    'Consistency is more important than intensity - small daily progress compounds over time. Missing one day won\'t ruin progress, but consistency over weeks will.',
+    'Consider the 80/20 rule: 20% of your study topics will give you 80% of results. Focus on high-impact learning.',
+    'Build accountability systems: join study groups, share progress publicly, or find an accountability partner to increase success rate by 65%.'
   ]
 };

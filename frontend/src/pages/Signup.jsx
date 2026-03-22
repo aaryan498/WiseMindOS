@@ -68,7 +68,7 @@ const Signup = () => {
       email: formData.email,
       goals: formData.goals
     }));
-    navigate('/dashboard');
+    navigate('/onboarding');
   };
 
   return (
