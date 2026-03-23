@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const { addGoal, addProject, addTask } = useApp();
   const [step, setStep] = useState(1);
   const [goals, setGoals] = useState([]);
@@ -94,6 +95,7 @@ const Onboarding = () => {
 
   // Step 3: Initialize System
   const handleFinishOnboarding = () => {
+    setLoading(true);
     // Create all goals
     const goalIdMap = {};
     goals.forEach(goal => {
@@ -130,7 +132,11 @@ const Onboarding = () => {
     localStorage.setItem('wisemind_hasOnboarded', 'true');
 
     // Navigate to dashboard
-    navigate('/dashboard');
+    setTimeout(() => {
+      // existing logic
+      navigate('/dashboard');
+    }, 800);
+
   };
 
   return (
@@ -165,14 +171,47 @@ const Onboarding = () => {
             Wise<span className="bg-gradient-to-r from-indigo-400 baloo-2-700 md:text-5xl to-violet-400 bg-clip-text text-transparent">Mind</span>OS
           </motion.h1>
           <p className="text-gray-400">Let's set up your Life Operating System</p>
-          <div className="flex justify-center gap-2 mt-4">
-            {[1, 2, 3].map(s => (
-              <div
-                key={s}
-                className={`w-12 h-2 rounded-full transition-all ${s === step ? 'bg-indigo-500' : s < step ? 'bg-indigo-700' : 'bg-gray-700'
-                  }`}
-              />
+          <div className="flex items-center justify-center mt-6">
+
+            {[1, 2, 3].map((s, index) => (
+              <div key={s} className="flex items-center">
+
+                {/* Circle */}
+                <motion.div
+                  className={`
+          w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold
+          ${step > s
+                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                      : step === s
+                        ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.6)]"
+                        : "bg-gray-700 text-gray-400"
+                    }
+        `}
+                  initial={{ scale: 0.8 }}
+                  animate={{ scale: step === s ? 1.1 : 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {s}
+                </motion.div>
+
+                {/* Line (except last) */}
+                {index < 2 && (
+                  <div className="w-16 h-1 mx-2 relative overflow-hidden rounded-full bg-gray-700">
+
+                    <motion.div
+                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                      animate={{
+                        width: step > s ? "100%" : "0%"
+                      }}
+                      transition={{ duration: 0.5 }}
+                    />
+
+                  </div>
+                )}
+
+              </div>
             ))}
+
           </div>
         </div>
 
@@ -191,7 +230,7 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
             {step === 1 && (
               <div data-testid="onboarding-step-1">
                 <h2 className="text-2xl font-bold young-serif-regular text-white mb-2">Step 1: Set Your Goals</h2>
-                <p className="text-gray-400 mb-6">Add one or more goals and categorize them</p>
+                <p className="text-gray-400 mb-6">Let’s define what success looks like for you.</p>
 
                 <div className="space-y-4 mb-6">
                   <div className="grid grid-cols-2 gap-3">
@@ -233,7 +272,8 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
                       {goals.map(goal => (
                         <div
                           key={goal.id}
-                          className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg"
+                          className="flex items-center justify-between p-3 bg-white/5 backdrop-blur-lg border border-white/10
+hover:scale-[1.01] transition-all rounded-lg"
                           data-testid={`goal-item-${goal.id}`}
                         >
                           <div>
@@ -260,7 +300,12 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
                       <button
                         key={goal}
                         onClick={() => handleAddPredefinedGoal(goal)}
-                        className="p-3 text-sm bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-lg transition-colors text-left"
+                        className="
+p-3 text-sm 
+bg-white/5 text-gray-200 backdrop-blur-lg border border-white/10
+hover:scale-[1.02] hover:bg-white/10
+transition-all duration-300 rounded-lg
+"
                         data-testid={`predefined-goal-${goal.toLowerCase().replace(/\s+/g, '-')}`}
                       >
                         {goal}
@@ -278,7 +323,7 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
             {step === 2 && (
               <div data-testid="onboarding-step-2">
                 <h2 className="text-2xl font-bold text-white mb-2">Step 2: Map to Execution</h2>
-                <p className="text-gray-400 mb-6">Define projects or tasks for each goal</p>
+                <p className="text-gray-400 mb-6">Break goals into actionable steps...</p>
 
                 <div className="space-y-4 mb-6">
                   <div>
@@ -301,8 +346,8 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
                       <div className="flex gap-2">
                         <button
                           onClick={() => setCurrentExecution({ ...currentExecution, type: 'project' })}
-                          className={`flex-1 py-2 rounded-lg transition-all ${currentExecution.type === 'project'
-                            ? 'bg-indigo-600 text-white'
+                          className={`flex-1 py-2 rounded-lg transition-all border border-white/10 duration-300 ${currentExecution.type === 'project'
+                            ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
                             : 'bg-gray-700 text-gray-300'
                             }`}
                           data-testid="execution-type-project"
@@ -311,8 +356,8 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
                         </button>
                         <button
                           onClick={() => setCurrentExecution({ ...currentExecution, type: 'task' })}
-                          className={`flex-1 py-2 rounded-lg transition-all ${currentExecution.type === 'task'
-                            ? 'bg-indigo-600 text-white'
+                          className={`flex-1 py-2 rounded-lg transition-all border border-white/10 duration-300 ${currentExecution.type === 'task'
+                            ? 'bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]'
                             : 'bg-gray-700 text-gray-300'
                             }`}
                           data-testid="execution-type-task"
@@ -339,7 +384,14 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
 
                       <button
                         onClick={handleAddExecution}
-                        className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                        className="
+w-full py-3 
+bg-gradient-to-r from-green-500 to-emerald-600 
+hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]
+hover:-translate-y-1 active:scale-95 
+transition-all duration-300 
+text-white rounded-lg
+"
                         data-testid="add-execution-btn"
                       >
                         + Add {currentExecution.type === 'project' ? 'Project' : 'Task'}
@@ -349,7 +401,7 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
                 </div>
 
                 {Object.keys(executionMap).length > 0 && (
-                  <div className="mb-6 max-h-64 overflow-y-auto">
+                  <div className="max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-600">
                     <h3 className="text-white font-semibold mb-3">Mapped Execution</h3>
                     {goals.map(goal => {
                       const map = executionMap[goal.id];
@@ -394,66 +446,89 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
                 </div>
               </div>
             )}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
 
-            {step === 3 && (
-              <div data-testid="onboarding-step-3">
-                <h2 className="text-2xl font-bold text-white mb-2">Step 3: System Ready! 🎉</h2>
-                <p className="text-gray-400 mb-6">Your WiseMindOS is being initialized...</p>
+              {step === 3 && (
+                <div data-testid="onboarding-step-3">
+                  <h2 className="text-2xl font-bold text-white mb-2">Step 3: System Ready!</h2>
+                  <p className="text-gray-400 mb-6">Your system is ready! Your WiseMindOS is being initialized...</p>
 
-                <div className="bg-gray-700/30 rounded-lg p-6 mb-6">
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-3xl font-bold text-indigo-400">{goals.length}</p>
-                      <p className="text-sm text-gray-400">Goals</p>
+                  <div className="bg-gray-700/30 rounded-lg p-6 mb-6">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <motion.p
+                          className="text-3xl young-serif-regular font-bold text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          {goals.length}
+                        </motion.p>
+                        <p className="text-sm text-gray-400">Goals</p>
+                      </div>
+                      <div>
+                        <motion.p
+                          className="text-3xl young-serif-regular font-bold text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          {Object.values(executionMap).reduce((sum, map) => sum + map.projects.length, 0)}
+                        </motion.p>
+                        <p className="text-sm text-gray-400">Projects</p>
+                      </div>
+                      <div>
+                        <motion.p
+                          className="text-3xl young-serif-regular font-bold text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          {Object.values(executionMap).reduce((sum, map) => sum + map.tasks.length, 0)}
+                        </motion.p>
+                        <p className="text-sm text-gray-400">Tasks</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-3xl font-bold text-green-400">
-                        {Object.values(executionMap).reduce((sum, map) => sum + map.projects.length, 0)}
-                      </p>
-                      <p className="text-sm text-gray-400">Projects</p>
+                  </div>
+
+                  <div className="mb-6 space-y-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
+                      <p className="text-white">Goal Tracker populated</p>
                     </div>
-                    <div>
-                      <p className="text-3xl font-bold text-blue-400">
-                        {Object.values(executionMap).reduce((sum, map) => sum + map.tasks.length, 0)}
-                      </p>
-                      <p className="text-sm text-gray-400">Tasks</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
+                      <p className="text-white">Project Tracker initialized</p>
                     </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
+                      <p className="text-white">Solo Task Tracker ready</p>
+                    </div>
+                  </div>
+
+                  <p className="text-gray-400 text-sm mb-6">
+                    You can add more goals, projects, tasks, and habits anytime from the Trackers section.
+                  </p>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setStep(2)}
+                      className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                      data-testid="step-3-back-btn"
+                    >
+                      Back
+                    </button>
+                    <GradientButton onClick={handleFinishOnboarding} className="flex-1" data-testid="finish-onboarding-btn">
+                      {loading ? "Initializing..." : "Enter Dashboard"}
+                    </GradientButton>
                   </div>
                 </div>
-
-                <div className="mb-6 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
-                    <p className="text-white">Goal Tracker populated</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
-                    <p className="text-white">Project Tracker initialized</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
-                    <p className="text-white">Solo Task Tracker ready</p>
-                  </div>
-                </div>
-
-                <p className="text-gray-400 text-sm mb-6">
-                  You can add more goals, projects, tasks, and habits anytime from the Trackers section.
-                </p>
-
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setStep(2)}
-                    className="flex-1 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-                    data-testid="step-3-back-btn"
-                  >
-                    Back
-                  </button>
-                  <GradientButton onClick={handleFinishOnboarding} className="flex-1" data-testid="finish-onboarding-btn">
-                    Enter Dashboard
-                  </GradientButton>
-                </div>
-              </div>
-            )}
+              )}
+            </motion.div>
           </motion.div>
         </Card>
       </div>
