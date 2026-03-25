@@ -58,7 +58,7 @@ before:bg-gradient-to-r before:from-indigo-500 before:to-purple-500">
                   transition={{ duration: 0.4 }}
                   className={isActive ? "drop-shadow-[0_0_10px_rgba(99,102,241,0.7)]" : ""}
                 >
-                  {item.path.endsWith("/focus-room") ? <Icon size={25} /> : <Icon size={22} />}
+                  {item.path.endsWith("/focus-room") ? <Icon size={30} /> : <Icon size={22} />}
                 </motion.div>
 
                 {/* Label */}
