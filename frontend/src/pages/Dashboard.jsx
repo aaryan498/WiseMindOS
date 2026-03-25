@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Target, CheckCircle, Zap, ArrowRight } from 'lucide-react';
 import { useApp } from '../store/AppContext';
@@ -31,6 +31,8 @@ const Dashboard = () => {
     calculateProductivityScore,
     calculateDisciplineScore
   } = useApp();
+
+  const navigate = useNavigate();
 
 
 
@@ -367,8 +369,9 @@ const Dashboard = () => {
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
+                  onClick={()=>navigate('/trackers/habits')}
                 >
-                  <HabitCard key={habit.id} habit={habit} />
+                  <HabitCard key={habit.id} habit={habit}/>
                 </motion.div>
               ))}
             </div>

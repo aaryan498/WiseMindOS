@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft } from 'lucide-react';
+import { Plus, ArrowLeft, Target } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import Card from '../components/Card';
 import ProjectCard from '../components/ProjectCard';
@@ -9,6 +9,7 @@ import InputField from '../components/InputField';
 import Modal from '../components/Modal';
 import TaskItem from '../components/TaskItem';
 import DonutChart from '../components/DonutChart';
+import { motion } from 'framer-motion';
 
 const ProjectTracker = () => {
   const navigate = useNavigate();
@@ -53,43 +54,69 @@ const ProjectTracker = () => {
     const linkedGoal = goals.find(g => g.id === selectedProject.goalId);
 
     return (
-      <div className="min-h-screen bg-gray-900 pb-20 px-4 pt-6">
+      <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
+        <motion.div
+          className="absolute top-20 left-10 w-72 h-72 bg-green-500 rounded-full blur-3xl opacity-20"
+          animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
+          transition={{ duration: 10, repeat: Infinity }}
+        />
+
+        <motion.div
+          className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500 rounded-full blur-3xl opacity-20"
+          animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
+          transition={{ duration: 12, repeat: Infinity }}
+        />
         <div className="max-w-4xl mx-auto">
           <button
             onClick={() => setSelectedProject(null)}
-            className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
+            className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-all hover:-translate-x-1 cursor-pointer"
             data-testid="back-to-projects-btn"
           >
             <ArrowLeft size={20} />
             Back to Projects
           </button>
 
-          <Card className="mb-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h1 className="text-2xl font-bold text-white mb-2">{selectedProject.title}</h1>
-                {linkedGoal && (
-                  <span className="text-sm px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-400">
-                    Goal: {linkedGoal.title}
-                  </span>
-                )}
-              </div>
-              <div>
-                <DonutChart value={progress} size={100} color="#10b981" />
-              </div>
-            </div>
-            {selectedProject.description && (
-              <p className="text-gray-400 mt-4">{selectedProject.description}</p>
-            )}
-          </Card>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+            <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600">
+                    <Target size={22} className="text-white" />
+                  </div>
 
-          <Card>
+                  <div>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white">
+                      {selectedProject.title}
+                    </h1>
+
+                    <p className="text-sm text-emerald-400 mt-1">
+                      Progress: {progress}%
+                    </p>
+
+                    {linkedGoal && (
+                      <span className="text-xs mt-1 inline-block text-indigo-400">
+                        Linked to: {linkedGoal.title}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <DonutChart value={progress} size={100} color="#10b981" />
+                </div>
+              </div>
+              {selectedProject.description && (
+                <p className="text-gray-400 mt-4">{selectedProject.description}</p>
+              )}
+            </Card>
+          </motion.div>
+
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">Tasks</h2>
               <button
                 onClick={() => setShowAddTask(true)}
                 data-testid="add-task-btn"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg transition-colors"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] hover:-translate-y-1 active:scale-95 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"
               >
                 <Plus size={20} className="inline mr-2" />
                 Add Task
@@ -97,12 +124,19 @@ const ProjectTracker = () => {
             </div>
             {projectTasks.length > 0 ? (
               <div className="space-y-3">
-                {projectTasks.map(task => (
-                  <TaskItem
+                {projectTasks.map((task, index) => (
+                  <motion.div
                     key={task.id}
-                    task={task}
-                    onToggle={toggleTaskCompletion}
-                  />
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <TaskItem
+                      task={task}
+                      onToggle={toggleTaskCompletion}
+                    />
+                  </motion.div>
                 ))}
               </div>
             ) : (
@@ -138,42 +172,70 @@ const ProjectTracker = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 pb-20 px-4 pt-6">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
+      <motion.div
+        className="absolute top-20 left-10 w-72 h-72 bg-green-500 rounded-full blur-3xl opacity-20"
+        animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
+        transition={{ duration: 10, repeat: Infinity }}
+      />
+
+      <motion.div
+        className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500 rounded-full blur-3xl opacity-20"
+        animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
+        transition={{ duration: 12, repeat: Infinity }}
+      />
       <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-between items-center mb-6"
+        >
           <div>
-            <h1 className="text-3xl font-bold text-white">Project Tracker</h1>
+            <h1 className="text-3xl young-serif-regular font-bold text-gray-200">Project Tracker</h1>
             <p className="text-gray-400">Manage projects linked to your goals</p>
           </div>
           <button
             onClick={() => setShowAddProject(true)}
             data-testid="add-project-btn"
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white p-3 rounded-xl transition-all shadow-lg"
+            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:-translate-y-1 active:scale-95 text-white p-3 rounded-xl transition-all cursor-pointer"
           >
             <Plus size={24} />
           </button>
-        </div>
+        </motion.div>
 
         {projects.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map(project => {
+            {projects.map((project, index) => {
               const linkedGoal = goals.find(g => g.id === project.goalId);
               return (
-                <ProjectCard
+                <motion.div
                   key={project.id}
-                  project={project}
-                  progress={calculateProjectProgress(project.id)}
-                  linkedGoal={linkedGoal?.title}
                   onClick={() => setSelectedProject(project)}
-                />
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  whileHover={{ scale: 1.03 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <ProjectCard
+                    project={project}
+                    progress={calculateProjectProgress(project.id)}
+                    linkedGoal={linkedGoal?.title}
+                  />
+                </motion.div>
               );
             })}
           </div>
         ) : (
-          <Card>
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 text-center">
             <div className="text-center py-16">
-              <p className="text-gray-400 text-lg mb-4">No projects yet. Start by adding your first project!</p>
-              <GradientButton onClick={() => setShowAddProject(true)} data-testid="add-first-project-btn">
+              <p className="text-gray-400 text-lg mb-4">
+                No projects yet.
+              </p>
+              <p className="text-indigo-400 text-sm mb-6">
+                Start building your execution system 🚀
+              </p>
+
+              <GradientButton onClick={() => setShowAddProject(true)}>
                 Add Your First Project
               </GradientButton>
             </div>

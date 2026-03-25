@@ -6,6 +6,7 @@ import TaskItem from '../components/TaskItem';
 import GradientButton from '../components/GradientButton';
 import InputField from '../components/InputField';
 import Modal from '../components/Modal';
+import { motion } from 'framer-motion';
 
 const SoloTaskTracker = () => {
   const {
@@ -37,11 +38,11 @@ const SoloTaskTracker = () => {
 
   // Filter tasks
   let filteredTasks = tasks.filter(task => !task.projectId || task.createdFrom === 'solo');
-  
+
   if (filterGoal) {
     filteredTasks = filteredTasks.filter(task => task.goalId === filterGoal);
   }
-  
+
   if (filterProject) {
     filteredTasks = filteredTasks.filter(task => task.projectId === filterProject);
   }
@@ -50,27 +51,56 @@ const SoloTaskTracker = () => {
   const completedTasks = filteredTasks.filter(t => t.completed);
 
   return (
-    <div className="min-h-screen bg-gray-900 pb-20 px-4 pt-6">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
+      <motion.div
+        className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full blur-3xl opacity-20"
+        animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
+        transition={{ duration: 10, repeat: Infinity }}
+      />
+
+      <motion.div
+        className="absolute bottom-20 right-10 w-72 h-72 bg-cyan-500 rounded-full blur-3xl opacity-20"
+        animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
+        transition={{ duration: 12, repeat: Infinity }}
+      />
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-between items-center mb-6"
+        >
           <div>
-            <h1 className="text-3xl font-bold text-white">Solo Task Tracker</h1>
+            <h1 className="text-3xl font-bold young-serif-regular text-gary-200">Solo Task Tracker</h1>
             <p className="text-gray-400">Track individual tasks and to-dos</p>
           </div>
           <button
             onClick={() => setShowAddTask(true)}
             data-testid="add-task-btn"
-            className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white p-3 rounded-xl transition-all shadow-lg"
+            className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-1 active:scale-95 text-white p-3 rounded-xl transition-all cursor-pointer"
           >
             <Plus size={24} />
           </button>
-        </div>
+        </motion.div>
 
         {/* Filters */}
-        <Card className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter size={20} className="text-gray-400" />
-            <h2 className="text-lg font-semibold text-white">Filters</h2>
+        <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter size={20} className="text-blue-400" />
+              <h2 className="text-lg font-semibold text-white">Filters</h2>
+            </div>
+
+            {(filterGoal || filterProject) && (
+              <button
+                onClick={() => {
+                  setFilterGoal('');
+                  setFilterProject('');
+                }}
+                className="text-xs text-indigo-400 hover:text-indigo-300"
+              >
+                Reset
+              </button>
+            )}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -117,17 +147,24 @@ const SoloTaskTracker = () => {
         </Card>
 
         {/* Pending Tasks */}
-        <Card className="mb-6">
+        <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
           <h2 className="text-xl font-bold text-white mb-4">Pending Tasks ({pendingTasks.length})</h2>
           {pendingTasks.length > 0 ? (
             <div className="space-y-3">
-              {pendingTasks.map(task => (
-                <TaskItem
+              {pendingTasks.map((task, index) => (
+                <motion.div
                   key={task.id}
-                  task={task}
-                  onToggle={toggleTaskCompletion}
-                  onDelete={deleteTask}
-                />
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <TaskItem
+                    task={task}
+                    onToggle={toggleTaskCompletion}
+                    onDelete={deleteTask}
+                  />
+                </motion.div>
               ))}
             </div>
           ) : (
@@ -137,8 +174,11 @@ const SoloTaskTracker = () => {
 
         {/* Completed Tasks */}
         {completedTasks.length > 0 && (
-          <Card>
-            <h2 className="text-xl font-bold text-white mb-4">Completed Tasks ({completedTasks.length})</h2>
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 opacity-80">
+            <h2 className="text-xl font-bold text-white mb-4">
+              Completed Tasks ({completedTasks.length})
+            </h2>
+            <p className="text-xs text-gray-400 mb-3">Well done! Keep the streak going 🔥</p>
             <div className="space-y-3">
               {completedTasks.map(task => (
                 <TaskItem
@@ -153,10 +193,19 @@ const SoloTaskTracker = () => {
         )}
 
         {filteredTasks.length === 0 && (
-          <Card>
+          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 text-center">
             <div className="text-center py-16">
-              <p className="text-gray-400 text-lg mb-4">No tasks yet. Start by adding your first task!</p>
-              <GradientButton onClick={() => setShowAddTask(true)} data-testid="add-first-task-btn">
+              <div className="text-5xl mb-4">📋</div>
+
+              <p className="text-gray-400 text-lg mb-2">
+                No tasks yet.
+              </p>
+
+              <p className="text-indigo-400 text-sm mb-6">
+                Start organizing your day like a pro 🚀
+              </p>
+
+              <GradientButton onClick={() => setShowAddTask(true)}>
                 Add Your First Task
               </GradientButton>
             </div>
@@ -166,7 +215,7 @@ const SoloTaskTracker = () => {
 
       {/* Add Task Modal */}
       <Modal isOpen={showAddTask} onClose={() => setShowAddTask(false)} title="Create New Task">
-        <div className="space-y-4">
+        <div className="space-y-5">
           <InputField
             label="Task Title"
             value={newTask.title}
@@ -214,16 +263,19 @@ const SoloTaskTracker = () => {
             </select>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between bg-white/5 border border-white/10 rounded-lg px-4 py-3">
+            <label htmlFor="important" className="text-gray-300 text-sm">
+              Mark as Important
+            </label>
+
             <input
               type="checkbox"
               id="important"
               checked={newTask.isImportant}
               onChange={(e) => setNewTask({ ...newTask, isImportant: e.target.checked })}
-              className="w-5 h-5 bg-gray-700 border-gray-600 rounded focus:ring-2 focus:ring-orange-500"
+              className="w-5 h-5 accent-orange-500"
               data-testid="task-important-checkbox"
             />
-            <label htmlFor="important" className="text-gray-300">Mark as Important</label>
           </div>
 
           <GradientButton onClick={handleAddTask} className="w-full" data-testid="submit-task-btn">
