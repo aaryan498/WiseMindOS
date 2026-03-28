@@ -287,5 +287,3 @@ The frontend is production-ready with:
 Built for personal use. Modify as needed.
 
 ---
-
-**Built with ❤️ using React, TailwindCSS, and Recharts**
