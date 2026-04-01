@@ -119,7 +119,7 @@ npm run dev
 
 ## 📈 Future Scope
 
-* ⚙️ Backend integration using FastAPI
+* ⚙️ Backend integration using Express (nodejs)
 * 🔐 Authentication system
 * ☁️ Database integration for persistence
 * 🤖 AI-powered task recommendations
