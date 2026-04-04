@@ -1,20 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import InputField from '../components/InputField';
 import GradientButton from '../components/GradientButton';
 import Card from '../components/Card';
 import { validateEmail } from '../utils/helpers';
 import { motion } from 'framer-motion';
+import axios from 'axios';
+import { useApp } from '../store/AppContext';
+
 
 const Login = () => {
-  const navigate = useNavigate();
+  const { token, setToken, navigate, backendURL } = useApp()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
   const [error, setError] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     setError('');
 
@@ -29,7 +32,24 @@ const Login = () => {
     }
 
     // Mock login - in real app would call API
-    localStorage.setItem('wisemind_user', JSON.stringify({ email: formData.email }));
+    // localStorage.setItem('wisemind_user', JSON.stringify({ email: formData.email }));
+
+    try {
+
+      const response = await axios.post(backendURL + '/api/user/login', formData)
+      if(response.data.success){
+        setToken(response.data.token)
+        localStorage.setItem('token', response.data.token)
+      } else{
+        toast.error(response.data.message)
+      }
+      
+    } catch (error) {
+      console.log(error)
+    }
+
+    
+
     // Check if user has completed onboarding
     const hasOnboarded = localStorage.getItem('wisemind_hasOnboarded');
     if (hasOnboarded === 'true') {
@@ -38,6 +58,12 @@ const Login = () => {
       navigate('/onboarding');
     }
   };
+
+  useEffect(()=>{
+    if(token){
+      navigate('/');
+    }
+  }, [token])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center px-4 py-12 relative overflow-hidden">

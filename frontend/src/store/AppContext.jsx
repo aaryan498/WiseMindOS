@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AppContext = createContext();
 
@@ -11,6 +12,11 @@ export const useApp = () => {
 };
 
 export const AppProvider = ({ children }) => {
+
+  const [token, setToken] = useState('');
+  const navigate = useNavigate();
+  const backendURL = import.meta.env.VITE_BACKEND_URL;
+
   // Load initial data from localStorage or use defaults
   const [goals, setGoals] = useState(() => {
     const saved = localStorage.getItem('wisemind_goals');
@@ -255,6 +261,10 @@ export const AppProvider = ({ children }) => {
   };
 
   const value = {
+    token,
+    setToken,
+    navigate,
+    backendURL,
     goals,
     projects,
     tasks,

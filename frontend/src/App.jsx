@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -20,7 +20,7 @@ import Library from './modules/library_room/Library';
 
 function App() {
   return (
-    <BrowserRouter>
+    
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
@@ -47,7 +47,6 @@ function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
   );
 }
 
