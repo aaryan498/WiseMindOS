@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { Plus, Filter, ListTodo, SearchX, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../../../store/AppContext';
 import Card from '../../../components/Card';
 import TaskItem from '../../../components/TaskItem';
 import GradientButton from '../../../components/GradientButton';
 import InputField from '../../../components/InputField';
 import Modal from '../../../components/Modal';
-import { motion } from 'framer-motion';
+import EmptyState from '../../../components/EmptyState';
+import { motion as Motion } from 'framer-motion';
 
 const SoloTaskTracker = () => {
   const {
@@ -49,22 +50,23 @@ const SoloTaskTracker = () => {
 
   const pendingTasks = filteredTasks.filter(t => !t.completed);
   const completedTasks = filteredTasks.filter(t => t.completed);
+  const hasActiveFilters = Boolean(filterGoal || filterProject);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-      <motion.div
+      <Motion.div
         className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
 
-      <motion.div
+      <Motion.div
         className="absolute bottom-20 right-10 w-72 h-72 bg-cyan-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-4xl mx-auto">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-between items-center mb-6"
@@ -80,7 +82,7 @@ const SoloTaskTracker = () => {
           >
             <Plus size={24} />
           </button>
-        </motion.div>
+        </Motion.div>
 
         {/* Filters */}
         <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
@@ -147,30 +149,40 @@ const SoloTaskTracker = () => {
         </Card>
 
         {/* Pending Tasks */}
-        <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
-          <h2 className="text-xl font-bold text-white mb-4">Pending Tasks ({pendingTasks.length})</h2>
-          {pendingTasks.length > 0 ? (
-            <div className="space-y-3">
-              {pendingTasks.map((task, index) => (
-                <motion.div
-                  key={task.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <TaskItem
-                    task={task}
-                    onToggle={toggleTaskCompletion}
-                    onDelete={deleteTask}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-400 text-center py-8">No pending tasks. Great job! 🎉</p>
-          )}
-        </Card>
+        {filteredTasks.length > 0 && (
+          <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+            <h2 className="text-xl font-bold text-white mb-4">Pending Tasks ({pendingTasks.length})</h2>
+            {pendingTasks.length > 0 ? (
+              <div className="space-y-3">
+                {pendingTasks.map((task, index) => (
+                  <Motion.div
+                    key={task.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <TaskItem
+                      task={task}
+                      onToggle={toggleTaskCompletion}
+                      onDelete={deleteTask}
+                    />
+                  </Motion.div>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={CheckCircle2}
+                title="No pending tasks"
+                description="Everything in this view is completed. Add another task when a new priority appears."
+                actionLabel={hasActiveFilters ? undefined : 'Add Task'}
+                onAction={hasActiveFilters ? undefined : () => setShowAddTask(true)}
+                accent="blue"
+                testId="empty-pending-tasks"
+              />
+            )}
+          </Card>
+        )}
 
         {/* Completed Tasks */}
         {completedTasks.length > 0 && (
@@ -194,21 +206,26 @@ const SoloTaskTracker = () => {
 
         {filteredTasks.length === 0 && (
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10 text-center">
-            <div className="text-center py-16">
-              <div className="text-5xl mb-4">📋</div>
-
-              <p className="text-gray-400 text-lg mb-2">
-                No tasks yet.
-              </p>
-
-              <p className="text-indigo-400 text-sm mb-6">
-                Start organizing your day like a pro 🚀
-              </p>
-
-              <GradientButton onClick={() => setShowAddTask(true)}>
-                Add Your First Task
-              </GradientButton>
-            </div>
+            <EmptyState
+              icon={hasActiveFilters ? SearchX : ListTodo}
+              title={hasActiveFilters ? 'No tasks match these filters' : 'No solo tasks yet'}
+              description={
+                hasActiveFilters
+                  ? 'Try clearing the filters to see every task, or add a new task for this focus area.'
+                  : 'Capture quick tasks here, then connect them to a goal or project when they grow.'
+              }
+              actionLabel={hasActiveFilters ? 'Clear Filters' : 'Add Your First Task'}
+              onAction={
+                hasActiveFilters
+                  ? () => {
+                    setFilterGoal('');
+                    setFilterProject('');
+                  }
+                  : () => setShowAddTask(true)
+              }
+              accent="blue"
+              testId="empty-solo-tasks"
+            />
           </Card>
         )}
       </div>

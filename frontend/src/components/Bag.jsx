@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plus, Trash2, Search, Pencil, Book, FileText, Edit } from "lucide-react";
 import { useApp } from "../store/AppContext";
 import { showToast } from "../utils/toastHelper";
+import EmptyState from "./EmptyState";
 
 const Bag = () => {
   const {
@@ -22,12 +23,8 @@ const Bag = () => {
   const [view, setView] = useState("notebooks");
   const [activeNotebook, setActiveNotebook] = useState(null);
   const [activePage, setActivePage] = useState(null);
-  const [editorContent, setEditorContent] = useState("");
-  useEffect(() => {
-    if (currentPage) {
-      setEditorContent(currentPage.content || "");
-    }
-  }, [activePage]);
+  const currentNotebook = notebooks.find(nb => nb.id === activeNotebook);
+  const currentPage = pages.find(p => p.id === activePage);
 
   
   const updateContent = (value) => {
@@ -46,35 +43,34 @@ const Bag = () => {
     await loadPages(activeNotebook);
   };
 
-  const currentNotebook = notebooks.find(nb => nb.id === activeNotebook);
-  const currentPage = pages.find(p => p.id === activePage);
-
   // =========================
   // VIEWS
   // =========================
 
-  const NotebooksView = () => (
-    <div className="h-full flex flex-col">
-      <div className="flex justify-between items-center mb-4 px-3">
-        <h2 className="text-white text-xl font-semibold">Notebooks</h2>
-        <button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:translate-y-1 active:scale-95 text-white p-3 rounded-lg transition-all cursor-pointer" onClick={addNotebook}>
-          <Plus size={24} />
-        </button>
-      </div>
+  const renderNotebooksView = () => {
+    const filteredNotebooks = notebooks.filter(nb =>
+      nb.name.toLowerCase().includes(search.toLowerCase())
+    );
 
-      <input
-        placeholder="Search notebooks..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-4 px-3 py-2 bg-gray-800 text-white rounded-lg outline-none"
-      />
+    return (
+      <div className="h-full flex flex-col">
+        <div className="flex justify-between items-center mb-4 px-3">
+          <h2 className="text-white text-xl font-semibold">Notebooks</h2>
+          <button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:translate-y-1 active:scale-95 text-white p-3 rounded-lg transition-all cursor-pointer" onClick={addNotebook}>
+            <Plus size={24} />
+          </button>
+        </div>
 
-      <div className="flex-1 overflow-y-auto space-y-2">
-        {notebooks
-          .filter(nb =>
-            nb.name.toLowerCase().includes(search.toLowerCase())
-          )
-          .map(nb => (
+        <input
+          placeholder="Search notebooks..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="mb-4 px-3 py-2 bg-gray-800 text-white rounded-lg outline-none"
+        />
+
+        <div className="flex-1 overflow-y-auto space-y-2">
+          {filteredNotebooks.length > 0 ? (
+            filteredNotebooks.map(nb => (
             <div
               key={nb.id}
               onClick={() => {
@@ -137,12 +133,28 @@ const Bag = () => {
                 </div>
               )}
             </div>
-          ))}
+            ))
+          ) : (
+            <EmptyState
+              icon={search ? Search : Book}
+              title={search ? 'No matching notebooks' : 'No notebooks yet'}
+              description={
+                search
+                  ? 'Clear the search to see every notebook, or create a new space for this topic.'
+                  : 'Create a notebook to collect ideas, notes, and study material in one organized place.'
+              }
+              actionLabel={search ? 'Clear Search' : 'Create Notebook'}
+              onAction={search ? () => setSearch('') : addNotebook}
+              accent="purple"
+              testId="empty-notebooks"
+            />
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const PagesView = () => {
+  const renderPagesView = () => {
     if (!currentNotebook) {
       return (
         <div className="flex items-center justify-center h-full text-gray-400">
@@ -171,13 +183,18 @@ const Bag = () => {
         />
 
         <div className="flex-1 overflow-y-auto space-y-2">
-          {pages
-            .filter(p =>
-              p.title
-                ?.toLowerCase()
-                .includes(pageSearch.toLowerCase())
-            )
-            .map(p => (
+          {pages.filter(p =>
+            p.title
+              ?.toLowerCase()
+              .includes(pageSearch.toLowerCase())
+          ).length > 0 ? (
+            pages
+              .filter(p =>
+                p.title
+                  ?.toLowerCase()
+                  .includes(pageSearch.toLowerCase())
+              )
+              .map(p => (
               <div
                 key={p.id}
                 onClick={() => {
@@ -202,7 +219,22 @@ const Bag = () => {
                   />
                 </div>
               </div>
-            ))}
+              ))
+          ) : (
+            <EmptyState
+              icon={pageSearch ? Search : FileText}
+              title={pageSearch ? 'No matching pages' : 'No pages in this notebook'}
+              description={
+                pageSearch
+                  ? 'Clear the page search to return to the full notebook.'
+                  : 'Add a page when you are ready to capture the first note in this notebook.'
+              }
+              actionLabel={pageSearch ? 'Clear Search' : 'Add Page'}
+              onAction={pageSearch ? () => setPageSearch('') : addPage}
+              accent="green"
+              testId="empty-pages"
+            />
+          )}
         </div>
       </div>
     );
@@ -243,8 +275,8 @@ const Bag = () => {
 
       {/* MAIN VIEW */}
       <div className="flex-1 overflow-hidden">
-        {view === "notebooks" && <NotebooksView />}
-        {view === "pages" && <PagesView />}
+        {view === "notebooks" && renderNotebooksView()}
+        {view === "pages" && renderPagesView()}
         {view === "editor" && (<div className="h-full flex flex-col">
           <h2 className="text-white text-lg font-semibold mb-3">
             {currentNotebook?.name} {currentPage ? `> ${currentPage.title}` : ""}
@@ -274,7 +306,6 @@ const Bag = () => {
               <textarea
                 value={currentPage.content}
                 onChange={(e) => {
-                  setEditorContent(e.target.value);
                   updateContent(e.target.value);
                 }}
                 className="flex-1 w-full bg-gray-800 text-white rounded-lg p-4 focus:outline-none resize-none"
@@ -283,7 +314,7 @@ const Bag = () => {
                 onClick={async() => {
                   try {
                     if (!activePage) return;
-                    await updatePage(activePage, editorContent);
+                    await updatePage(activePage, currentPage.content || "");
                     showToast({ message: "Saved Content", status: "success" }); 
                   } catch (error) {
                     showToast({ message: error.message || "Error Saving", status: "success" });
@@ -295,9 +326,15 @@ const Bag = () => {
               </button>
             </>
           ) : (
-            <div className="flex items-center justify-center flex-1 text-gray-400">
-              Select a page to start writing...
-            </div>
+            <EmptyState
+              icon={Edit}
+              title="Select a page to start writing"
+              description="Choose an existing page, or add one from the Pages tab to open the editor."
+              actionLabel="Go to Pages"
+              onAction={() => setView("pages")}
+              accent="purple"
+              testId="empty-editor"
+            />
           )}
         </div>)}
       </div>

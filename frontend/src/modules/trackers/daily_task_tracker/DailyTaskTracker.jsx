@@ -5,8 +5,9 @@ import Card from '../../../components/Card';
 import DonutChart from '../../../components/DonutChart';
 import GradientButton from '../../../components/GradientButton';
 import InputField from '../../../components/InputField';
+import EmptyState from '../../../components/EmptyState';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import Modal from '../../../components/Modal';
 import { showToast } from '../../../utils/toastHelper';
 
@@ -72,7 +73,6 @@ const DailyTaskTracker = () => {
       !dailyPlan.plannedTasks.some(pt => pt.habitId === habit.id)
   );
 
-  const pendingCount = dailyPlan.plannedTasks.filter(t => !t.completed).length;
   const completedCount = dailyPlan.plannedTasks.filter(t => t.completed).length;
 
   // Add habit to plan
@@ -165,15 +165,15 @@ const DailyTaskTracker = () => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
+    <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-        <motion.div
+        <Motion.div
           className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
         />
 
-        <motion.div
+        <Motion.div
           className="absolute bottom-20 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
           transition={{ duration: 12, repeat: Infinity }}
@@ -181,7 +181,7 @@ const DailyTaskTracker = () => {
 
         <div className="max-w-4xl mx-auto relative z-10">
           {/* Header */}
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
@@ -191,7 +191,7 @@ const DailyTaskTracker = () => {
               <Calendar size={20} />
               <p>{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
             </div>
-          </motion.div>
+          </Motion.div>
 
           {/* Scores */}
           <div className="grid grid-cols-2 gap-4 mb-6">
@@ -250,19 +250,22 @@ const DailyTaskTracker = () => {
 
           {/* TIMELINE VIEW */}
           {activeTab === 'timeline' && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
               {isPlanEmpty ? (
                 <Card className="text-center py-12 backdrop-blur-lg bg-white/5 border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
-                  <CalendarSyncIcon size={48} className="mx-auto text-indigo-400 mb-4" />
-                  <h3 className="text-xl font-bold text-white mb-2">Your day is wide open!</h3>
-                  <p className="text-gray-400 mb-4">Start planning by adding tasks, habits, or creating manual tasks</p>
-                  <GradientButton onClick={() => setActiveTab('add')} data-testid="start-planning-btn">
-                    Start Planning
-                  </GradientButton>
+                  <EmptyState
+                    icon={CalendarSyncIcon}
+                    title="Your day is wide open"
+                    description="Add tasks, habits, or manual focus blocks to build a realistic plan for today."
+                    actionLabel="Start Planning"
+                    onAction={() => setActiveTab('add')}
+                    accent="indigo"
+                    testId="empty-daily-plan"
+                  />
                 </Card>
               ) : (
                 <>
@@ -471,67 +474,79 @@ const DailyTaskTracker = () => {
                   {activeView === 'list' && (
                     <div className="space-y-3 p-5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_40px_rgba(99,102,241,0.15)]">
                       <h2 className="text-xl font-bold text-white mb-4">Today's Planned Tasks</h2>
-                      {activeTasks.map((item, index) => (
-                        <motion.div
-                          key={item.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.05 }}
-                          className="relative"
-                        >
-                          <div className="bg-white/5 rounded-lg shadow-lg backdrop-blur-lg p-3 border border-white/10 hover:border-white/50 transition-all">
-                            <div className="flex items-start gap-3">
-                              {/* Time */}
-                              <div className="text-center min-w-[60px]">
-                                <p className="text-xs text-indigo-400 font-semibold">{item.startTime}</p>
-                                <p className="text-xs text-gray-500">{item.endTime}</p>
-                              </div>
+                      {activeTasks.length > 0 ? (
+                        activeTasks.map((item, index) => (
+                          <Motion.div
+                            key={item.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="relative"
+                          >
+                            <div className="bg-white/5 rounded-lg shadow-lg backdrop-blur-lg p-3 border border-white/10 hover:border-white/50 transition-all">
+                              <div className="flex items-start gap-3">
+                                {/* Time */}
+                                <div className="text-center min-w-[60px]">
+                                  <p className="text-xs text-indigo-400 font-semibold">{item.startTime}</p>
+                                  <p className="text-xs text-gray-500">{item.endTime}</p>
+                                </div>
 
-                              {/* Content */}
-                              <div className="flex-1">
-                                <div className="flex items-start justify-between gap-3 mb-2">
-                                  <div className="flex-1">
-                                    <h4 className={`font-medium ${item.completed ? 'line-through text-gray-500' : 'text-white'}`}>
-                                      {item.title}
-                                    </h4>
-                                    <div className="flex items-center gap-2 mt-1">
-                                      <span className={`text-xs px-2 py-0.5 rounded-full border ${getSourceBadge(item.source).color}`}>
-                                        {getSourceBadge(item.source).label}
-                                      </span>
-                                      {item.isImportant && (
-                                        <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                                          Important
+                                {/* Content */}
+                                <div className="flex-1">
+                                  <div className="flex items-start justify-between gap-3 mb-2">
+                                    <div className="flex-1">
+                                      <h4 className={`font-medium ${item.completed ? 'line-through text-gray-500' : 'text-white'}`}>
+                                        {item.title}
+                                      </h4>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <span className={`text-xs px-2 py-0.5 rounded-full border ${getSourceBadge(item.source).color}`}>
+                                          {getSourceBadge(item.source).label}
                                         </span>
-                                      )}
+                                        {item.isImportant && (
+                                          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                                            Important
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
 
-                                  {/* Actions */}
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      onClick={() => toggleDailyPlanTaskCompletion(item.id)}
-                                      className={`p-2 rounded-lg transition-all ${item.completed
-                                        ? 'bg-green-500/20 text-green-400'
-                                        : 'bg-gray-700/50 text-gray-400 hover:bg-green-500/20 hover:text-green-400'
-                                        }`}
-                                      data-testid={`complete-daily-task-${item.id}`}
-                                    >
-                                      <CheckCircle2 size={20} />
-                                    </button>
-                                    <button
-                                      onClick={() => removeFromDailyPlan(item.id)}
-                                      className="p-2 rounded-lg bg-gray-700/50 text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-all"
-                                      data-testid={`remove-daily-task-${item.id}`}
-                                    >
-                                      <X size={20} />
-                                    </button>
+                                    {/* Actions */}
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        onClick={() => toggleDailyPlanTaskCompletion(item.id)}
+                                        className={`p-2 rounded-lg transition-all ${item.completed
+                                          ? 'bg-green-500/20 text-green-400'
+                                          : 'bg-gray-700/50 text-gray-400 hover:bg-green-500/20 hover:text-green-400'
+                                          }`}
+                                        data-testid={`complete-daily-task-${item.id}`}
+                                      >
+                                        <CheckCircle2 size={20} />
+                                      </button>
+                                      <button
+                                        onClick={() => removeFromDailyPlan(item.id)}
+                                        className="p-2 rounded-lg bg-gray-700/50 text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-all"
+                                        data-testid={`remove-daily-task-${item.id}`}
+                                      >
+                                        <X size={20} />
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        </motion.div>
-                      ))}
+                          </Motion.div>
+                        ))
+                      ) : (
+                        <EmptyState
+                          icon={CheckCircle2}
+                          title="No active tasks left"
+                          description="Everything planned for today is completed. Add another item if a new priority comes up."
+                          actionLabel="Add to Plan"
+                          onAction={() => setActiveTab('add')}
+                          accent="indigo"
+                          testId="empty-active-daily-tasks"
+                        />
+                      )}
                     </div>
                   )}
                   {completedTasks.length > 0 && (
@@ -587,12 +602,12 @@ const DailyTaskTracker = () => {
                   )}
                 </>
               )}
-            </motion.div>
+            </Motion.div>
           )}
 
           {/* ADD TO PLAN VIEW */}
           {activeTab === 'add' && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
@@ -639,7 +654,7 @@ const DailyTaskTracker = () => {
                     <>
                       <div className="space-y-2 mb-6 max-h-96 overflow-y-auto pr-3">
                         {availableTasks.map(task => (
-                          <motion.div
+                          <Motion.div
                             key={task.id}
                             whileTap={{ scale: 0.98 }}
                             className="p-4 bg-gray-700/50 rounded-lg border border-gray-600 hover:border-green-500/50 transition-all"
@@ -664,15 +679,20 @@ const DailyTaskTracker = () => {
                                 Add to Plan
                               </button>
                             </div>
-                          </motion.div>
+                          </Motion.div>
                         ))}
                       </div>
                     </>
                   ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-400">No available tasks to add</p>
-                      <p className="text-sm text-gray-500 mt-1">All tasks are either completed or already in your plan</p>
-                    </div>
+                    <EmptyState
+                      icon={ListTodo}
+                      title="No tasks available"
+                      description="All open tasks are already planned or completed. Create a manual block for one-off work."
+                      actionLabel="Create Manual Task"
+                      onAction={() => setAddMode('manual')}
+                      accent="indigo"
+                      testId="empty-available-tasks"
+                    />
                   )}
                 </Card>
               )}
@@ -684,7 +704,7 @@ const DailyTaskTracker = () => {
                   {suggestedHabits.length > 0 ? (
                     <div className="space-y-3 mb-6 max-h-96 overflow-y-auto px-3">
                       {suggestedHabits.map(habit => (
-                        <motion.div
+                        <Motion.div
                           key={habit.id}
                           whileHover={{ scale: 1.005 }}
                           className="p-4 bg-gray-700/50 rounded-lg border border-gray-600 hover:border-green-500/50 transition-all"
@@ -707,14 +727,19 @@ const DailyTaskTracker = () => {
                               Add to Plan
                             </button>
                           </div>
-                        </motion.div>
+                        </Motion.div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-400">No habits available</p>
-                      <p className="text-sm text-gray-500 mt-1">Habits without time or already in plan are hidden</p>
-                    </div>
+                    <EmptyState
+                      icon={CalendarClock}
+                      title="No timed habits available"
+                      description="Habits need a start time before they can be suggested for the daily planner."
+                      actionLabel="Create Manual Task"
+                      onAction={() => setAddMode('manual')}
+                      accent="emerald"
+                      testId="empty-suggested-habits"
+                    />
                   )}
                 </Card>
               )}
@@ -766,7 +791,7 @@ const DailyTaskTracker = () => {
                   </form>
                 </Card>
               )}
-            </motion.div>
+            </Motion.div>
           )}
         </div>
       </div>
@@ -809,7 +834,7 @@ const DailyTaskTracker = () => {
           </div>
         </Modal>
       )}
-    </motion.div>
+    </Motion.div>
   );
 };
 

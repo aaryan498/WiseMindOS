@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, ChevronRight, Target } from 'lucide-react';
+import { Plus, ArrowLeft, Target, FolderKanban, ListTodo } from 'lucide-react';
 import { useApp } from '../../../store/AppContext';
 import Card from '../../../components/Card';
 import DonutChart from '../../../components/DonutChart';
@@ -10,7 +10,8 @@ import InputField from '../../../components/InputField';
 import Modal from '../../../components/Modal';
 import TaskItem from '../../../components/TaskItem';
 import ProjectCard from '../../../components/ProjectCard';
-import { motion } from 'framer-motion';
+import EmptyState from '../../../components/EmptyState';
+import { motion as Motion } from 'framer-motion';
 
 const GoalTracker = () => {
   const navigate = useNavigate();
@@ -19,8 +20,6 @@ const GoalTracker = () => {
     addGoal,
     addProject,
     addTask,
-    updateGoal,
-    deleteGoal,
     calculateGoalProgress,
     getTasksByGoal,
     getProjectsByGoal,
@@ -111,13 +110,13 @@ const GoalTracker = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-        <motion.div
+        <Motion.div
           className="absolute top-20 left-10 w-72 h-72 bg-green-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
         />
 
-        <motion.div
+        <Motion.div
           className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
           transition={{ duration: 12, repeat: Infinity }}
@@ -132,7 +131,7 @@ const GoalTracker = () => {
             Back to Projects
           </button>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div className="flex items-center gap-4">
@@ -164,7 +163,7 @@ const GoalTracker = () => {
                 <p className="text-gray-400 mt-4">{selectedProject.description}</p>
               )}
             </Card>
-          </motion.div>
+          </Motion.div>
 
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
             <div className="flex justify-between items-center mb-4">
@@ -181,7 +180,7 @@ const GoalTracker = () => {
             {projectTasks.length > 0 ? (
               <div className="space-y-3">
                 {projectTasks.map((task, index) => (
-                  <motion.div
+                  <Motion.div
                     key={task.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -192,11 +191,19 @@ const GoalTracker = () => {
                       task={task}
                       onToggle={toggleTaskCompletion}
                     />
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-center py-8">No tasks yet. Add your first task!</p>
+              <EmptyState
+                icon={ListTodo}
+                title="No project tasks yet"
+                description="Break this project into the next concrete steps so progress is easier to track."
+                actionLabel="Add Task"
+                onAction={() => setShowAddProjectTask(true)}
+                accent="emerald"
+                testId="empty-project-tasks"
+              />
             )}
           </Card>
         </div>
@@ -250,13 +257,13 @@ const GoalTracker = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-        <motion.div
+        <Motion.div
           className="absolute top-20 left-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
         />
 
-        <motion.div
+        <Motion.div
           className="absolute bottom-20 right-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
           transition={{ duration: 12, repeat: Infinity }}
@@ -271,7 +278,7 @@ const GoalTracker = () => {
             Back to Goals
           </button>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.2)] hover:shadow-[0_0_50px_rgba(99,102,241,0.3)] transition-all">
 
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -322,7 +329,7 @@ const GoalTracker = () => {
               )}
 
             </Card>
-          </motion.div>
+          </Motion.div>
 
           {goalProjects.length > 0 ? (
             <div className="mb-6">
@@ -339,7 +346,7 @@ const GoalTracker = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {goalProjects.map((project, index) => (
-                  <motion.div
+                  <Motion.div
                     key={project.id}
                     onClick={() => setSelectedProject(project)}
                     initial={{ opacity: 0, y: 20 }}
@@ -352,26 +359,22 @@ const GoalTracker = () => {
                       progress={calculateProjectProgress(project.id)}
                       onClick={() => navigate(`/trackers/projects/${project.id}`)}
                     />
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </div>
             </div>
           ) : goalTasks.length > 0 && (
             <Card className="bg-white/5 mb-4 backdrop-blur-xl border border-white/10 text-center">
               <h2 className="text-xl font-bold text-white mb-4 text-start">Projects</h2>
-              <p className="text-gray-400 text-center py-8">
-                No projects yet.
-                <br />
-                <span className="text-indigo-400">Add Projects for a stronger you.</span>
-              </p>
-              <button
-                onClick={() => setShowAddProject(true)}
-                data-testid="add-project-btn"
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] hover:-translate-y-1 active:scale-95 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"
-              >
-                <Plus size={20} className="inline mr-2" />
-                Add Project
-              </button>
+              <EmptyState
+                icon={FolderKanban}
+                title="No projects linked yet"
+                description="Group related tasks into a project when this goal needs a bigger execution track."
+                actionLabel="Add Project"
+                onAction={() => setShowAddProject(true)}
+                accent="indigo"
+                testId="empty-goal-projects"
+              />
             </Card>
           )}
 
@@ -390,8 +393,8 @@ const GoalTracker = () => {
                 </button>
               </div>
               <div className="space-y-3">
-                {goalTasks.map((task, index) => (
-                  <motion.div
+                {goalTasks.map((task) => (
+                  <Motion.div
                     key={task.id}
                     whileHover={{ scale: 1.02 }}
                   >
@@ -400,38 +403,36 @@ const GoalTracker = () => {
                       task={task}
                       onToggle={toggleTaskCompletion}
                     />
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </div>
             </Card>
           ) : goalProjects.length > 0 && (
             <Card className="bg-white/5 mb-4 backdrop-blur-xl border border-white/10 text-center">
               <h2 className="text-xl font-bold text-white mb-4 text-start">Tasks</h2>
-              <p className="text-gray-400 text-center py-8">
-                No tasks yet.
-                <br />
-                <span className="text-indigo-400">Add your first task!</span>
-              </p>
-              <button
-                onClick={() => setShowAddTask(true)}
-                data-testid="add-task-btn"
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] hover:-translate-y-1 active:scale-95 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"
-              >
-                <Plus size={20} className="inline mr-2" />
-                Add Task
-              </button>
+              <EmptyState
+                icon={ListTodo}
+                title="No direct tasks yet"
+                description="Add a quick next action for this goal, or keep tasks organized inside its projects."
+                actionLabel="Add Task"
+                onAction={() => setShowAddTask(true)}
+                accent="indigo"
+                testId="empty-goal-tasks"
+              />
             </Card>
           )}
 
 
           {goalProjects.length === 0 && goalTasks.length === 0 && (
             <Card className="bg-white/5 backdrop-blur-xl border border-white/10 text-center">
-              <p className="text-gray-400 text-center py-8">
-                No projects or tasks yet.
-                <br />
-                <span className="text-indigo-400">Start building your execution system</span>
-              </p>
-              <div className='flex gap-3 justify-center'>
+              <EmptyState
+                icon={Target}
+                title="This goal has no execution plan yet"
+                description="Add a project for bigger work or a task for the very next step."
+                accent="indigo"
+                testId="empty-goal-execution"
+              />
+              <div className='flex flex-col gap-3 justify-center pt-6 sm:flex-row'>
                 <button
                   onClick={() => setShowAddProject(true)}
                   data-testid="add-project-btn"
@@ -546,19 +547,19 @@ const GoalTracker = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-      <motion.div
+      <Motion.div
         className="absolute top-20 left-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
 
-      <motion.div
+      <Motion.div
         className="absolute bottom-20 right-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-6xl mx-auto">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-between items-center mb-6"
@@ -574,7 +575,7 @@ const GoalTracker = () => {
           >
             <Plus size={24} />
           </button>
-        </motion.div>
+        </Motion.div>
 
         {/* Overall Progress */}
         {goals.length > 0 && (
@@ -649,13 +650,15 @@ const GoalTracker = () => {
           </div>
         ) : (
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10 text-center">
-            <div className="text-center py-16">
-              <Target size={64} className="mx-auto text-indigo-400 mb-4 animate-pulse" />
-              <p className="text-gray-400 text-lg mb-4">No goals yet. Start by adding your first goal!</p>
-              <GradientButton onClick={() => setShowAddGoal(true)} data-testid="add-first-goal-btn">
-                Add Your First Goal
-              </GradientButton>
-            </div>
+            <EmptyState
+              icon={Target}
+              title="No goals yet"
+              description="Create your first goal to start connecting projects, tasks, and progress in one place."
+              actionLabel="Add Your First Goal"
+              onAction={() => setShowAddGoal(true)}
+              accent="indigo"
+              testId="empty-goals"
+            />
           </Card>
         )}
       </div>
