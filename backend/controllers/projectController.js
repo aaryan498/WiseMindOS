@@ -1,5 +1,6 @@
 import projectModel from '../models/projectModel.js';
 import taskModel from '../models/taskModel.js';
+import { emptyProgressSummary, summarizeTaskProgress } from '../utils/progressSummary.js';
 
 // Create Project
 const createProject = async (req, res) => {
@@ -32,21 +33,27 @@ const createProject = async (req, res) => {
 const getProjects = async (req, res) => {
     try {
         const userId = req.body.userId;
-        const projects = await projectModel.find({ userId });
+        const projects = await projectModel.find({ userId }).lean();
+        const projectIds = projects.map(project => project._id);
 
-        // Calculate progress dynamically for each project
-        const projectsWithProgress = await Promise.all(projects.map(async (project) => {
-            const projectTasks = await taskModel.find({ userId, projectId: project._id });
-            const completedTasks = projectTasks.filter(task => task.completed).length;
-            const progress = projectTasks.length > 0 ? Math.round((completedTasks / projectTasks.length) * 100) : 0;
+        const projectTasks = projectIds.length > 0
+            ? await taskModel.find(
+                { userId, projectId: { $in: projectIds } },
+                { projectId: 1, completed: 1 }
+            ).lean()
+            : [];
 
+        const progressByProjectId = summarizeTaskProgress(projectTasks, 'projectId');
+
+        const projectsWithProgress = projects.map((project) => {
+            const summary = progressByProjectId.get(project._id.toString()) || emptyProgressSummary;
             return {
-                ...project.toObject(),
-                progress,
-                tasksCompleted: completedTasks,
-                totalTasks: projectTasks.length
+                ...project,
+                progress: summary.progress,
+                tasksCompleted: summary.tasksCompleted,
+                totalTasks: summary.totalTasks
             };
-        }));
+        });
 
         res.json({ success: true, projects: projectsWithProgress });
 

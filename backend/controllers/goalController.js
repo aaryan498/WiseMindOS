@@ -1,5 +1,6 @@
 import goalModel from '../models/goalModel.js';
 import taskModel from '../models/taskModel.js';
+import { emptyProgressSummary, summarizeTaskProgress } from '../utils/progressSummary.js';
 
 // Create Goal
 const createGoal = async (req, res) => {
@@ -32,19 +33,25 @@ const createGoal = async (req, res) => {
 const getGoals = async (req, res) => {
     try {
         const userId = req.body.userId;
-        const goals = await goalModel.find({ userId });
+        const goals = await goalModel.find({ userId }).lean();
+        const goalIds = goals.map(goal => goal._id);
 
-        // Calculate progress dynamically for each goal
-        const goalsWithProgress = await Promise.all(goals.map(async (goal) => {
-            const goalTasks = await taskModel.find({ userId, goalId: goal._id });
-            const completedTasks = goalTasks.filter(task => task.completed).length;
-            const progress = goalTasks.length > 0 ? Math.round((completedTasks / goalTasks.length) * 100) : 0;
+        const goalTasks = goalIds.length > 0
+            ? await taskModel.find(
+                { userId, goalId: { $in: goalIds } },
+                { goalId: 1, completed: 1 }
+            ).lean()
+            : [];
 
+        const progressByGoalId = summarizeTaskProgress(goalTasks, 'goalId');
+
+        const goalsWithProgress = goals.map((goal) => {
+            const summary = progressByGoalId.get(goal._id.toString()) || emptyProgressSummary;
             return {
-                ...goal.toObject(),
-                progress
+                ...goal,
+                progress: summary.progress
             };
-        }));
+        });
 
         res.json({ success: true, goals: goalsWithProgress });
 
