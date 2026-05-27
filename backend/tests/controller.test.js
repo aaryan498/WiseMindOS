@@ -3,9 +3,11 @@ import test, { afterEach } from 'node:test';
 import jwt from 'jsonwebtoken';
 
 import { createGoal, getGoals } from '../controllers/goalController.js';
+import { getWeeklyStats, saveDailyStats } from '../controllers/statsController.js';
 import { toggleTaskCompletion } from '../controllers/taskController.js';
 import authUser from '../middlewares/auth.js';
 import dailyPlanModel from '../models/dailyPlanModel.js';
+import dailyStatsModel from '../models/dailyStatsModel.js';
 import goalModel from '../models/goalModel.js';
 import taskModel from '../models/taskModel.js';
 
@@ -70,15 +72,23 @@ test('getGoals calculates progress from completed goal tasks', async () => {
     const res = mockResponse();
     const goal = {
         _id: 'goal-1',
-        toObject: () => ({ _id: 'goal-1', title: 'Testing coverage' })
+        title: 'Testing coverage'
     };
 
-    replaceProperty(goalModel, 'find', async () => [goal]);
-    replaceProperty(taskModel, 'find', async () => [
-        { completed: true },
-        { completed: false },
-        { completed: true }
-    ]);
+    replaceProperty(goalModel, 'find', () => ({
+        async lean() {
+            return [goal];
+        }
+    }));
+    replaceProperty(taskModel, 'find', () => ({
+        async lean() {
+            return [
+                { goalId: 'goal-1', completed: true },
+                { goalId: 'goal-1', completed: false },
+                { goalId: 'goal-1', completed: true }
+            ];
+        }
+    }));
 
     await getGoals({ body: { userId: 'user-1' } }, res);
 
@@ -119,6 +129,90 @@ test('toggleTaskCompletion updates task source of truth and daily plan mirror', 
     assert.equal(task.saveCalled, true);
     assert.equal(plannedTask.completed, true);
     assert.equal(dailyPlan.saveCalled, true);
+});
+
+test('saveDailyStats updates the normalized daily document directly', async () => {
+    const res = mockResponse();
+    let capturedFilter;
+    let capturedUpdate;
+    let capturedOptions;
+
+    replaceProperty(dailyStatsModel, 'findOneAndUpdate', async (filter, update, options) => {
+        capturedFilter = filter;
+        capturedUpdate = update;
+        capturedOptions = options;
+        return update;
+    });
+
+    await saveDailyStats({
+        body: {
+            userId: '507f1f77bcf86cd799439011',
+            productivity: 82,
+            discipline: 75
+        },
+        headers: {}
+    }, res);
+
+    assert.equal(res.body.success, true);
+    assert.equal(capturedFilter.userId, '507f1f77bcf86cd799439011');
+    assert.ok(capturedFilter.date instanceof Date);
+    assert.equal(capturedFilter.date.getUTCHours(), 0);
+    assert.equal(capturedFilter.date.getUTCMinutes(), 0);
+    assert.equal(capturedFilter.date.getUTCSeconds(), 0);
+    assert.equal(capturedFilter.date.getUTCMilliseconds(), 0);
+    assert.deepEqual(capturedUpdate, {
+        productivity: 82,
+        discipline: 75,
+        date: capturedFilter.date
+    });
+    assert.deepEqual(capturedOptions, {
+        upsert: true,
+        new: true,
+        runValidators: true
+    });
+});
+
+test('getWeeklyStats uses a bounded lean query for dashboard data', async () => {
+    const res = mockResponse();
+    const calls = [];
+    const weeklyStats = [
+        { date: new Date('2026-05-21T00:00:00.000Z'), productivity: 70, discipline: 80 }
+    ];
+
+    replaceProperty(dailyStatsModel, 'find', (filter) => {
+        calls.push(['find', filter]);
+        return {
+            sort(sortSpec) {
+                calls.push(['sort', sortSpec]);
+                return this;
+            },
+            select(projection) {
+                calls.push(['select', projection]);
+                return this;
+            },
+            async lean() {
+                calls.push(['lean']);
+                return weeklyStats;
+            }
+        };
+    });
+
+    await getWeeklyStats({
+        body: { userId: '507f1f77bcf86cd799439011' },
+        headers: {}
+    }, res);
+
+    assert.equal(res.body.success, true);
+    assert.equal(res.body.data, weeklyStats);
+    assert.equal(calls[0][0], 'find');
+    assert.equal(calls[0][1].userId, '507f1f77bcf86cd799439011');
+    assert.ok(calls[0][1].date.$gte instanceof Date);
+    assert.equal(calls[0][1].date.$gte.getUTCHours(), 0);
+    assert.deepEqual(calls.slice(1), [
+        ['sort', { date: 1 }],
+        ['select', 'date productivity discipline'],
+        ['lean']
+    ]);
 });
 
 test('authUser rejects requests without a token', async () => {

@@ -1,5 +1,19 @@
 import dailyStatsModel from '../models/dailyStatsModel.js';
 
+const WEEKLY_STATS_DAYS = 7;
+
+const getUtcDayStart = (date = new Date()) => {
+  const dayStart = new Date(date);
+  dayStart.setUTCHours(0, 0, 0, 0);
+  return dayStart;
+};
+
+const getWeeklyWindowStart = (date = new Date()) => {
+  const windowStart = getUtcDayStart(date);
+  windowStart.setUTCDate(windowStart.getUTCDate() - (WEEKLY_STATS_DAYS - 1));
+  return windowStart;
+};
+
 // SAVE TODAY'S STATS
 const saveDailyStats = async (req, res) => {
   try {
@@ -10,44 +24,24 @@ const saveDailyStats = async (req, res) => {
       return res.json({ success: false, message: 'Scores are required' });
     }
 
-    // ✅ Normalize date (IMPORTANT for unique index)
-    const start = new Date();
-    start.setUTCHours(0, 0, 0, 0);
-
-    const end = new Date();
-    end.setUTCHours(23, 59, 59, 999);
+    const today = getUtcDayStart();
 
     await dailyStatsModel.findOneAndUpdate(
       {
         userId,
-        date: { $gte: start, $lte: end }
+        date: today
       },
       {
         productivity,
         discipline,
-        date: start // always save normalized
+        date: today
       },
       {
         upsert: true,
-        new: true
+        new: true,
+        runValidators: true
       }
     );
-    
-    // const today = new Date();
-    // today.setHours(0, 0, 0, 0);
-
-    // await dailyStatsModel.findOneAndUpdate(
-    //   { userId, date: today },
-    //   {
-    //     productivity,
-    //     discipline
-    //   },
-    //   {
-    //     upsert: true,
-    //     new: true
-    //   }
-    // );
-
 
     res.json({ success: true });
 
@@ -62,10 +56,16 @@ const saveDailyStats = async (req, res) => {
 const getWeeklyStats = async (req, res) => {
   try {
     const userId = req.body.userId || req.headers.userid;
+    const windowStart = getWeeklyWindowStart();
 
     const stats = await dailyStatsModel
-      .find({ userId })
-      .sort({ date: 1 }); // oldest → newest
+      .find({
+        userId,
+        date: { $gte: windowStart }
+      })
+      .sort({ date: 1 })
+      .select('date productivity discipline')
+      .lean();
 
     res.json({ success: true, data: stats });
 
