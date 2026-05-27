@@ -10,7 +10,7 @@ const CustomToast = ({ message, duration = 4000, status = "default" }) => {
       {/* Avatar */}
       <img
         src={logo}
-        alt="logo"
+        alt="WiseMindOS logo"
         className="w-10 h-10 rounded-full object-cover"
       />
 

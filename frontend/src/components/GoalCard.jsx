@@ -5,7 +5,7 @@ import ProgressBar from './ProgressBar';
 const GoalCard = ({ goal, progress, onClick }) => {
 
   const handleGoalClick = (goal) => {
-    setSelectedGoal(goal);
+    if (typeof onClick === 'function') onClick(goal);
   };
 
   const getTypeColor = (type) => {
@@ -37,7 +37,15 @@ const GoalCard = ({ goal, progress, onClick }) => {
   return (
     <Card
       className="hover:scale-105 transition-all duration-300 cursor-pointer bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]"
-      onClick={()=>handleGoalClick(goal)}
+      onClick={() => handleGoalClick(goal)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleGoalClick(goal);
+        }
+      }}
       data-testid={`goal-card-${goal.id}`}
     >
       {/* TOP */}

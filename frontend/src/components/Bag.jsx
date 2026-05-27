@@ -77,11 +77,22 @@ const Bag = () => {
           .map(nb => (
             <div
               key={nb.id}
+              role="button"
+              tabIndex={0}
               onClick={() => {
                 setActiveNotebook(nb.id);
                 loadPages(nb.id);
                 setActivePage(null);
                 setView("pages");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setActiveNotebook(nb.id);
+                  loadPages(nb.id);
+                  setActivePage(null);
+                  setView("pages");
+                }
               }}
               className={`p-3 rounded-lg cursor-pointer ${activeNotebook === nb.id
                 ? "bg-indigo-600 text-white"
@@ -115,14 +126,27 @@ const Bag = () => {
                   <div className="flex gap-2">
                     <Pencil
                       size={14}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Edit notebook ${nb.name}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         setEditingNotebook(nb.id);
                         setTempName(nb.name);
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.stopPropagation();
+                          setEditingNotebook(nb.id);
+                          setTempName(nb.name);
+                        }
+                      }}
                     />
                     <Trash2
                       size={14}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Delete notebook ${nb.name}`}
                       className="text-red-400"
                       onClick={async(e) => {
                         e.stopPropagation();
@@ -131,6 +155,16 @@ const Bag = () => {
                         setActiveNotebook(null);
                         setActivePage(null);
                         setView("notebooks");
+                      }}
+                      onKeyDown={async(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.stopPropagation();
+                          await deleteNotebook(nb.id);
+                          showToast({message: `Notebook: ${nb.name} Deleted`, status: "success"})
+                          setActiveNotebook(null);
+                          setActivePage(null);
+                          setView("notebooks");
+                        }
                       }}
                     />
                   </div>
@@ -180,9 +214,18 @@ const Bag = () => {
             .map(p => (
               <div
                 key={p.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   setActivePage(p.id);
                   setView("editor");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setActivePage(p.id);
+                    setView("editor");
+                  }
                 }}
                 className={`p-3 rounded-lg cursor-pointer ${activePage === p.id
                   ? "bg-green-600 text-white"
@@ -193,11 +236,21 @@ const Bag = () => {
                   <span>{p.title}</span>
                   <Trash2
                     size={14}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Delete page ${p.title}`}
                     className="text-red-400"
                     onClick={(e) => {
                       e.stopPropagation();
                       deletePage(p.id, activeNotebook);
                       if (activePage === p.id) setActivePage(null);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.stopPropagation();
+                        deletePage(p.id, activeNotebook);
+                        if (activePage === p.id) setActivePage(null);
+                      }
                     }}
                   />
                 </div>

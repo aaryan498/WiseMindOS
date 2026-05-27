@@ -17,7 +17,15 @@ const HabitCard = ({ habit, onComplete }) => {
           }
         `}
         onClick={() => onComplete && onComplete(habit.id)}
-        data-testid={`habit-card-${habit.id}`}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onComplete && onComplete(habit.id);
+          }
+        }}
+          data-testid={`habit-card-${habit.id}`}
       >
         {/* TOP ROW */}
         <div className="flex justify-between items-start mb-3">

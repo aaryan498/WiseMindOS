@@ -195,8 +195,8 @@ const Dashboard = () => {
               </div>
               {/* Image div  */}
               <div className='h-30 w-30 rounded-full relative group border-6 border-black/15 shadow-[0_0_40px_rgba(99,102,241,0.2)] shrink-0'>
-                <img src={user.profile_picture || profile_pic} className='w-full h-full object-cover rounded-full' alt="" />
-                <div onClick={()=>setShowEditProfilePic(true)} className='w-full h-full bg-black/50 absolute rounded-full inset-0 cursor-pointer opacity-0 z-10 group-hover:opacity-100'>
+                <img src={user.profile_picture || profile_pic} className='w-full h-full object-cover rounded-full' alt={`Profile picture of ${user.name || 'User'}`} />
+                <div role="button" tabIndex={0} onClick={()=>setShowEditProfilePic(true)} onKeyDown={(e)=>{ if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setShowEditProfilePic(true); } }} className='w-full h-full bg-black/50 absolute rounded-full inset-0 cursor-pointer opacity-0 z-10 group-hover:opacity-100'>
                   <div className='h-full w-full flex items-center justify-center'>
                     <Camera size={18} className='text-white' />
                   </div>
@@ -721,7 +721,7 @@ const Dashboard = () => {
               <input hidden type="file" accept='image/*' id='profile_picture' className='w-full p-3 border border-gray-200 rounded-lg' onChange={(e) => setNewProfilePic(e.target.files[0])} />
 
               <div className='group/profile relative'>
-                <img src={newProfilePic ? URL.createObjectURL(newProfilePic) : user.profile_picture || profile_pic} alt="" className='w-24 h-24 rounded-full object-cover mt-2' />
+                <img src={newProfilePic ? URL.createObjectURL(newProfilePic) : user.profile_picture || profile_pic} alt={`Profile picture preview of ${user.name || 'User'}`} className='w-24 h-24 rounded-full object-cover mt-2' />
                 <div className='absolute hidden cursor-pointer group-hover/profile:flex top-0 left-0 right-0 bottom-0 bg-black/20 rounded-full items-center justify-center'>
                   <Pencil className='w-5 h-5 text-white' />
                 </div>
