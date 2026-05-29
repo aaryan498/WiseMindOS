@@ -41,7 +41,7 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
+    <div className="min-h-screen scroll-smooth bg-gradient-to-br from-black via-gray-900 to-black text-white">
       {/* Hero Section */}
       <div className='bg-gradient-to-br from-gray-900 via-black to-gray-900'>
         <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
@@ -129,7 +129,8 @@ const Landing = () => {
 
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-white dark:bg-gray-800/50">
+
+      <section id="features" className="py-20 px-4 bg-white dark:bg-gray-800/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold young-serif-regular text-gray-600 dark:text-gray-100 mb-2">Powerful Features</h2>
@@ -159,7 +160,8 @@ hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 px-4">
+
+      <section id="about" className="py-20 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold young-serif-regular text-gray-200 mb-2">How It Works</h2>
@@ -316,7 +318,12 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
             <div>
               <h3 className="text-white font-semibold mb-4">Product</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li className="hover:text-white transition cursor-pointer">Features</li>
+
+                <li>
+       <a href="#features" className="hover:text-white transition cursor-pointer">
+    Features
+  </a>
+</li>
                 <li className="hover:text-white transition cursor-pointer">Pricing</li>
                 <li className="hover:text-white transition cursor-pointer">Roadmap</li>
               </ul>
@@ -326,7 +333,13 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
             <div>
               <h3 className="text-white font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li className="hover:text-white transition cursor-pointer">About</li>
+
+
+                <li>
+  <a href="#about" className="hover:text-white transition cursor-pointer">
+    About
+  </a>
+</li>
                 <li className="hover:text-white transition cursor-pointer">Careers</li>
                 <li className="hover:text-white transition cursor-pointer">Contact</li>
               </ul>
