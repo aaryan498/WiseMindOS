@@ -1,7 +1,14 @@
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts';
-import { TrendingUp, Target, CheckCircle, Zap, ArrowRight, UserPlus2, Camera, CalendarDays, Star, AlertTriangle, UserPen, LucideTrophy, Pencil } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts';
+import { 
+  TrendingUp, Target, CheckCircle, Zap, ArrowRight, UserPlus2, 
+  Camera, CalendarDays, Star, AlertTriangle, UserPen, LucideTrophy, Pencil 
+} from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useApp } from '../store/AppContext';
+import { statsAPI } from '../api/apiService';
+
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
 import ClockWidget from '../components/ClockWidget';
@@ -11,21 +18,12 @@ import ProjectCard from '../components/ProjectCard';
 import TaskItem from '../components/TaskItem';
 import HabitCard from '../components/HabitCard';
 import GradientButton from '../components/GradientButton';
-import { motion } from 'framer-motion'
-import { useMemo } from 'react';
-import profile_pic from '../assets/profile_pic.svg'
-import { useState, useEffect } from 'react';
-import { statsAPI } from '../api/apiService';
 import Modal from '../components/Modal';
 import InputField from '../components/InputField';
-
+import profile_pic from '../assets/profile_pic.svg';
 
 const Dashboard = () => {
-
-  const [weeklyData, setWeeklyData] = useState([]);
-  const [showEditProfile, setShowEditProfile] = useState(false);
-  const [showEditProfilePic, setShowEditProfilePic] = useState(false);
-
+  const navigate = useNavigate();
   const {
     goals,
     user,
@@ -45,589 +43,418 @@ const Dashboard = () => {
     calculateDisciplineScore
   } = useApp();
 
+  // Local State
+  const [weeklyData, setWeeklyData] = useState([]);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showEditProfilePic, setShowEditProfilePic] = useState(false);
   const [newProfile, setNewProfile] = useState({ name: user.name, username: user.username, bio: user.bio });
   const [newProfilePic, setNewProfilePic] = useState(null);
 
-  const navigate = useNavigate();
-
+  // Fetch Analytics Analytics Metrics
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const res = await statsAPI.getWeekly();
-
         if (res.success) {
           const formatted = res.data.map(item => ({
             name: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
             productivity: item.productivity,
             discipline: item.discipline
           }));
-
           setWeeklyData(formatted);
         }
-
       } catch (error) {
-        console.log("Failed to fetch stats:", error);
+        console.error("Failed to fetch stats:", error);
       }
     };
-
     fetchStats();
-    console.log("Weekly Data:", weeklyData);
   }, []);
 
-  const avgProductivity =
-    weeklyData.length > 0
-      ? Math.round(weeklyData.reduce((sum, d) => sum + d.productivity, 0) / weeklyData.length)
-      : 0;
+  // Performance Memoizations
+  const scores = useMemo(() => ({
+    productivity: calculateProductivityScore(),
+    discipline: calculateDisciplineScore()
+  }), [tasks, habits, goals, calculateProductivityScore, calculateDisciplineScore]);
 
-  const avgDiscipline =
-    weeklyData.length > 0
-      ? Math.round(weeklyData.reduce((sum, d) => sum + d.discipline, 0) / weeklyData.length)
-      : 0;
+  const averages = useMemo(() => {
+    if (weeklyData.length === 0) return { productivity: 0, discipline: 0 };
+    const prodSum = weeklyData.reduce((sum, d) => sum + d.productivity, 0);
+    const discSum = weeklyData.reduce((sum, d) => sum + d.discipline, 0);
+    return {
+      productivity: Math.round(prodSum / weeklyData.length),
+      discipline: Math.round(discSum / weeklyData.length)
+    };
+  }, [weeklyData]);
 
-  const productivityScore = useMemo(() => calculateProductivityScore(), [tasks, habits, goals]);
-  const disciplineScore = useMemo(() => calculateDisciplineScore(), [tasks, habits]);
+  const taskFilters = useMemo(() => {
+    const todayPlanned = dailyPlan?.plannedTasks || [];
+    return {
+      todayPlanned,
+      pendingPlanned: todayPlanned.filter(t => !t.completed),
+      hasPlanned: todayPlanned.length > 0,
+      important: getImportantTasks(),
+      behind: getBehindTasks()
+    };
+  }, [dailyPlan, getImportantTasks, getBehindTasks]);
 
-  // Get today's planned tasks from dailyPlan
-  const todayPlannedTasks = dailyPlan?.plannedTasks || [];
-  const pendingPlannedTasks = todayPlannedTasks.filter(t => !t.completed);
-  const hasPlannedTasks = todayPlannedTasks.length > 0;
+  const slices = useMemo(() => ({
+    goals: goals.slice(0, 4),
+    projects: projects.slice(0, 4),
+    habits: habits.slice(0, 3)
+  }), [goals, projects, habits]);
 
-  const importantTasks = getImportantTasks();
-  const behindTasks = getBehindTasks();
-
-  const topGoals = goals.slice(0, 4);
-  const topProjects = projects.slice(0, 4);
-  const topHabits = habits.slice(0, 3);
-
+  // Form Submission Handlers
   const handleEditProfile = async (e) => {
     e.preventDefault();
-
-    // Prepare only changed fields
     const updates = {};
 
-    if (newProfile.name !== "" && newProfile.name !== user.name) {
-      updates.name = newProfile.name;
-    }
+    if (newProfile.name.trim() && newProfile.name !== user.name) updates.name = newProfile.name;
+    if (newProfile.username.trim() && newProfile.username !== user.username) updates.username = newProfile.username;
+    if (newProfile.bio !== user.bio) updates.bio = newProfile.bio;
 
-    if (newProfile.username !== "" && newProfile.username !== user.username) {
-      updates.username = newProfile.username;
-    }
-
-    if (newProfile.bio !== user.bio) {
-      updates.bio = newProfile.bio;
-    }
-
-    // If nothing changed → don't call API
     if (Object.keys(updates).length === 0) {
       setShowEditProfile(false);
       return;
     }
 
-    // Call context API
     const success = await updateUser(updates);
-
     if (success) {
-      // Reset form with updated values
       setNewProfile({
         name: updates.name ?? user.name,
         username: updates.username ?? user.username,
         bio: updates.bio ?? user.bio
       });
-
       setShowEditProfile(false);
     }
   };
 
-
   const handleEditProfilePic = async (e) => {
     e.preventDefault();
-
-    const formData = new FormData();
-    let hasChanges = false;
-
-    // 🔥 IMAGE FIELD (IMPORTANT)
-    if (newProfilePic) {
-      formData.append("profile", newProfilePic);
-      hasChanges = true;
-    }
-
-    // If nothing changed
-    if (!hasChanges) {
-      setShowEditProfile(false);
+    if (!newProfilePic) {
+      setShowEditProfilePic(false);
       return;
     }
 
-    // Call API
-    const success = await updateUserProfilePic(formData);
+    const formData = new FormData();
+    formData.append("profile", newProfilePic);
 
+    const success = await updateUserProfilePic(formData);
     if (success) {
-      // Reset form with updated values
       setNewProfilePic(null);
       setShowEditProfilePic(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-      <motion.div
-        className="absolute top-10 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
-        animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
-        transition={{ duration: 10, repeat: Infinity }}
-      />
+  // Sub-view Render Layout Triggers
+  const renderPlannedTasksSection = () => {
+    const { hasPlanned, pendingPlanned } = taskFilters;
 
-      <motion.div
-        className="absolute bottom-10 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
-        animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
-        transition={{ duration: 12, repeat: Infinity }}
-      />
-      <div className="max-w-6xl mx-auto">
-        {/* Welcome Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <Card className="mb-6 w-full  relative overflow-hidden bg-white/15 backdrop-blur-xl border-20 border-black/20 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
+    if (hasPlanned && pendingPlanned.length > 0) {
+      return (
+        <Card className="mb-6 bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-xl shadow-black/20">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-xl font-bold text-white tracking-wide">Today's Planned Tasks</h2>
+            <Link to="/trackers/daily-tasks" className="text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors">
+              View All
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {pendingPlanned.slice(0, 5).map((item, index) => (
+              <motion.div
+                key={item.id}
+                whileHover={{ scale: 1.01 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.04 }}
+                className="p-3.5 bg-slate-850/40 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-all flex items-start gap-3.5"
+                data-testid={`planned-task-${item.id}`}
+              >
+                <div className="text-center min-w-[65px] border-r border-white/5 pr-3">
+                  <p className="text-xs text-indigo-400 font-bold tracking-wide">{item.startTime}</p>
+                  <p className="text-[10px] text-slate-500 font-medium mt-0.5">{item.endTime}</p>
+                </div>
 
-            <div className="rounded w-full mb-6 flex flex-col items-center">
-              <div className='w-full flex items-end justify-end'>
-                <button onClick={() => setShowEditProfile(true)} className='bg-white/10 hover:bg-white/15 cursor-pointer border flex gap-2 border-white/15 hover:border-white/25 hover:translate-y-0.5 px-3 py-3 rounded-full text-white default-bold shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300'> <UserPen size={20} /></button>
-              </div>
-              {/* Image div  */}
-              <div className='h-30 w-30 rounded-full relative group border-6 border-black/15 shadow-[0_0_40px_rgba(99,102,241,0.2)] shrink-0'>
-                <img src={user.profile_picture || profile_pic} className='w-full h-full object-cover rounded-full' alt="" />
-                <div onClick={()=>setShowEditProfilePic(true)} className='w-full h-full bg-black/50 absolute rounded-full inset-0 cursor-pointer opacity-0 z-10 group-hover:opacity-100'>
-                  <div className='h-full w-full flex items-center justify-center'>
-                    <Camera size={18} className='text-white' />
+                <div className="flex-1 min-w-0">
+                  <h4 className={`font-medium text-sm tracking-wide truncate ${item.completed ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+                    {item.title}
+                  </h4>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className={`text-[10px] px-2 py-0.5 font-bold rounded-md uppercase border ${
+                      item.source === 'task' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                      item.source === 'habit' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                      'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                    }`}>
+                      {item.source}
+                    </span>
+                    {item.isImportant && (
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        Important
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div className='border-6 h-5 w-5 rounded-full z-10 bottom-1 absolute right-1 border-green-400'></div>
+
+                <button
+                  onClick={() => toggleDailyPlanTaskCompletion(item.id)}
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer shrink-0 ${
+                    item.completed ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/5'
+                  }`}
+                  data-testid={`toggle-planned-task-${item.id}`}
+                >
+                  <CheckCircle size={18} />
+                </button>
+              </motion.div>
+            ))}
+          </div>
+          <div className="flex gap-4 mt-5 pt-2">
+            <Link to="/focus-room" className="flex-1">
+              <GradientButton className="w-full shadow-lg shadow-indigo-600/10" data-testid="focus-room-cta">
+                <span>Enter Focus Room</span>
+                <ArrowRight size={16} />
+              </GradientButton>
+            </Link>
+            <Link to="/trackers/daily-tasks" className="flex-1">
+              <GradientButton className="w-full shadow-lg shadow-indigo-600/10" data-testid="plan-now-btn">
+                <span>Plan Ahead</span>
+                <ArrowRight size={16} />
+              </GradientButton>
+            </Link>
+          </div>
+        </Card>
+      );
+    }
+
+    if (hasPlanned && pendingPlanned.length === 0) {
+      return (
+        <Card className="mb-6 bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-xl shadow-black/20 text-center py-8">
+          <LucideTrophy size={44} className="text-amber-400 mx-auto mb-3 drop-shadow-[0_0_15px_rgba(245,158,11,0.3)] animate-bounce" />
+          <h3 className="text-xl font-bold text-slate-100 tracking-wide">Excellent Routine Work!</h3>
+          <p className="text-slate-400 text-sm mt-1.5 mb-5 max-w-sm mx-auto">All dynamic tasks configured for today are completed. Keep executing your goals.</p>
+          <Link to="/trackers/daily-tasks">
+            <GradientButton data-testid="plan-now-btn">Plan Ahead</GradientButton>
+          </Link>
+        </Card>
+      );
+    }
+
+    return (
+      <Card className="mb-6 bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-xl shadow-black/20 text-center py-8">
+        <CalendarDays size={40} className="text-indigo-400 mx-auto mb-3 drop-shadow-[0_0_12px_rgba(99,102,241,0.3)]" />
+        <h3 className="text-lg font-bold text-slate-100 tracking-wide">Plan Your System Architecture</h3>
+        <p className="text-slate-400 text-sm mt-1.5 mb-5 max-w-xs mx-auto">Create an explicit structured dynamic layout routine to scale daily productivity milestones.</p>
+        <Link to="/trackers/daily-tasks">
+          <GradientButton data-testid="plan-now-btn">Plan System Flow</GradientButton>
+        </Link>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-black pb-20 px-4 pt-6 relative overflow-hidden selection:bg-indigo-500/30">
+      {/* Decorative Glow Elements */}
+      <motion.div
+        className="absolute top-10 left-10 w-72 h-72 bg-purple-600 rounded-full blur-[130px] opacity-15 pointer-events-none"
+        animate={{ x: [0, 30, 0], y: [0, 15, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute bottom-10 right-10 w-72 h-72 bg-indigo-600 rounded-full blur-[130px] opacity-15 pointer-events-none"
+        animate={{ x: [0, -30, 0], y: [0, -15, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      <div className="max-w-5xl mx-auto">
+        {/* Welcome Block Profile Card */}
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <Card className="mb-6 w-full relative overflow-hidden bg-slate-900/30 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/40 p-6">
+            <div className="w-full flex flex-col items-center relative">
+              <button 
+                onClick={() => setShowEditProfile(true)} 
+                className="absolute right-0 top-0 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/15 p-2.5 rounded-xl text-slate-300 transition-all shadow-md cursor-pointer"
+                title="Edit Core Meta Configuration"
+              >
+                <UserPen size={18} />
+              </button>
+              
+              {/* Profile Image View Wrapper */}
+              <div className="h-28 w-28 rounded-full relative group border-4 border-slate-950 shadow-xl shrink-0 mb-4">
+                <img src={user.profile_picture || profile_pic} className="w-full h-full object-cover rounded-full" alt="User Profile context" />
+                <button 
+                  onClick={() => setShowEditProfilePic(true)} 
+                  className="w-full h-full bg-black/60 absolute rounded-full inset-0 cursor-pointer opacity-0 group-hover:opacity-100 border-none flex items-center justify-center transition-all"
+                >
+                  <Camera size={18} className="text-slate-200" />
+                </button>
+                <span className="h-4 w-4 rounded-full border-2 border-slate-950 bottom-1 absolute right-1 bg-emerald-500 shadow-md" />
               </div>
-              <div className='flex flex-col items-center'>
-                <span className='text-3xl md:text-4xl text-center default-bold text-gray-100'>{user.name || 'User'}</span>
-                <span className='cursor-pointer text-sm text-gray-300'>@{user.username || 'username'}</span>
+
+              <div className="text-center flex flex-col gap-0.5">
+                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-100">{user.name || 'Core Account Developer'}</h1>
+                <p className="text-sm font-medium text-indigo-400">@{user.username || 'username'}</p>
               </div>
             </div>
 
-            <div className='text-gray-400 mb-6'>{user.bio || 'Add Bio'}</div>
+            <p className="text-slate-400 text-sm text-center leading-relaxed max-w-md mx-auto my-4 border-t border-b border-white/5 py-3">
+              {user.bio || 'Add account bio text infrastructure...'}
+            </p>
 
-            <div className='flex justify-around mb-4'>
-              <div className="text-center">
-                <p className="text-lg font-bold text-indigo-400">{productivityScore}%</p>
-                <p className="text-xs text-gray-400">Productivity</p>
+            <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-5">
+              <div className="text-center p-2.5 bg-slate-950/40 rounded-xl border border-white/5">
+                <p className="text-xl font-bold text-indigo-400">{scores.productivity}%</p>
+                <p className="text-[11px] uppercase font-bold tracking-wide text-slate-400 mt-0.5">Productivity</p>
               </div>
-
-              <div className="text-center">
-                <p className="text-lg font-bold text-green-400">{disciplineScore}%</p>
-                <p className="text-xs text-gray-400">Discipline</p>
+              <div className="text-center p-2.5 bg-slate-950/40 rounded-xl border border-white/5">
+                <p className="text-xl font-bold text-emerald-400">{scores.discipline}%</p>
+                <p className="text-[11px] uppercase font-bold tracking-wide text-slate-400 mt-0.5">Discipline</p>
               </div>
             </div>
 
-            <GradientButton className="w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]">
-              <UserPlus2 size={20} />
-              <span>Connect</span>
+            <GradientButton className="w-full shadow-md shadow-indigo-600/10">
+              <UserPlus2 size={16} />
+              <span>Connect Distributed Teams</span>
             </GradientButton>
-
           </Card>
-
         </motion.div>
 
-
-        <div className='rounded-2xl p-6 mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]'>
-
-          {/* Clock Widget & Focus Room */}
-          <div className="mb-6">
-            <ClockWidget />
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-
-            <StatCard
-              title="Productivity"
-              value={`${productivityScore}%`}
-              icon={<Zap size={24} />}
-              // trend={{positive: false, value: 20}}
-              data-testid="productivity-score-card"
-            />
-            <StatCard
-              title="Discipline"
-              value={`${disciplineScore}%`}
-              icon={<TrendingUp size={24} />}
-              data-testid="discipline-score-card"
-            />
-            <StatCard
-              title="Active Goals"
-              value={goals.length.toString()}
-              icon={<Target size={24} />}
-              data-testid="active-goals-card"
-            />
-            <StatCard
-              title="Tasks Today"
-              value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
-              icon={<CheckCircle size={24} />}
-              data-testid="tasks-today-card"
+        {/* Central Widgets Pipeline */}
+        <div className="rounded-2xl p-5 mb-6 bg-slate-900/10 border border-white/5 backdrop-blur-2xl shadow-xl">
+          <div className="mb-5"><ClockWidget /></div>
+          
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard title="Productivity" value={`${scores.productivity}%`} icon={<Zap size={20} />} data-testid="productivity-score-card" />
+            <StatCard title="Discipline" value={`${scores.discipline}%`} icon={<TrendingUp size={20} />} data-testid="discipline-score-card" />
+            <StatCard title="Active Goals" value={goals.length.toString()} icon={<Target size={20} />} data-testid="active-goals-card" />
+            <StatCard 
+              title="Tasks Today" 
+              value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length || 0}/${dailyPlan?.plannedTasks.length || 0}`} 
+              icon={<CheckCircle size={20} />} 
+              data-testid="tasks-today-card" 
             />
           </div>
         </div>
 
-
-        {/* Weekly Analytics */}
-        <h2 className="text-xl font-bold text-white mb-4">Weekly Analytics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card className="bg-transparent border cursor-pointer border-white/10 hover:scale-[1.02] transition-all duration-300">
-            <h3 className="text-lg font-semibold text-white mb-4">Productivity Score</h3>
-            <div className="flex justify-center">
-              <DonutChart value={avgProductivity} size={140} color="#7C3AED" label="This Week" />
-            </div>
+        {/* Analytics Charts Infrastructure */}
+        <h2 className="text-lg font-bold text-white tracking-wide mb-4">Weekly Dashboard Trends</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+          <Card className="bg-slate-900/40 border border-white/5 text-center p-4">
+            <h3 className="text-sm font-semibold tracking-wide text-slate-400 text-left mb-4">// Avg Productivity</h3>
+            <div className="flex justify-center"><DonutChart value={averages.productivity} size={130} color="#6366f1" label="Weekly Index" /></div>
           </Card>
 
-          <Card className="bg-transparent border cursor-pointer border-white/10 hover:scale-[1.02] transition-all duration-300">
-            <h3 className="text-lg font-semibold text-white mb-4">Discipline Score</h3>
-            <div className="flex justify-center">
-              <DonutChart value={avgDiscipline} size={140} color="#10B981" label="This Week" />
-            </div>
+          <Card className="bg-slate-900/40 border border-white/5 text-center p-4">
+            <h3 className="text-sm font-semibold tracking-wide text-slate-400 text-left mb-4">// Avg Discipline</h3>
+            <div className="flex justify-center"><DonutChart value={averages.discipline} size={130} color="#10b981" label="Weekly Index" /></div>
           </Card>
 
-          <Card className="bg-transparent border cursor-pointer border-white/10 hover:scale-[1.02] transition-all duration-300">
-            <h3 className="text-lg font-semibold text-white mb-4">Weekly Trend</h3>
-            <ResponsiveContainer width="100%" height={200}>
-              {/* <LineChart data={weeklyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="name" stroke="#9ca3af" style={{ fontSize: '12px' }} />
-                <YAxis stroke="#9ca3af" style={{ fontSize: '12px' }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1f2937',
-                    border: '1px solid #374151',
-                    borderRadius: '8px',
-                    fontSize: '12px'
-                  }}
-                />
-                <Line type="monotone" dataKey="productivity" stroke="#6366f1" strokeWidth={2} />
-                <Line type="monotone" dataKey="discipline" stroke="#10b981" strokeWidth={2} />
-              </LineChart> */}
-              <BarChart data={weeklyData} margin={{ top: 20, right: 0, left: -10, bottom: 0 }} barGap={8} >
+          <Card className="bg-slate-900/40 border border-white/5 p-4 flex flex-col justify-between">
+            <h3 className="text-sm font-semibold tracking-wide text-slate-400 mb-4">// Core Progress Scaling</h3>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={weeklyData} margin={{ top: 15, right: 0, left: -10, bottom: 0 }} barGap={6}>
                 <defs>
-                  {/* Purple Glow (Productivity) */}
-                  <filter id="purpleGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-                    <feMerge>
-                      <feMergeNode in="coloredBlur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
+                  <filter id="purpleGlow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                   </filter>
-
-                  {/* Green Glow (Discipline) */}
-                  <filter id="greenGlow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-                    <feMerge>
-                      <feMergeNode in="coloredBlur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
+                  <filter id="greenGlow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" /><feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                   </filter>
                 </defs>
-                {/* <CartesianGrid strokeDasharray="3 3" stroke="#374151" /> */}
-
-                <XAxis
-                  dataKey="name"
-                  stroke="#9ca3af"
-                  style={{ fontSize: '12px' }}
-                // axisLine={false}
-                // tickLine={false}
-                />
-
-                <YAxis
-                  // stroke="#9ca3af"
-                  // style={{ fontSize: '12px' }}
-                  hide
-                />
-
-                {/* <Tooltip
-                cursor={{ fill: "transparent" }}
-                contentStyle={{
-                  backgroundColor: '#1f2937',
-                  border: '1px solid #374151',
-                  borderRadius: '8px',
-                  // fontSize: '12px'
-                }}
-              /> */}
-
-                {/* <Legend /> */}
-
-                {/* Productivity Bar */}
-                {/* <Bar
-                dataKey="productivity"
-                fill="#6366f1"
-                radius={[6, 6, 0, 0]}
-              /> */}
-
-                {/* Discipline Bar */}
-                {/* <Bar
-                dataKey="discipline"
-                fill="#10b981"
-                radius={[6, 6, 0, 0]}
-              /> */}
-
-                <Bar
-                  dataKey="productivity"
-                  fill="#6366f1"
-                  radius={[10, 10, 10, 10]}
-                  barSize={8}
-                  filter="url(#purpleGlow)"
-                >
-                  <LabelList dataKey="productivity" position="top" fill="#6366f1" style={{ fontSize: '8px' }} />
+                <XAxis dataKey="name" stroke="#64748b" style={{ fontSize: '11px', fontWeight: 500 }} axisLine={false} tickLine={false} />
+                <YAxis hide />
+                <Bar dataKey="productivity" fill="#6366f1" radius={[4, 4, 4, 4]} barSize={6} filter="url(#purpleGlow)">
+                  <LabelList dataKey="productivity" position="top" fill="#818cf8" style={{ fontSize: '9px', fontFamily: 'monospace' }} />
                 </Bar>
-
-                <Bar
-                  dataKey="discipline"
-                  fill="#10b981"
-                  radius={[10, 10, 10, 10]}
-                  barSize={8}
-                  filter="url(#greenGlow)"
-                >
-                  <LabelList dataKey="discipline" position="top" fill="#10b981" style={{ fontSize: '8px' }} />
+                <Bar dataKey="discipline" fill="#10b981" radius={[4, 4, 4, 4]} barSize={6} filter="url(#greenGlow)">
+                  <LabelList dataKey="discipline" position="top" fill="#34d399" style={{ fontSize: '9px', fontFamily: 'monospace' }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </Card>
         </div>
 
-
-        {(importantTasks.length > 0 || behindTasks.length > 0) && (
-          <div className='border-orange-500/30 bg-orange-500/5 backdrop-blur-lg rounded-2xl p-6 shadow-lg items-stretch mb-4'>
-            <div className='flex gap-2 flex-col lg:flex-row'>
-              {/* Important Tasks */}
-              {importantTasks.length > 0 && (
-                <div className="bg-transparent flex-1 p-4">
-                  <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                    {/* <span className="text-orange-400">⭐</span> */}
-                    <Star className="text-orange-400 " size={18} />
-                    Important Tasks
+        {/* Priority Warnings Grid Section */}
+        {(taskFilters.important.length > 0 || taskFilters.behind.length > 0) && (
+          <div className="border border-amber-500/20 bg-amber-500/5 backdrop-blur-xl rounded-2xl p-5 mb-6 shadow-xl">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+              {taskFilters.important.length > 0 && (
+                <div className="p-1">
+                  <h2 className="text-base font-bold text-slate-100 mb-1 flex items-center gap-2">
+                    <Star className="text-amber-400 fill-amber-400/10" size={16} /> Important Tasks
                   </h2>
-                  <p className="text-gray-400 text-sm mb-4">High Priority Tasks, Complete these first.</p>
-                  <div className="space-y-3">
-                    {importantTasks.slice(0, 4).map(task => (
-                      <motion.div key={task.id} whileHover={{ scale: 1.005 }}>
-                        <TaskItem
-                          task={task}
-                          onToggle={toggleTaskCompletion}
-                        />
-                      </motion.div>
+                  <p className="text-slate-400 text-xs mb-4">Complete these high-priority operations inside current execution stacks.</p>
+                  <div className="space-y-2.5">
+                    {taskFilters.important.slice(0, 3).map(task => (
+                      <TaskItem key={task.id} task={task} onToggle={toggleTaskCompletion} />
                     ))}
                   </div>
                 </div>
               )}
 
-              {importantTasks.length > 0 && behindTasks.length > 0 && (
-                <div className="self-stretch border-2 border-red-500/50 rounded-full opacity-0 lg:opacity-100"></div>)}
-
-              {/* Behind Tasks */}
-              {behindTasks.length > 0 && (
-                <div className="bg-transparent flex-1 p-4">
-                  <h2 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-                    <AlertTriangle className="text-red-400" size={18} /> Deadline Expired
+              {taskFilters.behind.length > 0 && (
+                <div className="p-1 border-t lg:border-t-0 lg:border-l border-white/5 lg:pl-6">
+                  <h2 className="text-base font-bold text-slate-100 mb-1 flex items-center gap-2">
+                    <AlertTriangle className="text-rose-400" size={16} /> Latency Expired
                   </h2>
-                  <p className="text-gray-400 text-sm mb-4">Act fast on these tasks, You are already running late.</p>
-                  <div className="space-y-3">
-                    {behindTasks.slice(0, 4).map(task => (
-                      <motion.div key={task.id} whileHover={{ scale: 1.005 }}>
-                        <TaskItem
-                          task={task}
-                          onToggle={toggleTaskCompletion}
-                        />
-                      </motion.div>
+                  <p className="text-slate-400 text-xs mb-4">Urgent corrective action needed; task deadlines have already passed.</p>
+                  <div className="space-y-2.5">
+                    {taskFilters.behind.slice(0, 3).map(task => (
+                      <TaskItem key={task.id} task={task} onToggle={toggleTaskCompletion} />
                     ))}
                   </div>
                 </div>
               )}
             </div>
-            <div className='flex gap-2 w-full mt-4 pt-4'>
-              <Link to="/focus-room" className='flex-1'>
-                <GradientButton className="w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]" data-testid="focus-room-cta">
-                  <span>Enter Focus Room</span>
-                  <ArrowRight size={20} />
+            
+            <div className="flex gap-4 mt-5 pt-3 border-t border-white/5">
+              <Link to="/focus-room" className="flex-1">
+                <GradientButton className="w-full text-xs" data-testid="focus-room-cta">
+                  <span>Enter Focus Room</span> <ArrowRight size={14} />
                 </GradientButton>
               </Link>
-              <Link to="/trackers/daily-tasks" className='flex-1'>
-                <GradientButton className='w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]' data-testid="plan-now-btn">
-                  <span>Add To Today's Plan</span> <ArrowRight size={20} />
-                </GradientButton>
-              </Link>
-            </div>
-          </div>)}
-
-        {/* Today's Tasks */}
-        {hasPlannedTasks && pendingPlannedTasks.length > 0 ? (
-          <Card className="mb-6 bg-white/5 border border-white/10 backdrop-blur-lg shadow-[0_0_40px_rgba(99,102,241,0.2)]">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">Today's Planned Tasks</h2>
-              <Link to="/trackers/daily-tasks" className="text-indigo-400 hover:text-indigo-300 text-sm">
-                View All
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {pendingPlannedTasks.slice(0, 5).map((item, index) => (
-                <motion.div
-                  key={item.id}
-                  whileHover={{ scale: 1.02 }}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-indigo-500/50 transition-all"
-                  data-testid={`planned-task-${item.id}`}
-                >
-                  <div className="flex items-start gap-3">
-                    {/* Time */}
-                    <div className="text-center min-w-[60px]">
-                      <p className="text-xs text-indigo-400 font-semibold">{item.startTime}</p>
-                      <p className="text-xs text-gray-500">{item.endTime}</p>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <h4 className={`font-medium ${item.completed ? 'line-through text-gray-500' : 'text-white'}`}>
-                            {item.title}
-                          </h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className={`text-xs px-2 py-0.5 rounded-full border ${item.source === 'task'
-                              ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                              : item.source === 'habit'
-                                ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                                : 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-                              }`}>
-                              {item.source === 'task' ? 'Task' : item.source === 'habit' ? 'Habit' : 'Manual'}
-                            </span>
-                            {item.isImportant && (
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                                Important
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Completion Toggle */}
-                        <button
-                          onClick={() => toggleDailyPlanTaskCompletion(item.id)}
-                          className={`p-2 rounded-lg transition-all ${item.completed
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-gray-700/50 text-gray-400 hover:bg-green-500/20 hover:text-green-400'
-                            }`}
-                          data-testid={`toggle-planned-task-${item.id}`}
-                        >
-                          <CheckCircle size={20} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-              <div className='flex gap-2 w-full h-full justify-between mt-4'>
-                <Link to="/focus-room">
-                  <GradientButton className="w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]" data-testid="focus-room-cta">
-                    <span>Enter Focus Room</span>
-                    <ArrowRight size={20} />
-                  </GradientButton>
-                </Link>
-                <Link to="/trackers/daily-tasks">
-                  <GradientButton className='flex items-center' data-testid="plan-now-btn">
-                    Plan Ahead
-                  </GradientButton>
-                </Link>
-              </div>
-            </div>
-          </Card>
-        ) : hasPlannedTasks && pendingPlannedTasks.length == 0 ? (
-          <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
-            <div className="text-center py-8">
-              <LucideTrophy size={48} className="text-indigo-400 mx-auto mb-3 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]" />
-              <h3 className="text-xl font-bold text-white mb-2">"Hooray !!"</h3>
-              <h3 className="text-xl font-bold text-white mb-2">All tasks for today is completed.</h3>
-              <p className="text-gray-400 mb-4">
-                Plan Ahead, Keep pushing yourself...
-              </p>
-              <Link to="/trackers/daily-tasks">
-                <GradientButton data-testid="plan-now-btn">
-                  Plan Ahead
+              <Link to="/trackers/daily-tasks" className="flex-1">
+                <GradientButton className="w-full text-xs" data-testid="plan-now-btn">
+                  <span>Modify Today's Buffer</span> <ArrowRight size={14} />
                 </GradientButton>
               </Link>
             </div>
-          </Card>
-        ) : !hasPlannedTasks && (
-          <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
-            <div className="text-center py-8">
-              <CalendarDays size={48} className="text-indigo-400 mx-auto mb-3 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]" />
-              <h3 className="text-xl font-bold text-white mb-2">Plan Your Day to Stay Productive</h3>
-              <p className="text-gray-400 mb-4">
-                Create a structured daily plan to maximize your productivity
-              </p>
-              <Link to="/trackers/daily-tasks">
-                <GradientButton data-testid="plan-now-btn">
-                  Plan Now
-                </GradientButton>
-              </Link>
-            </div>
-          </Card>
+          </div>
         )}
 
+        {/* Render Dynamic Task Layout Module Container */}
+        {renderPlannedTasksSection()}
 
-        {/* Goals Progress */}
-        {goals.length > 0 && (
+        {/* Lower Entity Progress Tracks Mapping */}
+        {slices.goals.length > 0 && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">Goals Progress</h2>
-              <Link to="/trackers/goals" className="text-indigo-400 hover:text-indigo-300 text-sm">
-                View All <ArrowRight size={16} className="inline" />
+              <h2 className="text-lg font-bold text-white tracking-wide">Goals Framework</h2>
+              <Link to="/trackers/goals" className="text-indigo-400 hover:text-indigo-300 text-xs font-semibold flex items-center gap-1 transition-all">
+                View Tracking Node <ArrowRight size={12} />
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {topGoals.map((goal, index) => (
-                <motion.div
-                  key={goal.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <GoalCard
-                    key={goal.id}
-                    goal={goal}
-                    progress={calculateGoalProgress(goal.id)}
-                    onClick={() => { }}
-                  />
+              {slices.goals.map((goal, idx) => (
+                <motion.div key={goal.id} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} viewport={{ once: true }}>
+                  <GoalCard goal={goal} progress={calculateGoalProgress(goal.id)} onClick={() => {}} />
                 </motion.div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Projects Progress */}
-        {projects.length > 0 && (
+        {slices.projects.length > 0 && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">Projects Progress</h2>
-              <Link to="/trackers/projects" className="text-indigo-400 hover:text-indigo-300 text-sm">
-                View All <ArrowRight size={16} className="inline" />
+              <h2 className="text-lg font-bold text-white tracking-wide">Projects Architecture</h2>
+              <Link to="/trackers/projects" className="text-indigo-400 hover:text-indigo-300 text-xs font-semibold flex items-center gap-1 transition-all">
+                View Repositories <ArrowRight size={12} />
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {topProjects.map((project, index) => {
+              {slices.projects.map((project, idx) => {
                 const linkedGoal = goals.find(g => g.id === project.goalId);
                 return (
-                  <motion.div
-                    key={project.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <ProjectCard
-                      key={project.id}
-                      project={project}
-                      progress={calculateProjectProgress(project.id)}
-                      linkedGoal={linkedGoal?.title}
-                      onClick={() => { }}
-                    />
+                  <motion.div key={project.id} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} viewport={{ once: true }}>
+                    <ProjectCard project={project} progress={calculateProjectProgress(project.id)} linkedGoal={linkedGoal?.title} onClick={() => {}} />
                   </motion.div>
                 );
               })}
@@ -635,106 +462,91 @@ const Dashboard = () => {
           </div>
         )}
 
-        {/* Habits */}
-        {habits.length > 0 && (
+        {slices.habits.length > 0 && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">Habits</h2>
-              <Link to="/trackers/habits" className="text-indigo-400 hover:text-indigo-300 text-sm">
-                View All <ArrowRight size={16} className="inline" />
+              <h2 className="text-lg font-bold text-white tracking-wide">System Compilers (Habits)</h2>
+              <Link to="/trackers/habits" className="text-indigo-400 hover:text-indigo-300 text-xs font-semibold flex items-center gap-1 transition-all">
+                View Trackers <ArrowRight size={12} />
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {topHabits.map((habit, index) => (
-                <motion.div
-                  key={habit.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  onClick={() => navigate('/trackers/habits')}
-                >
-                  <HabitCard key={habit.id} habit={habit} />
+              {slices.habits.map((habit, idx) => (
+                <motion.div key={habit.id} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} viewport={{ once: true }} onClick={() => navigate('/trackers/habits')}>
+                  <HabitCard habit={habit} />
                 </motion.div>
               ))}
             </div>
           </div>
         )}
 
-        {/* FutureTwin CTA */}
-        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-white mb-2">Doubt on Self ? Ask Your Twin...</h2>
-            <p className="text-gray-300 mb-4">Use FutureTwin to predict outcomes and optimize your decisions.</p>
-            <Link to="/future-twin">
-              <GradientButton data-testid="future-twin-cta">
-                Question your FutureTwin
-              </GradientButton>
-            </Link>
-          </div>
+        {/* FutureTwin Prediction Prompt Section */}
+        <Card className="bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-xl p-6 text-center">
+          <h2 className="text-xl font-bold text-white tracking-wide mb-1.5">Algorithmic Vector Processing (FutureTwin)</h2>
+          <p className="text-slate-400 text-sm max-w-md mx-auto mb-5">Query your localized FutureTwin array configuration parameters to predict state updates and outcomes ahead of release dates.</p>
+          <Link to="/future-twin">
+            <GradientButton data-testid="future-twin-cta">Initiate FutureTwin Query</GradientButton>
+          </Link>
         </Card>
       </div>
 
-      {/* Edit Profile Modal */}
-      <Modal isOpen={showEditProfile} onClose={() => setShowEditProfile(false)} title="Edit Profile Info">
+      {/* Edit Profile Meta Data Modal */}
+      <Modal isOpen={showEditProfile} onClose={() => setShowEditProfile(false)} title="Edit Configuration Core">
         <form onSubmit={handleEditProfile} className="space-y-4">
           <InputField
-            label="Name (Full Name)"
+            label="Name (Full Identity Header)"
             value={newProfile.name}
             onChange={(e) => setNewProfile({ ...newProfile, name: e.target.value })}
-            placeholder="Enter Full Name"
+            placeholder="Enter Name String"
             required
             data-testid="profile-name-input"
           />
           <InputField
-            label="Username"
+            label="Namespace Handle"
             value={newProfile.username}
             onChange={(e) => setNewProfile({ ...newProfile, username: e.target.value })}
-            placeholder="Username"
+            placeholder="Username mapping"
             required
             data-testid="profile-username-input"
           />
-
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Bio</label>
+            <label className="block text-slate-300 text-xs font-bold uppercase tracking-wider mb-2">Account Bio Infrastructure</label>
             <textarea
               value={newProfile.bio}
               onChange={(e) => setNewProfile({ ...newProfile, bio: e.target.value })}
-              placeholder="Say something intresting about you..."
+              placeholder="State structural summary constraints details..."
               data-testid="profile-bio-input"
               required
-              className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[100px]"
+              className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-all min-h-[100px] resize-none leading-relaxed"
             />
           </div>
-
           <GradientButton type="submit" className="w-full" data-testid="submit-new-profile-btn">
-            Save Changes
+            Save Structural Changes
           </GradientButton>
         </form>
       </Modal>
 
-      <Modal isOpen={showEditProfilePic} onClose={() => setShowEditProfilePic(false)} title="Change Profile Picture">
-        <form onSubmit={handleEditProfilePic} className="space-y-4">
-          {/* Profile Picture */}
-          <div className='flex flex-col gap-3 items-center'>
-            <label htmlFor="profile_picture" className='block text-gray-300 text-sm font-medium mb-2'>
-              Click to upload
-              <input hidden type="file" accept='image/*' id='profile_picture' className='w-full p-3 border border-gray-200 rounded-lg' onChange={(e) => setNewProfilePic(e.target.files[0])} />
+      {/* Profile Picture Upload Buffer Modal */}
+      <Modal isOpen={showEditProfilePic} onClose={() => setShowEditProfilePic(false)} title="Change Matrix Avatar">
+        <form onSubmit={handleEditProfilePic} className="space-y-5 text-center">
+          <div className="flex flex-col items-center justify-center">
+            <label htmlFor="profile_picture" className="block text-slate-400 text-sm cursor-pointer group/label">
+              <span className="font-semibold text-indigo-400 group-hover/label:underline">Click to upload image block</span>
+              <input hidden type="file" accept="image/*" id="profile_picture" onChange={(e) => setNewProfilePic(e.target.files[0])} />
 
-              <div className='group/profile relative'>
-                <img src={newProfilePic ? URL.createObjectURL(newProfilePic) : user.profile_picture || profile_pic} alt="" className='w-24 h-24 rounded-full object-cover mt-2' />
-                <div className='absolute hidden cursor-pointer group-hover/profile:flex top-0 left-0 right-0 bottom-0 bg-black/20 rounded-full items-center justify-center'>
-                  <Pencil className='w-5 h-5 text-white' />
+              <div className="relative w-24 h-24 mx-auto mt-4 rounded-full border border-white/5 shadow-inner flex items-center justify-center overflow-hidden">
+                <img src={newProfilePic ? URL.createObjectURL(newProfilePic) : user.profile_picture || profile_pic} alt="Preview payload container" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <Pencil className="w-4 h-4 text-white" />
                 </div>
               </div>
             </label>
           </div>
-
           <GradientButton type="submit" className="w-full" data-testid="submit-new-profile-picture-btn">
-            Upload
+            Commit Avatar Buffer
           </GradientButton>
         </form>
       </Modal>
-
     </div>
   );
 };

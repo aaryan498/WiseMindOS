@@ -1,39 +1,40 @@
-import { useState, useEffect } from 'react';
-import { Play, Pause, RotateCcw, CheckCircle2, CalendarDays, LucideTrophy } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Pause, RotateCcw, CheckCircle2, CalendarDays, LucideTrophy, Brain } from 'lucide-react';
 import { useApp } from '../../store/AppContext';
+
 import Card from '../../components/Card';
-import { motion } from 'framer-motion'
 import Bag from '../../components/Bag';
 import GradientButton from '../../components/GradientButton';
-import { Link } from 'react-router-dom';
 
 const FocusRoom = () => {
-  const { dailyPlan, toggleDailyPlanTaskCompletion, navigate } = useApp();
+  const { dailyPlan, toggleDailyPlanTaskCompletion } = useApp();
 
-  // Pomodoro Timer State
+  // Pomodoro Timer State Machine
   const [minutes, setMinutes] = useState(25);
   const [seconds, setSeconds] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [mode, setMode] = useState('work'); // work, shortBreak, longBreak
   const [pomodoroCount, setPomodoroCount] = useState(0);
 
+  // Intentional Countdown Timer Orchestration Core Engine
   useEffect(() => {
     let interval = null;
     if (isActive) {
       interval = setInterval(() => {
         if (seconds === 0) {
           if (minutes === 0) {
-            // Timer complete
             handleTimerComplete();
           } else {
-            setMinutes(minutes - 1);
+            setMinutes(prev => prev - 1);
             setSeconds(59);
           }
         } else {
-          setSeconds(seconds - 1);
+          setSeconds(prev => prev - 1);
         }
       }, 1000);
-    } else if (!isActive && seconds !== 0) {
+    } else {
       clearInterval(interval);
     }
     return () => clearInterval(interval);
@@ -46,7 +47,7 @@ const FocusRoom = () => {
       const newCount = pomodoroCount + 1;
       setPomodoroCount(newCount);
 
-      // After 4 pomodoros, long break
+      // Automated State Transitions logic check
       if (newCount % 4 === 0) {
         setMode('longBreak');
         setMinutes(15);
@@ -58,21 +59,17 @@ const FocusRoom = () => {
       setMode('work');
       setMinutes(25);
     }
-
     setSeconds(0);
 
-    // Play notification sound (optional)
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('Timer Complete!', {
-        body: mode === 'work' ? 'Time for a break!' : 'Time to work!',
+      new Notification('Workspace Notification Reset!', {
+        body: mode === 'work' ? 'Time for an optimization break!' : 'Break finalized. Initialize deep work cycle!',
       });
     }
   };
 
   const toggleTimer = () => {
     setIsActive(!isActive);
-
-    // Request notification permission
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
@@ -95,263 +92,223 @@ const FocusRoom = () => {
     else setMinutes(15);
   };
 
-  // Get today's planned tasks from dailyPlan
-  const todayPlannedTasks = dailyPlan?.plannedTasks || [];
-  const pendingPlannedTasks = todayPlannedTasks.filter(t => !t.completed).slice(0, 8);
-  const hasPlannedTasks = todayPlannedTasks.length > 0;
+  // Performance Memoizations for Credentials Context
+  const taskData = useMemo(() => {
+    const todayPlanned = dailyPlan?.plannedTasks || [];
+    return {
+      todayPlanned,
+      pendingPlanned: todayPlanned.filter(t => !t.completed).slice(0, 8),
+      hasPlanned: todayPlanned.length > 0
+    };
+  }, [dailyPlan]);
 
-  const getModeColor = () => {
-    if (mode === 'work') return 'from-red-600 to-orange-600';
-    if (mode === 'shortBreak') return 'from-green-600 to-emerald-600';
-    return 'from-blue-600 to-cyan-600';
+  const modeMetadata = useMemo(() => {
+    switch (mode) {
+      case 'shortBreak':
+        return { text: 'Short Break Buffer', color: 'from-emerald-600 to-teal-600 shadow-emerald-500/10' };
+      case 'longBreak':
+        return { text: 'Extended Rest Cycle', color: 'from-blue-600 to-indigo-600 shadow-indigo-500/10' };
+      default:
+        return { text: 'Deep Focus Execution', color: 'from-rose-600 to-orange-600 shadow-rose-500/10' };
+    }
+  }, [mode]);
+
+  // Static badge stylistic mapping layout dictionary
+  const sourceBadgeMap = {
+    task: { label: 'Task', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' },
+    habit: { label: 'Habit', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+    manual: { label: 'Manual', color: 'bg-purple-500/10 text-purple-400 border-purple-500/20' }
   };
 
-  const getModeText = () => {
-    if (mode === 'work') return 'Focus Time';
-    if (mode === 'shortBreak') return 'Short Break';
-    return 'Long Break';
-  };
+  // Sub-view component layout routing pipeline
+  const renderTasksSidebar = () => {
+    const { hasPlanned, pendingPlanned } = taskData;
 
-  const getSourceBadge = (source) => {
-    if (source === 'task') return { label: 'Task', color: 'bg-blue-500/20 text-blue-400' };
-    if (source === 'habit') return { label: 'Habit', color: 'bg-green-500/20 text-green-400' };
-    return { label: 'Manual', color: 'bg-purple-500/20 text-purple-400' };
+    if (hasPlanned && pendingPlanned.length > 0) {
+      return (
+        <div className="space-y-2.5 max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
+          {pendingPlanned.map((item, index) => (
+            <motion.div
+              key={item.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.04 }}
+              className="p-3.5 bg-slate-900/40 rounded-xl border border-white/5 hover:border-indigo-500/30 transition-all flex items-start justify-between gap-3"
+              data-testid={`focus-task-${item.id}`}
+            >
+              <div className="flex items-start gap-3 min-w-0">
+                <span className="text-xs text-indigo-400 font-mono font-bold pt-0.5 shrink-0">
+                  {item.startTime}
+                </span>
+                <div className="min-w-0">
+                  <h4 className={`text-sm font-medium tracking-wide truncate ${item.completed ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+                    {item.title}
+                  </h4>
+                  <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded border mt-2 inline-block ${
+                    sourceBadgeMap[item.source]?.color || sourceBadgeMap.manual.color
+                  }`}>
+                    {sourceBadgeMap[item.source]?.label || sourceBadgeMap.manual.label}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => toggleDailyPlanTaskCompletion(item.id)}
+                className={`p-1.5 rounded-lg transition-colors shrink-0 cursor-pointer ${
+                  item.completed ? 'text-emerald-400 bg-emerald-500/10' : 'text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/5'
+                }`}
+                data-testid={`toggle-focus-task-${item.id}`}
+              >
+                <CheckCircle2 size={16} />
+              </button>
+            </motion.div>
+          ))}
+        </div>
+      );
+    }
+
+    if (!hasPlanned) {
+      return (
+        <Card className="bg-slate-950/40 border border-white/5 text-center py-8 px-4">
+          <CalendarDays size={38} className="text-indigo-400 mx-auto mb-3 drop-shadow-[0_0_12px_rgba(99,102,241,0.3)]" />
+          <h3 className="text-base font-bold text-slate-200 tracking-wide">Empty Routine Flow</h3>
+          <p className="text-slate-400 text-xs mt-1.5 mb-5 leading-relaxed">No custom schedule parameters exist for today's index layout.</p>
+          <Link to="/trackers/daily-tasks" className="block w-full">
+            <GradientButton data-testid="plan-now-btn" className="w-full text-xs py-2.5">Allocate System Schedule</GradientButton>
+          </Link>
+        </Card>
+      );
+    }
+
+    return (
+      <Card className="bg-slate-950/40 border border-white/5 text-center py-8 px-4">
+        <LucideTrophy size={38} className="text-amber-400 mx-auto mb-3 drop-shadow-[0_0_12px_rgba(245,158,11,0.3)] animate-pulse" />
+        <h3 className="text-base font-bold text-slate-200 tracking-wide">Stack Tasks Completed!</h3>
+        <p className="text-slate-400 text-xs mt-1.5 mb-5 leading-relaxed">Every localized schedule item allocation block has computed successfully.</p>
+        <Link to="/trackers/daily-tasks" className="block w-full">
+          <GradientButton data-testid="plan-now-btn" className="w-full text-xs py-2.5">Extend Strategy Buffer</GradientButton>
+        </Link>
+      </Card>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-black pb-20 px-4 pt-6 relative overflow-hidden selection:bg-indigo-500/30">
+      
+      {/* Dynamic Background Light Fields */}
       <motion.div
-        className="absolute top-10 left-10 w-72 h-72 bg-red-500 rounded-full blur-3xl opacity-10"
-        animate={{ x: [0, 30, 0], y: [0, 20, 0] }}
-        transition={{ duration: 12, repeat: Infinity }}
+        className="absolute top-10 left-10 w-72 h-72 bg-rose-600 rounded-full blur-[130px] opacity-10 pointer-events-none"
+        animate={{ x: [0, 20, 0], y: [0, 15, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute bottom-10 right-10 w-72 h-72 bg-indigo-600 rounded-full blur-[130px] opacity-10 pointer-events-none"
+        animate={{ x: [0, -20, 0], y: [0, -15, 0] }}
+        transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      <motion.div
-        className="absolute bottom-10 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-10"
-        animate={{ x: [0, -30, 0], y: [0, -20, 0] }}
-        transition={{ duration: 14, repeat: Infinity }}
-      />
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
+      <div className="max-w-5xl mx-auto relative z-10">
+        
+        {/* Core Section Workspace Header */}
+        <div className="text-center mb-8 px-1">
           <motion.h1
-            className="text-3xl md:text-4xl young-serif-regular font-extrabold text-white mb-2"
-            animate={{
-              textShadow: [
-                "0px 0px 0px rgba(99,102,241,0)",
-                "0px 0px 15px rgba(99,102,241,0.6)",
-                "0px 0px 0px rgba(99,102,241,0)"
-              ]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
+            className="text-2xl md:text-3xl font-extrabold text-slate-100 tracking-tight mb-1.5"
+            animate={{ textShadow: ["0px 0px 0px rgba(99,102,241,0)", "0px 0px 20px rgba(99,102,241,0.4)", "0px 0px 0px rgba(99,102,241,0)"] }}
+            transition={{ duration: 4, repeat: Infinity }}
           >
             Focus Room
           </motion.h1>
-          <p className="text-gray-400">Minimize distractions, maximize productivity</p>
+          <p className="text-slate-400 text-xs font-medium">Minimize multi-thread system alerts, lock deep execution parameters.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Timer Section */}
-          <div className="lg:col-span-2">
-            <Card className="relative overflow-hidden text-center bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
-              {/* Mode Selector */}
-              <div className="flex justify-center gap-2 mb-6">
-                <button
-                  onClick={() => switchMode('work')}
-                  className={`px-4 py-2 rounded-lg border cursor-pointer border-white/10 transition-all duration-300 ${mode === 'work'
-                    ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          
+          {/* Main Visual Clock Countdown Interface Dashboard */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card className="bg-slate-900/40 border border-white/5 backdrop-blur-2xl p-5 shadow-2xl shadow-black/40 text-center">
+              
+              {/* Context Mode Tab Selection Interface Links */}
+              <div className="flex p-1 bg-slate-950/50 border border-white/5 rounded-xl max-w-sm mx-auto mb-6">
+                {['work', 'shortBreak', 'longBreak'].map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => switchMode(m)}
+                    className={`flex-1 py-1.5 text-[11px] font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                      mode === m
+                        ? m === 'work' ? 'bg-rose-600 text-white shadow-md shadow-rose-600/10' :
+                          m === 'shortBreak' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/10' :
+                          'bg-indigo-600 text-white shadow-md shadow-indigo-600/10'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
                     }`}
-                  data-testid="mode-work"
-                >
-                  Work
-                </button>
-                <button
-                  onClick={() => switchMode('shortBreak')}
-                  className={`px-4 py-2 rounded-lg border cursor-pointer border-white/10 transition-all duration-300 ${mode === 'shortBreak'
-                    ? 'bg-green-600 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  data-testid="mode-short-break"
-                >
-                  Short Break
-                </button>
-                <button
-                  onClick={() => switchMode('longBreak')}
-                  className={`px-4 py-2 rounded-lg border cursor-pointer border-white/10 transition-all duration-300 ${mode === 'longBreak'
-                    ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(59,130,246,0.5)]'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  data-testid="mode-long-break"
-                >
-                  Long Break
-                </button>
+                    data-testid={`mode-${m}`}
+                  >
+                    {m === 'work' ? 'Work' : m === 'shortBreak' ? 'Short' : 'Long'}
+                  </button>
+                ))}
               </div>
 
-              {/* Timer Display */}
-              <motion.div
-                animate={{ scale: isActive ? [1, 1.02, 1] : 1 }}
-                transition={{ duration: 1, repeat: isActive ? Infinity : 0 }}
-              >
-                {/* Timer */}
-
-                <div className={`bg-gradient-to-r flex flex-col items-center ${getModeColor()} rounded-2xl p-12 mb-6`}>
-                  <p className="text-white text-xl mb-4">{getModeText()}</p>
-                  <div className="text-8xl font-bold text-white mb-4" data-testid="timer-display">
+              {/* Dynamic Countdown Display Wrapper */}
+              <motion.div animate={{ scale: isActive ? [1, 1.01, 1] : 1 }} transition={{ duration: 2, repeat: isActive ? Infinity : 0 }}>
+                <div className={`bg-gradient-to-br shadow-xl ${modeMetadata.color} rounded-2xl p-8 md:p-12 mb-6 text-center select-none`}>
+                  <span className="text-xs font-bold uppercase tracking-widest text-white/70 bg-black/10 px-3 py-1 rounded-full border border-white/5">{modeMetadata.text}</span>
+                  <div className="text-7xl md:text-8xl font-black font-mono tracking-tighter text-white mt-6 mb-4 drop-shadow-md" data-testid="timer-display">
                     {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
                   </div>
-                  <p className="text-white mt-4 text-sm">
-                    Completed Sessions: <span className="text-white font-semibold">{pomodoroCount}</span>
+                  <p className="text-xs font-semibold text-white/60 tracking-wide mt-2">
+                    Cycles Finalized: <span className="text-white font-bold font-mono">{pomodoroCount}</span>
                   </p>
                 </div>
               </motion.div>
 
-              {/* Timer Controls */}
-              <div className="flex justify-center gap-4">
+              {/* Interactive Dashboard Engine Execution Keys */}
+              <div className="flex justify-center items-center gap-4">
                 <button
                   onClick={toggleTimer}
                   data-testid="timer-toggle"
-                  className={`bg-gradient-to-r ${getModeColor()} hover:opacity-90 text-white px-8 py-4 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.5)] 
-hover:scale-105 cursor-pointer active:scale-95 transition-all flex items-center gap-2 text-lg font-semibold`}
+                  className={`bg-gradient-to-r ${modeMetadata.color} hover:contrast-125 text-white px-8 py-3.5 rounded-xl shadow-lg transition-all duration-200 hover:-translate-y-0.5 active:scale-95 cursor-pointer flex items-center gap-2 text-base font-bold tracking-wide`}
+                  aria-label={isActive ? "Pause active tracker clock" : "Initiate execution countdown loop"}
                 >
-                  {isActive ? (
-                    <>
-                      <Pause size={24} />
-                      Pause
-                    </>
-                  ) : (
-                    <>
-                      <Play size={24} />
-                      Start
-                    </>
-                  )}
+                  {isActive ? <Pause size={18} strokeWidth={2.5} /> : <Play size={18} strokeWidth={2.5} />}
+                  <span>{isActive ? 'Pause' : 'Start'}</span>
                 </button>
                 <button
                   onClick={resetTimer}
                   data-testid="timer-reset"
-                  className="bg-gray-700 hover:bg-gray-600 text-white px-6 py-4 rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.5)] 
-hover:scale-110 active:scale-95 cursor-pointer transition-all"
+                  className="bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white p-3.5 rounded-xl transition-all duration-200 hover:rotate-180 cursor-pointer border border-white/5 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  aria-label="Flush counter boundaries to base configuration"
                 >
-                  <RotateCcw size={24} />
+                  <RotateCcw size={18} />
                 </button>
               </div>
             </Card>
 
-            {/* Notes Section */}
-            {/* Focus Workspace */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mt-6"
-            >
-
-              {/* 🧠 BAG (MAIN AREA) */}
-              <div>
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-[0_0_40px_rgba(99,102,241,0.15)] min-h-[92vh] flex flex-col">
-
-                  <div className="flex justify-between items-center mb-3">
-                    <h2 className="text-white text-lg font-semibold">
-                      Focus Notes
-                    </h2>
-                    <span className="text-xs text-gray-400">
-                      Deep Work Mode
-                    </span>
-                  </div>
-
-                  {/* Bag */}
-                  <div className="flex-1 min-h-0">
-                    <Bag />
-                  </div>
-
+            {/* Markdown Workspace Textarea Extension Module Container */}
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <div className="bg-slate-900/40 border border-white/5 backdrop-blur-2xl rounded-2xl p-5 shadow-xl flex flex-col min-h-[500px]">
+                <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-3">
+                  <h2 className="text-slate-200 text-sm font-bold tracking-wide flex items-center gap-2">
+                    <Brain size={14} className="text-indigo-400" /> Focus Workspace Logs
+                  </h2>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-slate-500">Isolation Layer Active</span>
+                </div>
+                <div className="flex-1 min-h-0">
+                  <Bag />
                 </div>
               </div>
             </motion.div>
           </div>
 
-          {/* Today's Tasks */}
+          {/* Today's Tasks Tracking Sidebar Module Panel */}
           <div className="lg:col-span-1">
-            <Card className='bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_40px_rgba(99,102,241,0.15)]'>
-
-              <h2 className="text-xl font-bold text-white mb-4">Today's Planned Tasks</h2>
-              {hasPlannedTasks && pendingPlannedTasks.length > 0 ? (
-                <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                  {pendingPlannedTasks.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="p-3 bg-white/5 rounded-lg border border-white/10 hover:border-indigo-500/50 transition-all"
-                      data-testid={`focus-task-${item.id}`}
-                    >
-
-                      <div className="flex items-start gap-2">
-                        {/* Time */}
-                        <div className="text-center min-w-[50px]">
-                          <p className="text-xs text-indigo-400 font-semibold">{item.startTime}</p>
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1">
-                          <h4 className={`text-sm font-medium ${item.completed ? 'line-through text-gray-500' : 'text-white'}`}>
-                            {item.title}
-                          </h4>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${getSourceBadge(item.source).color} inline-block mt-1`}>
-                            {getSourceBadge(item.source).label}
-                          </span>
-                        </div>
-
-                        {/* Completion Toggle */}
-                        <button
-                          onClick={() => toggleDailyPlanTaskCompletion(item.id)}
-                          className={`p-2 rounded-lg transition-all flex-shrink-0 ${item.completed
-                            ? 'bg-green-500/20 text-green-400'
-                            : 'bg-gray-700/50 text-gray-400 hover:bg-green-500/20 hover:text-green-400'
-                            }`}
-                          data-testid={`toggle-focus-task-${item.id}`}
-                        >
-                          <CheckCircle2 size={18} />
-                        </button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              ) : !hasPlannedTasks ? (
-                <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
-                  <div className="text-center py-8">
-                    <CalendarDays size={48} className="text-indigo-400 mx-auto mb-3 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]" />
-                    <h3 className="text-xl font-bold text-white mb-2">Plan Your Day to Stay Productive</h3>
-                    <p className="text-gray-400 mb-4">
-                      Create a structured daily plan to maximize your productivity
-                    </p>
-                    <Link to="/trackers/daily-tasks">
-                      <GradientButton data-testid="plan-now-btn">
-                        Plan Now
-                      </GradientButton>
-                    </Link>
-                  </div>
-                </Card>
-
-              ) : hasPlannedTasks && pendingPlannedTasks.length == 0 && (
-                <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
-                  <div className="text-center py-8">
-                    <LucideTrophy size={48} className="text-indigo-400 mx-auto mb-3 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]" />
-                    <h3 className="text-xl font-bold text-white mb-2">"Hooray !!"</h3>
-                    <h3 className="text-xl font-bold text-white mb-2">All tasks for today is completed.</h3>
-                    <p className="text-gray-400 mb-4">
-                      Plan Ahead, Keep pushing yourself...
-                    </p>
-                    <Link to="/trackers/daily-tasks">
-                      <GradientButton data-testid="plan-now-btn">
-                        Plan Ahead
-                      </GradientButton>
-                    </Link>
-                  </div>
-                </Card>
-              )}
+            <Card className="bg-slate-900/40 border border-white/5 backdrop-blur-2xl p-5 shadow-2xl shadow-black/40">
+              <div className="mb-5">
+                <h2 className="text-base font-bold text-slate-100 tracking-wide">Target Micro-Nodes</h2>
+                <p className="text-[11px] text-slate-500 mt-0.5">Assigned schedules filtered for the active cycle</p>
+              </div>
+              {renderTasksSidebar()}
             </Card>
           </div>
+
         </div>
       </div>
     </div>
