@@ -10,12 +10,14 @@ import InputField from '../../../components/InputField';
 import Modal from '../../../components/Modal';
 import TaskItem from '../../../components/TaskItem';
 import ProjectCard from '../../../components/ProjectCard';
+import { CardGridSkeleton } from '../../../components/LoadingSkeleton';
 import { motion } from 'framer-motion';
 
 const GoalTracker = () => {
   const navigate = useNavigate();
   const {
     goals,
+    loading,
     addGoal,
     addProject,
     addTask,
@@ -577,7 +579,22 @@ const GoalTracker = () => {
         </motion.div>
 
         {/* Overall Progress */}
-        {goals.length > 0 && (
+        {loading ? (
+          <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="w-full md:w-auto">
+                <div className="h-6 w-44 rounded-lg bg-white/10 animate-pulse mb-3" />
+                <div className="h-4 w-64 max-w-full rounded-lg bg-white/10 animate-pulse" />
+              </div>
+              <div className="h-32 w-32 rounded-full bg-white/10 animate-pulse" />
+              <div className="flex gap-6">
+                <div className="h-12 w-16 rounded-lg bg-white/10 animate-pulse" />
+                <div className="h-12 w-16 rounded-lg bg-white/10 animate-pulse" />
+                <div className="h-12 w-16 rounded-lg bg-white/10 animate-pulse" />
+              </div>
+            </div>
+          </Card>
+        ) : goals.length > 0 && (
           <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
 
@@ -632,7 +649,9 @@ const GoalTracker = () => {
         )}
 
         {/* Goals Grid */}
-        {goals.length > 0 ? (
+        {loading ? (
+          <CardGridSkeleton count={6} columns="lg:grid-cols-3" />
+        ) : goals.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {goals.map(goal => (
               <div onClick={() => handleGoalClick(goal)}>

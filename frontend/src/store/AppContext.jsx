@@ -985,6 +985,7 @@ export const AppProvider = ({ children }) => {
     setToken,
     navigate,
     backendURL,
+    loading,
     goals,
     projects,
     tasks,

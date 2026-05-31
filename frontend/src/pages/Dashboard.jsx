@@ -11,6 +11,7 @@ import ProjectCard from '../components/ProjectCard';
 import TaskItem from '../components/TaskItem';
 import HabitCard from '../components/HabitCard';
 import GradientButton from '../components/GradientButton';
+import { CardGridSkeleton, DashboardStatsSkeleton, PlannerSkeleton } from '../components/LoadingSkeleton';
 import { motion } from 'framer-motion'
 import { useMemo } from 'react';
 import profile_pic from '../assets/profile_pic.svg'
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const {
     goals,
     user,
+    loading,
     projects,
     tasks,
     habits,
@@ -241,34 +243,38 @@ const Dashboard = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {loading ? (
+            <DashboardStatsSkeleton />
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-            <StatCard
-              title="Productivity"
-              value={`${productivityScore}%`}
-              icon={<Zap size={24} />}
-              // trend={{positive: false, value: 20}}
-              data-testid="productivity-score-card"
-            />
-            <StatCard
-              title="Discipline"
-              value={`${disciplineScore}%`}
-              icon={<TrendingUp size={24} />}
-              data-testid="discipline-score-card"
-            />
-            <StatCard
-              title="Active Goals"
-              value={goals.length.toString()}
-              icon={<Target size={24} />}
-              data-testid="active-goals-card"
-            />
-            <StatCard
-              title="Tasks Today"
-              value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
-              icon={<CheckCircle size={24} />}
-              data-testid="tasks-today-card"
-            />
-          </div>
+              <StatCard
+                title="Productivity"
+                value={`${productivityScore}%`}
+                icon={<Zap size={24} />}
+                // trend={{positive: false, value: 20}}
+                data-testid="productivity-score-card"
+              />
+              <StatCard
+                title="Discipline"
+                value={`${disciplineScore}%`}
+                icon={<TrendingUp size={24} />}
+                data-testid="discipline-score-card"
+              />
+              <StatCard
+                title="Active Goals"
+                value={goals.length.toString()}
+                icon={<Target size={24} />}
+                data-testid="active-goals-card"
+              />
+              <StatCard
+                title="Tasks Today"
+                value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
+                icon={<CheckCircle size={24} />}
+                data-testid="tasks-today-card"
+              />
+            </div>
+          )}
         </div>
 
 
@@ -458,7 +464,9 @@ const Dashboard = () => {
           </div>)}
 
         {/* Today's Tasks */}
-        {hasPlannedTasks && pendingPlannedTasks.length > 0 ? (
+        {loading ? (
+          <PlannerSkeleton />
+        ) : hasPlannedTasks && pendingPlannedTasks.length > 0 ? (
           <Card className="mb-6 bg-white/5 border border-white/10 backdrop-blur-lg shadow-[0_0_40px_rgba(99,102,241,0.2)]">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">Today's Planned Tasks</h2>
@@ -574,7 +582,14 @@ const Dashboard = () => {
 
 
         {/* Goals Progress */}
-        {goals.length > 0 && (
+        {loading ? (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">Goals Progress</h2>
+            </div>
+            <CardGridSkeleton />
+          </div>
+        ) : goals.length > 0 && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">Goals Progress</h2>
@@ -603,7 +618,14 @@ const Dashboard = () => {
         )}
 
         {/* Projects Progress */}
-        {projects.length > 0 && (
+        {loading ? (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">Projects Progress</h2>
+            </div>
+            <CardGridSkeleton />
+          </div>
+        ) : projects.length > 0 && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">Projects Progress</h2>

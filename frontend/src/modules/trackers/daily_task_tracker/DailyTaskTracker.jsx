@@ -5,6 +5,7 @@ import Card from '../../../components/Card';
 import DonutChart from '../../../components/DonutChart';
 import GradientButton from '../../../components/GradientButton';
 import InputField from '../../../components/InputField';
+import { PlannerSkeleton } from '../../../components/LoadingSkeleton';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import Modal from '../../../components/Modal';
@@ -13,6 +14,7 @@ import { showToast } from '../../../utils/toastHelper';
 const DailyTaskTracker = () => {
   const {
     tasks,
+    loading,
     habits,
     dailyPlan,
     addToDailyPlan,
@@ -193,6 +195,8 @@ const DailyTaskTracker = () => {
             </div>
           </motion.div>
 
+          {loading && <PlannerSkeleton rows={4} />}
+
           {/* Scores */}
           <div className="grid grid-cols-2 gap-4 mb-6">
             <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
@@ -206,7 +210,7 @@ const DailyTaskTracker = () => {
           </div>
 
           {/* Warning if past 8 AM and no plan */}
-          {currentHour >= 8 && isPlanEmpty && (
+          {!loading && currentHour >= 8 && isPlanEmpty && (
             <Card className="mb-6 bg-orange-900/20 border border-orange-500/30">
               <div className="flex items-center gap-3">
                 <Clock size={24} className="text-orange-400" />
@@ -219,37 +223,39 @@ const DailyTaskTracker = () => {
           )}
 
           {/* Tab Navigation */}
-          <div className="flex gap-2 mb-6">
-            <button
-              onClick={() => {
-                setActiveTab('timeline');
-                setActiveView('timeline');
+          {!loading && (
+            <div className="flex gap-2 mb-6">
+              <button
+                onClick={() => {
+                  setActiveTab('timeline');
+                  setActiveView('timeline');
 
-              }}
-              className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${activeTab === 'timeline'
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                }`}
-              data-testid="timeline-tab"
-            >
-              <ListTodo size={20} className="inline mr-2" />
-              Today's Timeline ({dailyPlan.plannedTasks.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('add')}
-              className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${activeTab === 'add'
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                }`}
-              data-testid="add-tasks-tab"
-            >
-              <Plus size={20} className="inline mr-2" />
-              Add to Plan
-            </button>
-          </div>
+                }}
+                className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${activeTab === 'timeline'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  }`}
+                data-testid="timeline-tab"
+              >
+                <ListTodo size={20} className="inline mr-2" />
+                Today's Timeline ({dailyPlan.plannedTasks.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('add')}
+                className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${activeTab === 'add'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg'
+                  : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  }`}
+                data-testid="add-tasks-tab"
+              >
+                <Plus size={20} className="inline mr-2" />
+                Add to Plan
+              </button>
+            </div>
+          )}
 
           {/* TIMELINE VIEW */}
-          {activeTab === 'timeline' && (
+          {!loading && activeTab === 'timeline' && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -591,7 +597,7 @@ const DailyTaskTracker = () => {
           )}
 
           {/* ADD TO PLAN VIEW */}
-          {activeTab === 'add' && (
+          {!loading && activeTab === 'add' && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
