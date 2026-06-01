@@ -24,16 +24,6 @@ import profile_pic from '../assets/profile_pic.svg';
 const About = () => {
   const teamMembers = [
     {
-      name: 'Akshat Shukla',
-      role: 'Founder & Lead Architect',
-      username: 'akshatshukla',
-      bio: 'Pioneering the future of cognitive systems and modular habit tracking. Dedicated to building platforms that help humans achieve their highest potential.',
-      github: 'https://github.com/Akshatshukla-25',
-      linkedin: 'https://linkedin.com/in/akshat',
-      twitter: 'https://twitter.com/akshat',
-      image: profile_pic,
-    },
-    {
       name: 'Dr. Elena Rostova',
       role: 'AI Research Lead',
       username: 'elenarostova',
@@ -244,7 +234,7 @@ const About = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {teamMembers.map((member, idx) => (
               <motion.div
                 key={idx}
