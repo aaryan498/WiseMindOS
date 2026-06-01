@@ -326,7 +326,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
             <div>
               <h3 className="text-white font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li className="hover:text-white transition cursor-pointer">About</li>
+                <li className="hover:text-white transition cursor-pointer"><Link to="/about">About</Link></li>
                 <li className="hover:text-white transition cursor-pointer">Careers</li>
                 <li className="hover:text-white transition cursor-pointer">Contact</li>
               </ul>
