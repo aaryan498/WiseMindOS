@@ -10,17 +10,17 @@ import InputField from '../../../components/InputField';
 import Modal from '../../../components/Modal';
 import TaskItem from '../../../components/TaskItem';
 import ProjectCard from '../../../components/ProjectCard';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
+import { SkeletonBlock, SkeletonCard, TrackerGridSkeleton } from '../../../components/LoadingSkeleton';
 
 const GoalTracker = () => {
   const navigate = useNavigate();
   const {
     goals,
+    loading,
     addGoal,
     addProject,
     addTask,
-    updateGoal,
-    deleteGoal,
     calculateGoalProgress,
     getTasksByGoal,
     getProjectsByGoal,
@@ -111,13 +111,13 @@ const GoalTracker = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-        <motion.div
+        <Motion.div
           className="absolute top-20 left-10 w-72 h-72 bg-green-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
         />
 
-        <motion.div
+        <Motion.div
           className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
           transition={{ duration: 12, repeat: Infinity }}
@@ -132,7 +132,7 @@ const GoalTracker = () => {
             Back to Projects
           </button>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div className="flex items-center gap-4">
@@ -164,7 +164,7 @@ const GoalTracker = () => {
                 <p className="text-gray-400 mt-4">{selectedProject.description}</p>
               )}
             </Card>
-          </motion.div>
+          </Motion.div>
 
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
             <div className="flex justify-between items-center mb-4">
@@ -181,7 +181,7 @@ const GoalTracker = () => {
             {projectTasks.length > 0 ? (
               <div className="space-y-3">
                 {projectTasks.map((task, index) => (
-                  <motion.div
+                  <Motion.div
                     key={task.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -192,7 +192,7 @@ const GoalTracker = () => {
                       task={task}
                       onToggle={toggleTaskCompletion}
                     />
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </div>
             ) : (
@@ -250,13 +250,13 @@ const GoalTracker = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-        <motion.div
+        <Motion.div
           className="absolute top-20 left-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
         />
 
-        <motion.div
+        <Motion.div
           className="absolute bottom-20 right-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
           transition={{ duration: 12, repeat: Infinity }}
@@ -271,7 +271,7 @@ const GoalTracker = () => {
             Back to Goals
           </button>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.2)] hover:shadow-[0_0_50px_rgba(99,102,241,0.3)] transition-all">
 
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
@@ -322,7 +322,7 @@ const GoalTracker = () => {
               )}
 
             </Card>
-          </motion.div>
+          </Motion.div>
 
           {goalProjects.length > 0 ? (
             <div className="mb-6">
@@ -339,7 +339,7 @@ const GoalTracker = () => {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {goalProjects.map((project, index) => (
-                  <motion.div
+                  <Motion.div
                     key={project.id}
                     onClick={() => setSelectedProject(project)}
                     initial={{ opacity: 0, y: 20 }}
@@ -352,7 +352,7 @@ const GoalTracker = () => {
                       progress={calculateProjectProgress(project.id)}
                       onClick={() => navigate(`/trackers/projects/${project.id}`)}
                     />
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </div>
             </div>
@@ -390,8 +390,8 @@ const GoalTracker = () => {
                 </button>
               </div>
               <div className="space-y-3">
-                {goalTasks.map((task, index) => (
-                  <motion.div
+                {goalTasks.map((task) => (
+                  <Motion.div
                     key={task.id}
                     whileHover={{ scale: 1.02 }}
                   >
@@ -400,7 +400,7 @@ const GoalTracker = () => {
                       task={task}
                       onToggle={toggleTaskCompletion}
                     />
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </div>
             </Card>
@@ -546,19 +546,19 @@ const GoalTracker = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-      <motion.div
+      <Motion.div
         className="absolute top-20 left-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
 
-      <motion.div
+      <Motion.div
         className="absolute bottom-20 right-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-6xl mx-auto">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-between items-center mb-6"
@@ -574,10 +574,26 @@ const GoalTracker = () => {
           >
             <Plus size={24} />
           </button>
-        </motion.div>
+        </Motion.div>
 
         {/* Overall Progress */}
-        {goals.length > 0 && (
+        {loading ? (
+          <SkeletonCard className="mb-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="space-y-3 w-full">
+                <SkeletonBlock className="h-6 w-44" />
+                <SkeletonBlock className="h-4 w-72 max-w-full" />
+                <SkeletonBlock className="h-4 w-28" />
+              </div>
+              <SkeletonBlock className="h-32 w-32 rounded-full" />
+              <div className="flex gap-6">
+                <SkeletonBlock className="h-12 w-16" />
+                <SkeletonBlock className="h-12 w-16" />
+                <SkeletonBlock className="h-12 w-16" />
+              </div>
+            </div>
+          </SkeletonCard>
+        ) : goals.length > 0 && (
           <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
 
@@ -632,7 +648,9 @@ const GoalTracker = () => {
         )}
 
         {/* Goals Grid */}
-        {goals.length > 0 ? (
+        {loading ? (
+          <TrackerGridSkeleton count={6} />
+        ) : goals.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {goals.map(goal => (
               <div onClick={() => handleGoalClick(goal)}>

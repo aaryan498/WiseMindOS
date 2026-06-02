@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { useApp } from '../store/AppContext';
 import { authAPI } from '../api/apiService';
 import { showToast } from '../utils/toastHelper';
-
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
   const { token, setToken, user, setUser, navigate } = useApp()
@@ -161,6 +161,62 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
               Login
             </GradientButton>
           </form>
+
+          <div className="relative my-6 flex items-center justify-center">
+            <div className="absolute w-full border-t border-white/10"></div>
+            <span className="relative bg-[#161320] px-3 text-xs uppercase text-gray-500 tracking-wider">
+              Or continue with
+            </span>
+          </div>
+
+          {/* google button */}
+          <div className="flex justify-center w-full">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                setError('');
+                try {
+                  // 1. Send the Google credential to your backend for verification and to get your custom JWT token
+                  const response = await authAPI.googleLogin(credentialResponse.credential);
+
+                  if (response.success) {
+                    // 2. Store the custom token in memory and localStorage 
+                    setToken(response.token);
+                    localStorage.setItem('token', response.token);
+
+                    // 3. Save user data in context and localStorage
+                    const userData = response.user || {
+                      name: response.name || 'User',
+                      username: response.username,
+                      email: response.email,
+                      bio: response.bio,
+                      profile_picture: response.profile_picture
+                    };
+                    setUser(userData);
+                    localStorage.setItem('wisemind_user', JSON.stringify(userData));
+
+                    // 4. Show success message and navigate to dashboard
+                    showToast({ message: response.message || 'Login Successful', status: "success" });
+                    navigate('/dashboard');
+                  } else {
+                    setError(response.message || 'Google login failed');
+                    showToast({ message: response.message || 'Google login failed', status: 'error'});
+                  }
+                } catch (err) {
+                  console.error('Google authorization error:', err);
+                  const message = getAuthErrorMessage(err, 'Google authentication failed. Please try again.');
+                  setError(message);
+                  showToast({ message, status: "error" });
+                }
+              }}
+              onError={() => {
+                setError("Google Login Failed. Please try again.");
+                showToast({ message: "Google Auth Failed", status: "error" });
+              }}
+              theme="filled_black"
+              shape="pill"
+              width="100%"
+            />
+          </div>
 
           <div className="mt-6 text-center">
             <p className="text-gray-400">

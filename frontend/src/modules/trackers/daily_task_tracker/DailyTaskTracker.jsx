@@ -6,15 +6,17 @@ import DonutChart from '../../../components/DonutChart';
 import GradientButton from '../../../components/GradientButton';
 import InputField from '../../../components/InputField';
 import { format } from 'date-fns';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import Modal from '../../../components/Modal';
 import { showToast } from '../../../utils/toastHelper';
+import { PlannerSkeleton } from '../../../components/LoadingSkeleton';
 
 const DailyTaskTracker = () => {
   const {
     tasks,
     habits,
     dailyPlan,
+    loading,
     addToDailyPlan,
     removeFromDailyPlan,
     createManualDailyTask,
@@ -72,7 +74,6 @@ const DailyTaskTracker = () => {
       !dailyPlan.plannedTasks.some(pt => pt.habitId === habit.id)
   );
 
-  const pendingCount = dailyPlan.plannedTasks.filter(t => !t.completed).length;
   const completedCount = dailyPlan.plannedTasks.filter(t => t.completed).length;
 
   // Add habit to plan
@@ -164,16 +165,45 @@ const DailyTaskTracker = () => {
     return { label: 'Manual', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' };
   };
 
+  if (loading) {
+    return (
+      <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
+        <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
+          <Motion.div
+            className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
+            animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
+            transition={{ duration: 10, repeat: Infinity }}
+          />
+          <Motion.div
+            className="absolute bottom-20 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
+            animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
+            transition={{ duration: 12, repeat: Infinity }}
+          />
+          <div className="max-w-4xl mx-auto relative z-10">
+            <div className="mb-6">
+              <h1 className="text-3xl young-serif-regular font-bold text-gray-200 mb-2">Daily Task Planner</h1>
+              <div className="flex items-center gap-2 text-gray-400">
+                <Calendar size={20} />
+                <p>{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+              </div>
+            </div>
+            <PlannerSkeleton />
+          </div>
+        </div>
+      </Motion.div>
+    );
+  }
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
+    <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-        <motion.div
+        <Motion.div
           className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
         />
 
-        <motion.div
+        <Motion.div
           className="absolute bottom-20 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
           transition={{ duration: 12, repeat: Infinity }}
@@ -181,7 +211,7 @@ const DailyTaskTracker = () => {
 
         <div className="max-w-4xl mx-auto relative z-10">
           {/* Header */}
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
@@ -191,7 +221,7 @@ const DailyTaskTracker = () => {
               <Calendar size={20} />
               <p>{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
             </div>
-          </motion.div>
+          </Motion.div>
 
           {/* Scores */}
           <div className="grid grid-cols-2 gap-4 mb-6">
@@ -250,7 +280,7 @@ const DailyTaskTracker = () => {
 
           {/* TIMELINE VIEW */}
           {activeTab === 'timeline' && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
@@ -472,7 +502,7 @@ const DailyTaskTracker = () => {
                     <div className="space-y-3 p-5 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_40px_rgba(99,102,241,0.15)]">
                       <h2 className="text-xl font-bold text-white mb-4">Today's Planned Tasks</h2>
                       {activeTasks.map((item, index) => (
-                        <motion.div
+                        <Motion.div
                           key={item.id}
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
@@ -530,7 +560,7 @@ const DailyTaskTracker = () => {
                               </div>
                             </div>
                           </div>
-                        </motion.div>
+                        </Motion.div>
                       ))}
                     </div>
                   )}
@@ -587,12 +617,12 @@ const DailyTaskTracker = () => {
                   )}
                 </>
               )}
-            </motion.div>
+            </Motion.div>
           )}
 
           {/* ADD TO PLAN VIEW */}
           {activeTab === 'add' && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
@@ -639,7 +669,7 @@ const DailyTaskTracker = () => {
                     <>
                       <div className="space-y-2 mb-6 max-h-96 overflow-y-auto pr-3">
                         {availableTasks.map(task => (
-                          <motion.div
+                          <Motion.div
                             key={task.id}
                             whileTap={{ scale: 0.98 }}
                             className="p-4 bg-gray-700/50 rounded-lg border border-gray-600 hover:border-green-500/50 transition-all"
@@ -664,7 +694,7 @@ const DailyTaskTracker = () => {
                                 Add to Plan
                               </button>
                             </div>
-                          </motion.div>
+                          </Motion.div>
                         ))}
                       </div>
                     </>
@@ -684,7 +714,7 @@ const DailyTaskTracker = () => {
                   {suggestedHabits.length > 0 ? (
                     <div className="space-y-3 mb-6 max-h-96 overflow-y-auto px-3">
                       {suggestedHabits.map(habit => (
-                        <motion.div
+                        <Motion.div
                           key={habit.id}
                           whileHover={{ scale: 1.005 }}
                           className="p-4 bg-gray-700/50 rounded-lg border border-gray-600 hover:border-green-500/50 transition-all"
@@ -707,7 +737,7 @@ const DailyTaskTracker = () => {
                               Add to Plan
                             </button>
                           </div>
-                        </motion.div>
+                        </Motion.div>
                       ))}
                     </div>
                   ) : (
@@ -766,7 +796,7 @@ const DailyTaskTracker = () => {
                   </form>
                 </Card>
               )}
-            </motion.div>
+            </Motion.div>
           )}
         </div>
       </div>
@@ -809,7 +839,7 @@ const DailyTaskTracker = () => {
           </div>
         </Modal>
       )}
-    </motion.div>
+    </Motion.div>
   );
 };
 

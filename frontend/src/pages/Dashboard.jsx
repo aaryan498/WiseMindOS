@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts';
-import { TrendingUp, Target, CheckCircle, Zap, ArrowRight, UserPlus2, Camera, CalendarDays, Star, AlertTriangle, UserPen, LucideTrophy, Pencil } from 'lucide-react';
+import { TrendingUp, Target, CheckCircle, Zap, ArrowRight, UserPlus2, Camera, CalendarDays, Star, AlertTriangle, UserPen, LucideTrophy, Pencil, Activity, Flame, BarChart3 } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
@@ -11,13 +11,14 @@ import ProjectCard from '../components/ProjectCard';
 import TaskItem from '../components/TaskItem';
 import HabitCard from '../components/HabitCard';
 import GradientButton from '../components/GradientButton';
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { useMemo } from 'react';
 import profile_pic from '../assets/profile_pic.svg'
 import { useState, useEffect } from 'react';
 import { statsAPI } from '../api/apiService';
 import Modal from '../components/Modal';
 import InputField from '../components/InputField';
+import { AnalyticsSkeleton, DashboardStatsSkeleton, SkeletonCard, SkeletonBlock, TrackerGridSkeleton } from '../components/LoadingSkeleton';
 
 
 const Dashboard = () => {
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const {
     goals,
     user,
+    loading,
     projects,
     tasks,
     habits,
@@ -47,11 +49,13 @@ const Dashboard = () => {
 
   const [newProfile, setNewProfile] = useState({ name: user.name, username: user.username, bio: user.bio });
   const [newProfilePic, setNewProfilePic] = useState(null);
+  const [weeklyLoading, setWeeklyLoading] = useState(true);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
+      setWeeklyLoading(true);
       try {
         const res = await statsAPI.getWeekly();
 
@@ -67,6 +71,8 @@ const Dashboard = () => {
 
       } catch (error) {
         console.log("Failed to fetch stats:", error);
+      } finally {
+        setWeeklyLoading(false);
       }
     };
 
@@ -98,6 +104,93 @@ const Dashboard = () => {
   const topGoals = goals.slice(0, 4);
   const topProjects = projects.slice(0, 4);
   const topHabits = habits.slice(0, 3);
+
+  const productivityInsights = useMemo(() => {
+    const completedDailyTasks = todayPlannedTasks.filter(task => task.completed).length;
+    const completedTasks = tasks.filter(task => task.completed || task.status === 'completed').length;
+    const completedHabits = habits.filter(habit => habit.completed).length;
+    const goalProgressValues = goals.map(goal => {
+      const progress = calculateGoalProgress(goal.id);
+      return progress || Number(goal.progress) || 0;
+    });
+    const avgGoalProgress = goalProgressValues.length
+      ? Math.round(goalProgressValues.reduce((sum, value) => sum + value, 0) / goalProgressValues.length)
+      : 0;
+    const habitCompletion = habits.length
+      ? Math.round((completedHabits / habits.length) * 100)
+      : 0;
+    const taskCompletion = tasks.length
+      ? Math.round((completedTasks / tasks.length) * 100)
+      : 0;
+    const consistencyDays = weeklyData.filter(day => {
+      const dailyScore = Math.round(((day.productivity || 0) + (day.discipline || 0)) / 2);
+      return dailyScore >= 70;
+    }).length;
+    const consistencyScore = weeklyData.length
+      ? Math.round((consistencyDays / weeklyData.length) * 100)
+      : productivityScore;
+    const firstHalf = weeklyData.slice(0, Math.ceil(weeklyData.length / 2));
+    const secondHalf = weeklyData.slice(Math.ceil(weeklyData.length / 2));
+    const avg = (items, key) => items.length
+      ? items.reduce((sum, item) => sum + (item[key] || 0), 0) / items.length
+      : 0;
+    const trendDelta = weeklyData.length > 1
+      ? Math.round(avg(secondHalf, 'productivity') - avg(firstHalf, 'productivity'))
+      : 0;
+    const heatmap = weeklyData.length
+      ? weeklyData.map(day => ({
+          name: day.name,
+          value: Math.round(((day.productivity || 0) + (day.discipline || 0)) / 2)
+        }))
+      : [
+          { name: 'Today', value: productivityScore },
+        ];
+
+    return {
+      completedDailyTasks,
+      avgGoalProgress,
+      habitCompletion,
+      taskCompletion,
+      consistencyScore,
+      trendDelta,
+      heatmap,
+    };
+  }, [todayPlannedTasks, tasks, habits, goals, weeklyData, productivityScore, calculateGoalProgress]);
+
+  const insightCards = [
+    {
+      title: 'Weekly Consistency',
+      value: `${productivityInsights.consistencyScore}%`,
+      detail: `${productivityInsights.heatmap.filter(day => day.value >= 70).length}/${productivityInsights.heatmap.length} strong days`,
+      icon: <Flame size={22} />,
+      accent: 'from-amber-500/25 to-orange-500/10',
+      text: 'text-amber-300',
+    },
+    {
+      title: 'Habit Completion',
+      value: `${productivityInsights.habitCompletion}%`,
+      detail: `${habits.filter(habit => habit.completed).length}/${habits.length || 0} habits done`,
+      icon: <Activity size={22} />,
+      accent: 'from-emerald-500/25 to-teal-500/10',
+      text: 'text-emerald-300',
+    },
+    {
+      title: 'Goal Progress',
+      value: `${productivityInsights.avgGoalProgress}%`,
+      detail: `${goals.length} active goals tracked`,
+      icon: <Target size={22} />,
+      accent: 'from-sky-500/25 to-cyan-500/10',
+      text: 'text-sky-300',
+    },
+    {
+      title: 'Task Completion',
+      value: `${productivityInsights.taskCompletion}%`,
+      detail: `${productivityInsights.completedDailyTasks}/${todayPlannedTasks.length || 0} planned today`,
+      icon: <BarChart3 size={22} />,
+      accent: 'from-fuchsia-500/25 to-rose-500/10',
+      text: 'text-fuchsia-300',
+    },
+  ];
 
   const handleEditProfile = async (e) => {
     e.preventDefault();
@@ -168,21 +261,21 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-      <motion.div
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-3 sm:px-4 pt-4 sm:pt-6 relative overflow-hidden">
+      <Motion.div
         className="absolute top-10 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
 
-      <motion.div
+      <Motion.div
         className="absolute bottom-10 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-6xl mx-auto">
         {/* Welcome Section */}
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -211,7 +304,7 @@ const Dashboard = () => {
 
             <div className='text-gray-400 mb-6'>{user.bio || 'Add Bio'}</div>
 
-            <div className='flex justify-around mb-4'>
+            <div className='flex flex-wrap justify-around gap-4 mb-4'>
               <div className="text-center">
                 <p className="text-lg font-bold text-indigo-400">{productivityScore}%</p>
                 <p className="text-xs text-gray-400">Productivity</p>
@@ -230,7 +323,7 @@ const Dashboard = () => {
 
           </Card>
 
-        </motion.div>
+        </Motion.div>
 
 
         <div className='rounded-2xl p-6 mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]'>
@@ -241,40 +334,124 @@ const Dashboard = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {loading ? (
+            <DashboardStatsSkeleton />
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-            <StatCard
-              title="Productivity"
-              value={`${productivityScore}%`}
-              icon={<Zap size={24} />}
-              // trend={{positive: false, value: 20}}
-              data-testid="productivity-score-card"
-            />
-            <StatCard
-              title="Discipline"
-              value={`${disciplineScore}%`}
-              icon={<TrendingUp size={24} />}
-              data-testid="discipline-score-card"
-            />
-            <StatCard
-              title="Active Goals"
-              value={goals.length.toString()}
-              icon={<Target size={24} />}
-              data-testid="active-goals-card"
-            />
-            <StatCard
-              title="Tasks Today"
-              value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
-              icon={<CheckCircle size={24} />}
-              data-testid="tasks-today-card"
-            />
-          </div>
+              <StatCard
+                title="Productivity"
+                value={`${productivityScore}%`}
+                icon={<Zap size={24} />}
+                // trend={{positive: false, value: 20}}
+                data-testid="productivity-score-card"
+              />
+              <StatCard
+                title="Discipline"
+                value={`${disciplineScore}%`}
+                icon={<TrendingUp size={24} />}
+                data-testid="discipline-score-card"
+              />
+              <StatCard
+                title="Active Goals"
+                value={goals.length.toString()}
+                icon={<Target size={24} />}
+                data-testid="active-goals-card"
+              />
+              <StatCard
+                title="Tasks Today"
+                value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
+                icon={<CheckCircle size={24} />}
+                data-testid="tasks-today-card"
+              />
+            </div>
+          )}
         </div>
 
+        {/* Productivity Insights */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-xl font-bold text-white">Productivity Insights</h2>
+              <p className="text-sm text-gray-400">Live signals from your goals, habits, tasks, and weekly rhythm</p>
+            </div>
+            <div className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-full border border-white/10 bg-white/5 ${productivityInsights.trendDelta >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>
+              <TrendingUp size={16} />
+              <span className="text-sm font-semibold">
+                {productivityInsights.trendDelta >= 0 ? '+' : ''}{productivityInsights.trendDelta}% trend
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+            {insightCards.map((insight, index) => (
+              <Motion.div
+                key={insight.title}
+                initial={{ opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className={`rounded-2xl p-4 border border-white/10 bg-gradient-to-br ${insight.accent} backdrop-blur-xl shadow-[0_0_28px_rgba(99,102,241,0.12)]`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm text-gray-400">{insight.title}</p>
+                    <p className="text-3xl font-bold text-white mt-1">{insight.value}</p>
+                  </div>
+                  <div className={`p-2 rounded-xl bg-white/10 ${insight.text}`}>
+                    {insight.icon}
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 mt-4">{insight.detail}</p>
+              </Motion.div>
+            ))}
+          </div>
+
+          <Card className="bg-white/5 border border-white/10 backdrop-blur-xl shadow-[0_0_30px_rgba(99,102,241,0.15)]">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+              <div>
+                <h3 className="text-lg font-semibold text-white mb-2">Weekly completion heatmap</h3>
+                <p className="text-sm text-gray-400">
+                  Daily blend of productivity and discipline scores.
+                </p>
+              </div>
+              <div className="grid grid-cols-7 gap-2 w-full lg:w-auto">
+                {productivityInsights.heatmap.map(day => (
+                  <div key={day.name} className="flex flex-col items-center gap-2">
+                    <div
+                      className={`w-full min-w-9 h-12 rounded-xl border flex items-end overflow-hidden ${
+                        day.value >= 80
+                          ? 'border-emerald-400/40 bg-emerald-400/15'
+                          : day.value >= 60
+                            ? 'border-amber-400/40 bg-amber-400/15'
+                            : 'border-rose-400/40 bg-rose-400/15'
+                      }`}
+                      title={`${day.name}: ${day.value}%`}
+                    >
+                      <div
+                        className={`w-full ${
+                          day.value >= 80
+                            ? 'bg-emerald-400'
+                            : day.value >= 60
+                              ? 'bg-amber-400'
+                              : 'bg-rose-400'
+                        }`}
+                        style={{ height: `${Math.max(12, day.value)}%` }}
+                      />
+                    </div>
+                    <span className="text-[11px] text-gray-400">{day.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+        </div>
 
         {/* Weekly Analytics */}
         <h2 className="text-xl font-bold text-white mb-4">Weekly Analytics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {weeklyLoading ? (
+          <AnalyticsSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card className="bg-transparent border cursor-pointer border-white/10 hover:scale-[1.02] transition-all duration-300">
             <h3 className="text-lg font-semibold text-white mb-4">Productivity Score</h3>
             <div className="flex justify-center">
@@ -391,7 +568,8 @@ const Dashboard = () => {
               </BarChart>
             </ResponsiveContainer>
           </Card>
-        </div>
+          </div>
+        )}
 
 
         {(importantTasks.length > 0 || behindTasks.length > 0) && (
@@ -408,12 +586,12 @@ const Dashboard = () => {
                   <p className="text-gray-400 text-sm mb-4">High Priority Tasks, Complete these first.</p>
                   <div className="space-y-3">
                     {importantTasks.slice(0, 4).map(task => (
-                      <motion.div key={task.id} whileHover={{ scale: 1.005 }}>
+                      <Motion.div key={task.id} whileHover={{ scale: 1.005 }}>
                         <TaskItem
                           task={task}
                           onToggle={toggleTaskCompletion}
                         />
-                      </motion.div>
+                      </Motion.div>
                     ))}
                   </div>
                 </div>
@@ -431,18 +609,18 @@ const Dashboard = () => {
                   <p className="text-gray-400 text-sm mb-4">Act fast on these tasks, You are already running late.</p>
                   <div className="space-y-3">
                     {behindTasks.slice(0, 4).map(task => (
-                      <motion.div key={task.id} whileHover={{ scale: 1.005 }}>
+                      <Motion.div key={task.id} whileHover={{ scale: 1.005 }}>
                         <TaskItem
                           task={task}
                           onToggle={toggleTaskCompletion}
                         />
-                      </motion.div>
+                      </Motion.div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-            <div className='flex gap-2 w-full mt-4 pt-4'>
+          <div className='flex flex-col sm:flex-row gap-2 w-full mt-4 pt-4'>
               <Link to="/focus-room" className='flex-1'>
                 <GradientButton className="w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]" data-testid="focus-room-cta">
                   <span>Enter Focus Room</span>
@@ -458,7 +636,19 @@ const Dashboard = () => {
           </div>)}
 
         {/* Today's Tasks */}
-        {hasPlannedTasks && pendingPlannedTasks.length > 0 ? (
+        {loading ? (
+          <SkeletonCard className="mb-6">
+            <div className="flex justify-between items-center mb-5">
+              <SkeletonBlock className="h-6 w-48" />
+              <SkeletonBlock className="h-4 w-16" />
+            </div>
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <SkeletonBlock key={index} className="h-16 w-full" />
+              ))}
+            </div>
+          </SkeletonCard>
+        ) : hasPlannedTasks && pendingPlannedTasks.length > 0 ? (
           <Card className="mb-6 bg-white/5 border border-white/10 backdrop-blur-lg shadow-[0_0_40px_rgba(99,102,241,0.2)]">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">Today's Planned Tasks</h2>
@@ -468,7 +658,7 @@ const Dashboard = () => {
             </div>
             <div className="space-y-3">
               {pendingPlannedTasks.slice(0, 5).map((item, index) => (
-                <motion.div
+                <Motion.div
                   key={item.id}
                   whileHover={{ scale: 1.02 }}
                   initial={{ opacity: 0, y: 10 }}
@@ -522,9 +712,9 @@ const Dashboard = () => {
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
-              <div className='flex gap-2 w-full h-full justify-between mt-4'>
+            <div className='flex flex-col sm:flex-row gap-2 w-full h-full justify-between mt-4'>
                 <Link to="/focus-room">
                   <GradientButton className="w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]" data-testid="focus-room-cta">
                     <span>Enter Focus Room</span>
@@ -574,7 +764,15 @@ const Dashboard = () => {
 
 
         {/* Goals Progress */}
-        {goals.length > 0 && (
+        {loading ? (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <SkeletonBlock className="h-6 w-40" />
+              <SkeletonBlock className="h-4 w-16" />
+            </div>
+            <TrackerGridSkeleton count={4} />
+          </div>
+        ) : goals.length > 0 && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">Goals Progress</h2>
@@ -584,7 +782,7 @@ const Dashboard = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {topGoals.map((goal, index) => (
-                <motion.div
+                <Motion.div
                   key={goal.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -596,7 +794,7 @@ const Dashboard = () => {
                     progress={calculateGoalProgress(goal.id)}
                     onClick={() => { }}
                   />
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
@@ -615,7 +813,7 @@ const Dashboard = () => {
               {topProjects.map((project, index) => {
                 const linkedGoal = goals.find(g => g.id === project.goalId);
                 return (
-                  <motion.div
+                  <Motion.div
                     key={project.id}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -628,7 +826,7 @@ const Dashboard = () => {
                       linkedGoal={linkedGoal?.title}
                       onClick={() => { }}
                     />
-                  </motion.div>
+                  </Motion.div>
                 );
               })}
             </div>
@@ -646,7 +844,7 @@ const Dashboard = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {topHabits.map((habit, index) => (
-                <motion.div
+                <Motion.div
                   key={habit.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -654,7 +852,7 @@ const Dashboard = () => {
                   onClick={() => navigate('/trackers/habits')}
                 >
                   <HabitCard key={habit.id} habit={habit} />
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>

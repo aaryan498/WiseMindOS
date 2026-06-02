@@ -238,11 +238,22 @@ cd backend
 
 Add the following:
 
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
+```env 
+PORT=4000
+MONGODB_URI=your_mongodb_connection_string
+DB_NAME="wise-mind-os"
 JWT_SECRET=replace_with_a_secure_random_string
-CLIENT_URL=http://localhost:5173
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+IMAGEKIT_PUBLIC_KEY=placeholder_public_key
+IMAGEKIT_PRIVATE_KEY=placeholder_private_key
+IMAGEKIT_URL_ENDPOINT=placeholder_url_endpoint
+```
+
+or
+
+```bash
+cp .env.example .env
 ```
 
 ### 3. Create Frontend Environment Variables
@@ -256,7 +267,8 @@ cd ../frontend
 Add the following:
 
 ```env
-VITE_API_BASE_URL=http://localhost:5000/api
+VITE_BACKEND_URL=http://localhost:4000
+VITE_GOOGLE_CLIENT_ID:your_google_client_id
 ```
 
 ### 4. Install Backend Dependencies
@@ -339,7 +351,7 @@ npm install
 ### Frontend Cannot Connect to Backend
 
 * Ensure the backend server is running.
-* Verify that `VITE_API_BASE_URL` points to the correct backend URL.
+* Verify that `VITE_BACKEND_URL` points to the correct backend URL.
 
 ### Port Already in Use
 - If the application fails to start because a port is already in use, stop the conflicting process or update the port configuration.

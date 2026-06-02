@@ -173,12 +173,12 @@ export const AppProvider = ({ children }) => {
         setNotebooks(data);
       }
 
-      setLoading(false);
     } catch (error) {
       console.error('Failed to load data from backend:', error);
-      setLoading(false);
       // Keep localStorage data as fallback
       showToast({ message: 'Using offline data' })
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -985,6 +985,7 @@ export const AppProvider = ({ children }) => {
     setToken,
     navigate,
     backendURL,
+    loading,
     goals,
     projects,
     tasks,

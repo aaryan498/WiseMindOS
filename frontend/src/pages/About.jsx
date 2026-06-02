@@ -1,20 +1,14 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { 
   Github, 
   Linkedin, 
   Twitter, 
-  Target, 
   Brain, 
   Sparkles, 
   Compass, 
   Rocket, 
-  Calendar, 
-  ArrowRight, 
-  Users, 
-  Flame, 
-  CheckCircle,
-  Clock
+  Flame
 } from 'lucide-react';
 import Card from '../components/Card';
 import GradientButton from '../components/GradientButton';
@@ -94,12 +88,12 @@ const About = () => {
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white relative overflow-hidden">
       
       {/* Glow blobs */}
-      <motion.div
+      <Motion.div
         className="absolute top-20 left-10 w-80 h-80 bg-purple-500 rounded-full blur-3xl opacity-15 pointer-events-none"
         animate={{ x: [0, 60, 0], y: [0, 40, 0] }}
         transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
       />
-      <motion.div
+      <Motion.div
         className="absolute bottom-40 right-10 w-80 h-80 bg-indigo-500 rounded-full blur-3xl opacity-15 pointer-events-none"
         animate={{ x: [0, -60, 0], y: [0, -40, 0] }}
         transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
@@ -129,7 +123,7 @@ const About = () => {
       {/* Hero Section */}
       <section className="relative flex items-center justify-center px-6 py-24 md:py-32">
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -149,7 +143,7 @@ const About = () => {
               We bridge the gap between structure and self-realization by blending advanced behavior tracking with 
               intelligent predictive simulations.
             </p>
-          </motion.div>
+          </Motion.div>
         </div>
       </section>
 
@@ -166,7 +160,7 @@ const About = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {values.map((val, idx) => (
-              <motion.div
+              <Motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 35 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -180,7 +174,7 @@ const About = () => {
                   <h3 className="text-xl font-bold text-white mb-3">{val.title}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed flex-grow">{val.description}</p>
                 </Card>
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
         </div>
@@ -199,7 +193,7 @@ const About = () => {
 
           <div className="relative border-l-2 border-indigo-500/20 pl-8 md:pl-12 space-y-12 ml-4">
             {milestones.map((milestone, idx) => (
-              <motion.div
+              <Motion.div
                 key={idx}
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
@@ -217,7 +211,7 @@ const About = () => {
                   <h3 className="text-xl font-bold text-white mb-2">{milestone.title}</h3>
                   <p className="text-gray-400 text-sm leading-relaxed">{milestone.description}</p>
                 </Card>
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
         </div>
@@ -236,7 +230,7 @@ const About = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {teamMembers.map((member, idx) => (
-              <motion.div
+              <Motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -291,7 +285,7 @@ const About = () => {
                   </div>
 
                 </Card>
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
         </div>
@@ -300,7 +294,7 @@ const About = () => {
       {/* CTA Section */}
       <section className="py-24 px-6 bg-gradient-to-r from-indigo-900/60 via-purple-900/60 to-indigo-900/60 border-t border-white/10 relative overflow-hidden">
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
@@ -317,7 +311,7 @@ const About = () => {
                 Start Your Journey Today
               </GradientButton>
             </Link>
-          </motion.div>
+          </Motion.div>
         </div>
       </section>
 

@@ -4,13 +4,13 @@ import validator from 'validator'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import fs from 'fs'
+import { OAuth2Client } from 'google-auth-library';
 
-
-
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const createToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET)
-}
+    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+};
 
 
 
@@ -48,6 +48,103 @@ const loginUser = async (req, res) => {
         res.json({ success: false, message: error.message })
     }
 
+}
+
+//Route for Google SignIn
+const googleLogin = async (req, res) => {
+    try {
+        const { credential } = req.body;
+
+        // Check if credential is provided
+        if (!credential) {
+            return res.json({ success: false, message: "Google token credential is required." });
+        }
+
+        // Verify the token and get user information
+        const ticket = await client.verifyIdToken({
+            idToken: credential,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+
+        // Extract user information from the token
+        const payload = ticket.getPayload();
+        const { email, name, picture, sub: googleId, email_verified } = payload;
+
+        if (!email_verified) {
+            return res.status(400).json({
+                success: false,
+                message: "Access denied. Your Google email address is not verified.",
+            });
+        }
+        
+        let user = await userModel.findOne({ googleId });
+
+        if (!user) {
+            const existingEmailUser = await userModel.findOne({ email });
+
+            if (existingEmailUser) {
+                return res.status(400).json({
+                    success: false,
+                    message: "An account with this email already exists. Please log in using your email and password."
+                });
+            }
+            
+            const baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+            let generatedUsername = `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`;
+            
+            let isUnique = false;
+            let iterations = 0;
+            const MAX_ITERATIONS = 5; 
+
+            while (!isUnique && iterations < MAX_ITERATIONS) {
+                const checkUsernameConflict = await userModel.findOne({ username: generatedUsername });
+                
+                if (!checkUsernameConflict) {
+                    isUnique = true; 
+                } else {
+                    iterations++;
+                    if (iterations >= 3) {
+                        const randomString = Math.random().toString(36).substring(2, 7); 
+                        generatedUsername = `${baseUsername}${randomString}`;
+                    } else {
+                        generatedUsername = `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`;
+                    }
+                }
+            }
+
+            //Timestamp fallback if uniqueness is not achieved after max iterations (extremely unlikely)
+            if (!isUnique) {
+                generatedUsername = `${baseUsername}${Date.now().toString().slice(-5)}`;
+            }
+
+            user = await userModel.create({
+                name: name || baseUsername,
+                username: generatedUsername,
+                email,
+                googleId,
+                profile_picture: picture || ''
+            });
+        }
+        
+
+        // create a JWT token for the user
+        const token = createToken(user._id);
+
+        // Send the token and user info back to the client
+        return res.json({
+            success: true,
+            message: "Login Successful",
+            token,
+            name: user.name,
+            email: user.email,
+            username: user.username,
+            bio: user.bio,
+            profile_picture: user.profile_picture
+        });
+    } catch (error) {
+        console.log(error);
+        return res.json({ success: false, message: error.message });
+    }
 }
 
 // Route for User register
@@ -254,4 +351,4 @@ const updateUserProfilePic = async (req, res) => {
 
 
 
-export { loginUser, registerUser, updateUser, updateUserProfilePic }
+export { loginUser, googleLogin, registerUser, updateUser, updateUserProfilePic }
