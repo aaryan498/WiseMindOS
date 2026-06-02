@@ -274,98 +274,137 @@ const Dashboard = () => {
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-6xl mx-auto">
-        {/* Welcome Section */}
-        <Motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <Card className="mb-6 w-full  relative overflow-hidden bg-white/15 backdrop-blur-xl border-20 border-black/20 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
+        {/* Top Dashboard Grid: Profile Card & Clock/Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 items-stretch">
+          {/* Profile Card */}
+          <Motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="lg:col-span-1 h-full"
+          >
+            <Card className="h-full relative overflow-hidden bg-gradient-to-b from-white/10 to-slate-900/40 backdrop-blur-2xl border border-white/15 shadow-2xl p-6 flex flex-col justify-between">
+              
+              {/* Premium Glass Sheen Overlay */}
+              <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent pointer-events-none" />
 
-            <div className="rounded w-full mb-6 flex flex-col items-center">
-              <div className='w-full flex items-end justify-end'>
-                <button onClick={() => setShowEditProfile(true)} className='bg-white/10 hover:bg-white/15 cursor-pointer border flex gap-2 border-white/15 hover:border-white/25 hover:translate-y-0.5 px-3 py-3 rounded-full text-white default-bold shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300'> <UserPen size={20} /></button>
-              </div>
-              {/* Image div  */}
-              <div className='h-30 w-30 rounded-full relative group border-6 border-black/15 shadow-[0_0_40px_rgba(99,102,241,0.2)] shrink-0'>
-                <img src={user.profile_picture || profile_pic} className='w-full h-full object-cover rounded-full' alt="" />
-                <div onClick={()=>setShowEditProfilePic(true)} className='w-full h-full bg-black/50 absolute rounded-full inset-0 cursor-pointer opacity-0 z-10 group-hover:opacity-100'>
-                  <div className='h-full w-full flex items-center justify-center'>
-                    <Camera size={18} className='text-white' />
+              <div>
+                <div className="w-full mb-6 flex flex-col items-center relative z-10">
+                  {/* Edit profile button */}
+                  <div className='w-full flex items-end justify-end mb-2'>
+                    <button
+                      onClick={() => setShowEditProfile(true)}
+                      className='bg-white/5 hover:bg-white/10 cursor-pointer border border-white/10 hover:border-white/20 hover:scale-105 p-2.5 rounded-full text-white shadow-md hover:shadow-lg transition-all duration-300 animate-none'
+                    >
+                      <UserPen size={18} />
+                    </button>
+                  </div>
+
+                  {/* Avatar wrapper with double border and pulse status dot */}
+                  <div className='h-28 w-28 rounded-full relative group border border-indigo-500/20 p-1.5 shadow-[0_0_25px_rgba(99,102,241,0.25)] shrink-0 transition-transform duration-300 hover:scale-102'>
+                    <div className="w-full h-full rounded-full overflow-hidden border border-white/10 relative">
+                      <img src={user.profile_picture || profile_pic} className='w-full h-full object-cover' alt="Profile Avatar" />
+                      <div
+                        onClick={() => setShowEditProfilePic(true)}
+                        className='w-full h-full bg-black/60 absolute inset-0 cursor-pointer opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300 z-10'
+                      >
+                        <Camera size={18} className='text-white' />
+                      </div>
+                    </div>
+                    {/* Status Dot with pulse ping */}
+                    <div className='absolute bottom-1 right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-slate-900 z-10'>
+                      <span className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+                    </div>
+                  </div>
+
+                  {/* Profile info */}
+                  <div className='flex flex-col items-center mt-4 text-center'>
+                    <span className='text-2xl md:text-3xl default-bold text-white tracking-tight leading-tight'>{user.name || 'User'}</span>
+                    <span className='text-xs text-indigo-400 font-semibold tracking-wider mt-1'>@{user.username || 'username'}</span>
                   </div>
                 </div>
-                <div className='border-6 h-5 w-5 rounded-full z-10 bottom-1 absolute right-1 border-green-400'></div>
-              </div>
-              <div className='flex flex-col items-center'>
-                <span className='text-3xl md:text-4xl text-center default-bold text-gray-100'>{user.name || 'User'}</span>
-                <span className='cursor-pointer text-sm text-gray-300'>@{user.username || 'username'}</span>
-              </div>
-            </div>
 
-            <div className='text-gray-400 mb-6'>{user.bio || 'Add Bio'}</div>
-
-            <div className='flex flex-wrap justify-around gap-4 mb-4'>
-              <div className="text-center">
-                <p className="text-lg font-bold text-indigo-400">{productivityScore}%</p>
-                <p className="text-xs text-gray-400">Productivity</p>
+                {/* Bio text block */}
+                <div className='text-slate-300 text-xs md:text-sm leading-relaxed text-center italic bg-slate-950/40 border border-white/5 rounded-xl px-4 py-3 mb-6 relative z-10'>
+                  {user.bio || 'Add Bio to express yourself...'}
+                </div>
               </div>
 
-              <div className="text-center">
-                <p className="text-lg font-bold text-green-400">{disciplineScore}%</p>
-                <p className="text-xs text-gray-400">Discipline</p>
+              {/* Bottom section: metrics & connect button */}
+              <div className="relative z-10 mt-auto space-y-5">
+                {/* Visual Progress Widgets */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-slate-950/30 border border-white/5 rounded-xl p-3 text-center">
+                    <p className="text-xl font-extrabold text-indigo-400">{productivityScore}%</p>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">Productivity</p>
+                    <div className="w-full bg-slate-950/60 rounded-full h-1 mt-2 overflow-hidden">
+                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${productivityScore}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-950/30 border border-white/5 rounded-xl p-3 text-center">
+                    <p className="text-xl font-extrabold text-emerald-400">{disciplineScore}%</p>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">Discipline</p>
+                    <div className="w-full bg-slate-950/60 rounded-full h-1 mt-2 overflow-hidden">
+                      <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${disciplineScore}%` }} />
+                    </div>
+                  </div>
+                </div>
+
+                <Motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <GradientButton className="w-full flex items-center justify-center gap-2 py-3 shadow-[0_4px_20px_rgba(99,102,241,0.35)] relative overflow-hidden group">
+                    <span className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none" />
+                    <UserPlus2 size={18} />
+                    <span className="font-semibold tracking-wide">Connect</span>
+                  </GradientButton>
+                </Motion.div>
               </div>
-            </div>
 
-            <GradientButton className="w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]">
-              <UserPlus2 size={20} />
-              <span>Connect</span>
-            </GradientButton>
+            </Card>
+          </Motion.div>
 
-          </Card>
-
-        </Motion.div>
-
-
-        <div className='rounded-2xl p-6 mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]'>
-
-          {/* Clock Widget & Focus Room */}
-          <div className="mb-6">
+          {/* Clock Widget & Stat Cards Column */}
+          <Motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
+            className="lg:col-span-2 flex flex-col justify-between gap-6"
+          >
+            {/* Clock Widget */}
             <ClockWidget />
-          </div>
 
-          {/* Stats Grid */}
-          {loading ? (
-            <DashboardStatsSkeleton />
-          ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-
-              <StatCard
-                title="Productivity"
-                value={`${productivityScore}%`}
-                icon={<Zap size={24} />}
-                // trend={{positive: false, value: 20}}
-                data-testid="productivity-score-card"
-              />
-              <StatCard
-                title="Discipline"
-                value={`${disciplineScore}%`}
-                icon={<TrendingUp size={24} />}
-                data-testid="discipline-score-card"
-              />
-              <StatCard
-                title="Active Goals"
-                value={goals.length.toString()}
-                icon={<Target size={24} />}
-                data-testid="active-goals-card"
-              />
-              <StatCard
-                title="Tasks Today"
-                value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
-                icon={<CheckCircle size={24} />}
-                data-testid="tasks-today-card"
-              />
-            </div>
-          )}
+            {/* Stats Grid */}
+            {loading ? (
+              <DashboardStatsSkeleton />
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 h-full">
+                <StatCard
+                  title="Productivity"
+                  value={`${productivityScore}%`}
+                  icon={<Zap size={20} />}
+                  data-testid="productivity-score-card"
+                />
+                <StatCard
+                  title="Discipline"
+                  value={`${disciplineScore}%`}
+                  icon={<TrendingUp size={20} />}
+                  data-testid="discipline-score-card"
+                />
+                <StatCard
+                  title="Active Goals"
+                  value={goals.length.toString()}
+                  icon={<Target size={20} />}
+                  data-testid="active-goals-card"
+                />
+                <StatCard
+                  title="Tasks Today"
+                  value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
+                  icon={<CheckCircle size={20} />}
+                  data-testid="tasks-today-card"
+                />
+              </div>
+            )}
+          </Motion.div>
         </div>
 
         {/* Productivity Insights */}

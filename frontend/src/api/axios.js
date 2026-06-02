@@ -1,6 +1,17 @@
 import axios from 'axios';
 
-const backendURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+const getBackendURL = () => {
+    if (import.meta.env.VITE_BACKEND_URL) {
+        return import.meta.env.VITE_BACKEND_URL;
+    }
+    if (import.meta.env.VITE_API_BASE_URL) {
+        // Strip trailing /api to avoid duplicate '/api/api' path issues
+        return import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '');
+    }
+    return 'http://localhost:4000';
+};
+
+const backendURL = getBackendURL();
 
 const axiosInstance = axios.create({
     baseURL: backendURL,
