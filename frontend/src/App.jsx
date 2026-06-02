@@ -8,6 +8,7 @@ import Onboarding from './pages/Onboarding';
 import AppLayout from './layouts/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
+import Roadmap from './pages/Roadmap';
 
 
 import FutureTwin from './modules/simulator_room/FutureTwin';
@@ -35,6 +36,7 @@ import { ToastContainer } from 'react-toastify';
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/report" element={<Reports />} />
+          <Route path="/roadmap" element={<Roadmap />} />
 
           {/* Protected Routes with AppLayout */}
           <Route element={<AppLayout />}>

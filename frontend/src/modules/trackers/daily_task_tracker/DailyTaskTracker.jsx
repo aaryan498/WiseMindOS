@@ -10,12 +10,14 @@ import { format } from 'date-fns';
 import { motion as Motion } from 'framer-motion';
 import Modal from '../../../components/Modal';
 import { showToast } from '../../../utils/toastHelper';
+import { PlannerSkeleton } from '../../../components/LoadingSkeleton';
 
 const DailyTaskTracker = () => {
   const {
     tasks,
     habits,
     dailyPlan,
+    loading,
     addToDailyPlan,
     removeFromDailyPlan,
     createManualDailyTask,
@@ -163,6 +165,35 @@ const DailyTaskTracker = () => {
     if (source === 'habit') return { label: 'Habit', color: 'bg-green-500/20 text-green-400 border-green-500/30' };
     return { label: 'Manual', color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' };
   };
+
+  if (loading) {
+    return (
+      <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
+        <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
+          <Motion.div
+            className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
+            animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
+            transition={{ duration: 10, repeat: Infinity }}
+          />
+          <Motion.div
+            className="absolute bottom-20 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
+            animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
+            transition={{ duration: 12, repeat: Infinity }}
+          />
+          <div className="max-w-4xl mx-auto relative z-10">
+            <div className="mb-6">
+              <h1 className="text-3xl young-serif-regular font-bold text-gray-200 mb-2">Daily Task Planner</h1>
+              <div className="flex items-center gap-2 text-gray-400">
+                <Calendar size={20} />
+                <p>{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>
+              </div>
+            </div>
+            <PlannerSkeleton />
+          </div>
+        </div>
+      </Motion.div>
+    );
+  }
 
   return (
     <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>

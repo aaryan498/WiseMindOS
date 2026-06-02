@@ -10,7 +10,7 @@ import { showToast } from '../utils/toastHelper';
 
 
 const Login = () => {
-  const { token, setToken, setUser, navigate } = useApp()
+  const { token, setToken, user, setUser, navigate } = useApp()
   const [formData, setFormData] = useState({
     identifier: '',
     password: ''
@@ -45,9 +45,11 @@ const Login = () => {
 
     try {
       const response = await authAPI.login({ identifier, password });
+      console.log('Login response:', response);
 
       if (response.success) {
         // Store token
+        console.log('Setting token:', response.token);
         setToken(response.token);
         localStorage.setItem('token', response.token);
 
@@ -59,11 +61,11 @@ const Login = () => {
           bio: response.bio,
           profile_picture: response.profile_picture
         };
+        console.log('Setting user:', userData);
         setUser(userData);
         localStorage.setItem('wisemind_user', JSON.stringify(userData));
 
         showToast({ message: response.message || 'Login Successful', status: "success" })
-        navigate('/dashboard');
       } else {
         setError(response.message || 'Login failed');
         showToast({ message: response.message || 'Login failed', status: 'error'})
@@ -79,10 +81,12 @@ const Login = () => {
   };
 
   useEffect(() => {
-    if (token) {
-      navigate('/');
-    }
-  }, [token])
+      console.log('Login useEffect - token:', token, 'user:', user);
+      if (token && user) {
+        console.log('Navigating to dashboard');
+        navigate('/dashboard');
+      }
+  }, [token, user, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center px-4 py-12 relative overflow-hidden">

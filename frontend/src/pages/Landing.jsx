@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { motion } from "framer-motion";
+import { motion as Motion } from "framer-motion";
 import { Target, TrendingUp, Sparkles, Brain, CheckCircle, Zap } from 'lucide-react';
 import GradientButton from '../components/GradientButton';
 import Card from '../components/Card';
@@ -41,20 +41,20 @@ const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
+<div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-x-hidden">
       {/* Hero Section */}
       <div className='bg-gradient-to-br from-gray-900 via-black to-gray-900'>
-        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
-          <motion.section animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="relative min-h-screen flex items-center justify-center px-4 py-20">
+        <Motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
+            <Motion.section animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="relative min-h-screen flex items-center justify-center px-4 py-20">
             <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900"></div>
             {/* Glow blobs */}
-            <motion.div
+            <Motion.div
               className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
               animate={{ x: [0, 50, 0], y: [0, 30, 0] }}
               transition={{ duration: 10, repeat: Infinity }}
             />
 
-            <motion.div
+            <Motion.div
               className="absolute bottom-20 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
               animate={{ x: [0, -50, 0], y: [0, -30, 0] }}
               transition={{ duration: 12, repeat: Infinity }}
@@ -64,7 +64,7 @@ const Landing = () => {
               <div className="mb-8 flex flex-col items-center">
 
                 {/* Logo */}
-                <motion.img
+                <Motion.img
                   src={logo}
                   alt="WiseMindOS Logo"
                   className="w-20 h-20 md:w-28 md:h-28 mb-4 object-contain"
@@ -73,8 +73,8 @@ const Landing = () => {
                 />
 
                 {/* Title */}
-                <motion.h1
-                  className="text-4xl young-serif-regular md:text-7xl font-extrabold tracking-tight text-white mb-4 cursor-pointer"
+                <Motion.h1
+                  className="text-3xl sm:text-4xl md:text-7xl font-extrabold tracking-tight text-white mb-4 cursor-pointer break-words"
                   animate={{
                     textShadow: [
                       "0px 0px 0px rgba(99,102,241,0)",
@@ -89,16 +89,15 @@ const Landing = () => {
                   }}
                 >
                   Wise
-                  <span className="bg-gradient-to-r text-5xl md:text-8xl baloo-2-700 from-indigo-500 to-purple-500 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r text-4xl sm:text-5xl md:text-8xl baloo-2-700 from-indigo-500 to-purple-500 bg-clip-text text-transparent break-words">
                     Mind
                   </span>
                   OS
-                </motion.h1>
+                </Motion.h1>
 
                 <div className="h-1 w-32 bg-gradient-to-r from-indigo-600 to-violet-600 mx-auto rounded-full"></div>
               </div>
-
-              <p className="text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed">
+<p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed px-2">
                 Your intelligent life tracking and simulation system.
                 <br />
                 Stay focused, achieve goals, and optimize your future.
@@ -122,14 +121,14 @@ const Landing = () => {
                 </Link>
               </div>
             </div>
-          </motion.section>
-        </motion.div>
+          </Motion.section>
+        </Motion.div>
       </div>
 
 
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-white dark:bg-gray-800/50">
+      <section id="features" className="py-20 px-4 bg-white dark:bg-gray-800/50">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold young-serif-regular text-gray-600 dark:text-gray-100 mb-2">Powerful Features</h2>
@@ -137,9 +136,9 @@ const Landing = () => {
             <p className="text-gray-900 dark:text-gray-300 mt-2 text-base md:text-lg">Everything you need for holistic personal development</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {features.map((feature, index) => (
-              <motion.div
+              <Motion.div
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -152,7 +151,7 @@ hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
                   <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
                   <p className="text-gray-400">{feature.description}</p>
                 </Card>
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
         </div>
@@ -174,7 +173,7 @@ hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
               { step: '03', title: 'Simulate Future', desc: 'Use FutureTwin AI to predict outcomes and optimize decisions' },
               { step: '04', title: 'Achieve Goals', desc: 'Stay consistent and watch your goals become reality' }
             ].map((item, index) => (
-              <motion.div
+              <Motion.div
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -184,17 +183,17 @@ hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
                 <div className="flex items-start gap-6 p-2 rounded-3xl cursor-pointer 
 bg-white/5 backdrop-blur-lg border border-white/10 
 hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shadow-[0_0_20px_rgba(99,102,241,0.5)]">
-                  <div className='p-4 flex items-start gap-6'>
+                 <div className='p-4 flex flex-col sm:flex-row items-start gap-4 sm:gap-6'>
                     <div className="text-4xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent flex-shrink-0">
                       {item.step}
                     </div>
                     <div>
-                      <h3 className="text-2xl font-semibold text-white mb-2">{item.title}</h3>
+                    <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2"> {item.title}</h3>
                       <p className="text-gray-400">{item.desc}</p>
                     </div>
                   </div>
                 </div>
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
         </div>
@@ -212,7 +211,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
             Join thousands who are achieving their goals with WiseMindOS
           </p>
           <Link to="/signup">
-            <GradientButton data-testid="cta-signup-btn" classNameclassName="
+            <GradientButton data-testid="cta-signup-btn" className="
     text-lg 
     bg-white text-black 
     bg-gradient-to-r from-green-500 via-blue-500 to-purple-600
@@ -253,7 +252,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
               { value: "24/7", label: "AI Support" }
             ].map((stat, index) => (
 
-              <motion.div
+              <Motion.div
                 key={index}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -284,7 +283,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
                 </div>
 
-              </motion.div>
+              </Motion.div>
             ))}
 
           </div>
@@ -316,9 +315,21 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
             <div>
               <h3 className="text-white font-semibold mb-4">Product</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li className="hover:text-white transition cursor-pointer">Features</li>
-                <li className="hover:text-white transition cursor-pointer">Pricing</li>
-                <li className="hover:text-white transition cursor-pointer">Roadmap</li>
+                <li>
+                  <Link to="/#features" className="hover:text-white transition cursor-pointer">
+                    Features
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/pricing" className="hover:text-white transition cursor-pointer">
+                    Pricing
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/roadmap" className="hover:text-white transition">
+                    Roadmap
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -326,9 +337,21 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
             <div>
               <h3 className="text-white font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li className="hover:text-white transition cursor-pointer">About</li>
-                <li className="hover:text-white transition cursor-pointer">Careers</li>
-                <li className="hover:text-white transition cursor-pointer">Contact</li>
+                <li>
+                  <Link to="/about" className="hover:text-white transition cursor-pointer">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/careers" className="hover:text-white transition cursor-pointer">
+                    Careers
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contact" className="hover:text-white transition cursor-pointer">
+                    Contact
+                  </Link>
+                </li>
               </ul>
             </div>
 

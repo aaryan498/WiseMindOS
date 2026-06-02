@@ -28,12 +28,37 @@ Transform long-term goals into structured daily execution through interconnected
 ---
 
 # Overview
+**WiseMindOS** is an open-source, modular full-stack "Life Operating System" designed to align daily execution with long-term ambitions. 
 
-WiseMindOS is a modular full-stack productivity and life-management platform designed to help users stay aligned with their long-term ambitions.
+While traditional tools offer fragmented task tracking, WiseMindOS unifies goals, projects, habits, deep-work systems, and bi-directional analytics into a single, cohesive engine. The platform is architected to transition personal growth from passive tracking to an active, data-driven workflow.
 
-Unlike traditional productivity applications that focus only on isolated task management, WiseMindOS connects goals, projects, tasks, habits, planning, focus systems, and analytics into a unified productivity ecosystem.
+### The FutureTwin 
+The ecosystem is scaling toward an intelligent productivity framework powered by **FutureTwin**—a personalized AI assistant that evaluates user analytics, counters behavioral friction, and continuously optimizes your daily trajectory toward high-level milestones.
 
-The long-term vision of the project is to evolve into a scalable “Life Operating System” with AI-powered personalized productivity assistance through FutureTwin.
+---
+# Screenshots
+<div align="center">
+   
+## Dashboard
+![Dashboard](assets/screenshots/Dashboard.jpeg)
+*A central view that shows overall productivity insights, including goals progress, tasks, habits, and performance analytics in one place.*
+
+
+## Trackers
+![Trackers](assets/screenshots/Trackers.jpeg)
+*It monitors habits, tasks, and goals to measure consistency, progress, and productivity over time.*
+
+
+## FutureTwin
+![FutureTwinAI](assets/screenshots/FutureTwinAI.jpeg)
+*An intelligent assistant that analyzes user behavior and productivity patterns to provide personalized recommendations and improve daily performance.*
+
+
+## Library
+![Library](assets/screenshots/YourLibrary.jpeg)
+*A personal knowledge space to store, organize, and revisit notes, ideas, and important information in a structured way.*
+
+</div>
 
 ---
 
@@ -52,24 +77,6 @@ The long-term vision of the project is to evolve into a scalable “Life Operati
 | Authentication System | Secure JWT-based authentication and protected routes |
 | Progress Analytics | Weekly productivity statistics and tracking systems |
 
----
-
-# Future Roadmap
-
-The following systems are planned for future releases:
-
-- AI-powered FutureTwin productivity assistant
-- Smart productivity recommendations
-- Behavioral analytics system
-- Burnout prediction system
-- Finance tracking module
-- Diet and wellness tracking
-- Gamification and reward systems
-- Productivity rankings and leaderboards
-- Google authentication
-- Mobile application
-- Desktop application
-- Cross-platform synchronization
 
 ---
 
@@ -96,9 +103,6 @@ The following systems are planned for future releases:
 - Vercel
 
 ---
-
-# Project Architecture
-
 # Project Architecture
 
 ```text
@@ -188,67 +192,157 @@ Analytics & Productivity Tracking
 | Planned | Diet Tracker |
 
 ---
-
-# Frontend Setup
+# Getting Started
 
 ## Prerequisites
 
-- Node.js 18+
-- npm
+Before running WiseMindOS locally, ensure you have the following installed:
 
-## Installation
+- Node.js (v18 or later)
+- npm (comes with Node.js)
+- MongoDB (local installation or MongoDB Atlas)
+- Git
+
+Verify your installation:
 
 ```bash
-cd frontend
-npm install
+node -v
+npm -v
+git --version
 ```
 
-## Environment Variables
+Then immediately follow it with:
 
-Create a `.env` file inside the frontend directory:
+
+
+## Quick Start
+
+Follow these steps to run WiseMindOS on your local machine.
+
+### 1. Clone the Repository
+
+Open a terminal and run:
+
+```bash
+git clone https://github.com/aaryan498/WiseMindOS.git
+cd WiseMindOS
+```
+
+### 2. Create Backend Environment Variables
+
+Navigate to the backend folder and create a `.env` file:
+
+```bash
+cd backend
+```
+
+Add the following:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=replace_with_a_secure_random_string
+CLIENT_URL=http://localhost:5173
+```
+
+### 3. Create Frontend Environment Variables
+
+Navigate to the frontend folder and create a `.env` file:
+
+```bash
+cd ../frontend
+```
+
+Add the following:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
-## Run Frontend
+### 4. Install Backend Dependencies
+
+Open a terminal in the `backend` folder and run:
 
 ```bash
-npm run dev
-```
-
----
-
-# Backend Setup
-
-## Prerequisites
-
-- Node.js 18+
-- MongoDB
-
-## Installation
-
-```bash
-cd backend
 npm install
 ```
 
-## Environment Variables
+### 5. Install Frontend Dependencies
 
-Create a `.env` file inside the backend directory:
-
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-CLIENT_URL=http://localhost:5173
-```
-
-## Run Backend
+Open a terminal in the `frontend` folder and run:
 
 ```bash
+npm install
+```
+
+### 6. Start the Backend Server
+
+Open **Terminal 1**:
+
+```bash
+cd WiseMindOS/backend
 npm run dev
 ```
+
+Wait until the backend starts successfully.
+
+### 7. Start the Frontend Server
+
+Open **Terminal 2**:
+
+```bash
+cd WiseMindOS/frontend
+npm run dev
+```
+
+### 8. Open the Application
+
+Once both servers are running, open the **Local** URL displayed in Terminal 2.
+
+By default, it is usually:
+
+```text
+http://localhost:5173
+```
+
+
+### Project Running Order
+
+1. Start MongoDB
+2. Start the backend server (Terminal 1)
+3. Start the frontend server (Terminal 2)
+4. Open the application in your browser
+
+---
+
+## Troubleshooting
+
+### Backend Fails to Start
+
+* Verify that all required environment variables are configured correctly.
+* Ensure your MongoDB instance is running and the connection string is valid.
+* Reinstall dependencies if required:
+
+```bash
+npm install
+```
+
+### Frontend Fails to Start
+
+* Verify that all frontend environment variables are configured correctly.
+* Make sure dependencies are installed:
+
+```bash
+npm install
+```
+
+### Frontend Cannot Connect to Backend
+
+* Ensure the backend server is running.
+* Verify that `VITE_API_BASE_URL` points to the correct backend URL.
+
+### Port Already in Use
+- If the application fails to start because a port is already in use, stop the conflicting process or update the port configuration.
 
 ---
 
@@ -266,74 +360,126 @@ npm run dev
 | `/dashboard` | Productivity analytics APIs |
 
 ---
-
 # Contribution Areas
 
-WiseMindOS is designed as a modular open-source project where contributors can independently work on different systems.
+WiseMindOS is built with a modular architecture, allowing contributors to work on different parts of the platform independently. Whether you're a beginner exploring open source or an experienced developer, there are multiple ways to contribute.
 
 ## Available Contribution Areas
 
-- Frontend UI/UX
-- Backend APIs
-- Authentication Systems
-- Productivity Analytics
-- AI Integrations
-- Gamification Systems
-- Documentation
-- Testing
-- Accessibility Improvements
-- Performance Optimization
-- DevOps & Deployment
+### Frontend Development
 
+* UI/UX improvements
+* Responsive design enhancements
+* Component development and optimization
+
+### Backend Development
+
+* API development and improvements
+* Database integration and optimization
+* Authentication and authorization features
+
+### Productivity Systems
+
+* Goal management enhancements
+* Task and habit tracking improvements
+* Productivity analytics and reporting
+
+### AI & Smart Features
+
+* FutureTwin AI assistant development
+* Intelligent productivity recommendations
+* Behavioral analytics features
+
+### Quality & Performance
+
+* Testing and bug fixes
+* Accessibility improvements
+* Performance optimization
+
+### Documentation & Community
+
+* README and documentation improvements
+* Contributor onboarding
+* Issue triaging and community support
+
+### DevOps & Deployment
+
+* CI/CD improvements
+* Deployment workflows
+* Infrastructure and monitoring
 ---
+## New Contributors
 
+New to open source? You're welcome here.
+
+Before contributing, please take a moment to:
+
+1. Read the `CONTRIBUTING.md` guidelines.
+2. Review the `CODE_OF_CONDUCT.md`.
+3. Browse existing issues and discussions.
+4. Comment on an issue before starting work to avoid duplicate efforts.
+5. Keep pull requests focused on a single feature, fix, or improvement.
+6. Write clear commit messages and pull request descriptions.
+
+If you're looking for a place to start, consider contributing to:
+
+* Documentation improvements
+* UI/UX enhancements
+* Bug fixes
+* Accessibility improvements
+* Testing and quality assurance
+
+- Every contribution, no matter how small, helps improve WiseMindOS.
+---
 # Why WiseMindOS?
 
-Most productivity applications focus primarily on isolated task management.
+Most productivity apps help you manage tasks.
 
-WiseMindOS focuses on long-term goal alignment and structured execution by connecting:
+WiseMindOS helps you manage progress.
 
-- Goals
-- Projects
-- Tasks
-- Habits
-- Planning
-- Focus Systems
-- Productivity Analytics
+By connecting goals, projects, tasks, habits, planning, focus systems, and analytics into one ecosystem, WiseMindOS turns long-term ambitions into consistent daily action.
 
-into a unified productivity ecosystem.
+Rather than tracking productivity in isolated modules, WiseMindOS creates a structured workflow where every action contributes to a larger objective. The platform is designed to help users build momentum, maintain consistency, and stay aligned with their long-term vision.
 
-The project aims to help users stay consistent, focused, and aligned with their ambitions through scalable productivity workflows.
-
+- The goal is simple: stay focused, stay consistent, and make measurable progress every day.
 ---
+# Future Roadmap
 
-# Open Source Contribution
+WiseMindOS is continuously evolving to become a comprehensive productivity and life-management platform. Upcoming features and planned enhancements include:
 
-We welcome contributors of all experience levels.
+## AI & Intelligence
 
-Please read:
+* AI-powered FutureTwin productivity assistant
+* Smart productivity recommendations
+* Behavioral analytics and insights
+* Burnout prediction system
 
-- `CONTRIBUTING.md`
-- `CODE_OF_CONDUCT.md`
+## Productivity & Planning
 
-before contributing.
+* Smart scheduling assistant
+* Calendar integrations
+* Advanced analytics dashboards
+* Real-time notifications
 
-Beginner-friendly issues and contribution guidelines will be maintained for new contributors.
+## Personal Growth & Wellness
 
----
+* Finance tracking module
+* Diet and wellness tracking
+* Gamification and reward systems
 
-# Planned Enhancements
+## Community & Engagement
 
-- Google OAuth Authentication
-- Real-time notifications
-- AI-driven productivity recommendations
-- Calendar integrations
-- Advanced analytics dashboards
-- Smart scheduling assistant
-- Cross-platform synchronization
-- FutureTwin AI assistant
+* Productivity rankings and leaderboards
 
----
+## Platform Expansion
+
+* Google OAuth authentication
+* Mobile application
+* Desktop application
+* Cross-platform synchronization
+
+These features are part of the long-term vision of making WiseMindOS an intelligent, data-driven platform for productivity, personal growth, and goal achievement.
+
 
 # Repository Structure
 
@@ -357,15 +503,16 @@ See the `LICENSE` file for more information.
 
 Aaryan Kumar
 
-Building WiseMindOS with the vision of creating a scalable productivity and life-management ecosystem.
+Building WiseMindOS with the vision of creating an intelligent productivity ecosystem where goals, habits, planning, and analytics work together to turn ambition into measurable progress.
 
 ---
-
 # Support the Project
 
-If you find this project useful:
+If you find WiseMindOS useful, consider supporting the project by:
 
-- Star the repository
-- Fork the project
-- Contribute to the project
-- Share feedback and suggestions
+* Starring the repository
+* Forking the project
+* Contributing features, fixes, or improvements
+* Sharing feedback and suggestions
+
+Every contribution, whether it's code, documentation, testing, or feedback, helps make WiseMindOS better for the entire community.

@@ -16,6 +16,12 @@
   }
 }
 
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 .recharts-wrapper,
 .recharts-surface {
   outline: none !important;

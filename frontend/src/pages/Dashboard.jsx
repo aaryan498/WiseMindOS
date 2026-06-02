@@ -11,13 +11,14 @@ import ProjectCard from '../components/ProjectCard';
 import TaskItem from '../components/TaskItem';
 import HabitCard from '../components/HabitCard';
 import GradientButton from '../components/GradientButton';
-import { motion } from 'framer-motion'
+import { motion as Motion } from 'framer-motion'
 import { useMemo } from 'react';
 import profile_pic from '../assets/profile_pic.svg'
 import { useState, useEffect } from 'react';
 import { statsAPI } from '../api/apiService';
 import Modal from '../components/Modal';
 import InputField from '../components/InputField';
+import { AnalyticsSkeleton, DashboardStatsSkeleton, SkeletonCard, SkeletonBlock, TrackerGridSkeleton } from '../components/LoadingSkeleton';
 
 
 const Dashboard = () => {
@@ -29,6 +30,7 @@ const Dashboard = () => {
   const {
     goals,
     user,
+    loading,
     projects,
     tasks,
     habits,
@@ -47,11 +49,13 @@ const Dashboard = () => {
 
   const [newProfile, setNewProfile] = useState({ name: user.name, username: user.username, bio: user.bio });
   const [newProfilePic, setNewProfilePic] = useState(null);
+  const [weeklyLoading, setWeeklyLoading] = useState(true);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
+      setWeeklyLoading(true);
       try {
         const res = await statsAPI.getWeekly();
 
@@ -67,6 +71,8 @@ const Dashboard = () => {
 
       } catch (error) {
         console.log("Failed to fetch stats:", error);
+      } finally {
+        setWeeklyLoading(false);
       }
     };
 
@@ -168,21 +174,21 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-      <motion.div
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-3 sm:px-4 pt-4 sm:pt-6 relative overflow-hidden">
+      <Motion.div
         className="absolute top-10 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
 
-      <motion.div
+      <Motion.div
         className="absolute bottom-10 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-6xl mx-auto">
         {/* Welcome Section */}
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -211,7 +217,7 @@ const Dashboard = () => {
 
             <div className='text-gray-400 mb-6'>{user.bio || 'Add Bio'}</div>
 
-            <div className='flex justify-around mb-4'>
+            <div className='flex flex-wrap justify-around gap-4 mb-4'>
               <div className="text-center">
                 <p className="text-lg font-bold text-indigo-400">{productivityScore}%</p>
                 <p className="text-xs text-gray-400">Productivity</p>
@@ -230,7 +236,7 @@ const Dashboard = () => {
 
           </Card>
 
-        </motion.div>
+        </Motion.div>
 
 
         <div className='rounded-2xl p-6 mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]'>
@@ -241,40 +247,47 @@ const Dashboard = () => {
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          {loading ? (
+            <DashboardStatsSkeleton />
+          ) : (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
-            <StatCard
-              title="Productivity"
-              value={`${productivityScore}%`}
-              icon={<Zap size={24} />}
-              // trend={{positive: false, value: 20}}
-              data-testid="productivity-score-card"
-            />
-            <StatCard
-              title="Discipline"
-              value={`${disciplineScore}%`}
-              icon={<TrendingUp size={24} />}
-              data-testid="discipline-score-card"
-            />
-            <StatCard
-              title="Active Goals"
-              value={goals.length.toString()}
-              icon={<Target size={24} />}
-              data-testid="active-goals-card"
-            />
-            <StatCard
-              title="Tasks Today"
-              value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
-              icon={<CheckCircle size={24} />}
-              data-testid="tasks-today-card"
-            />
-          </div>
+              <StatCard
+                title="Productivity"
+                value={`${productivityScore}%`}
+                icon={<Zap size={24} />}
+                // trend={{positive: false, value: 20}}
+                data-testid="productivity-score-card"
+              />
+              <StatCard
+                title="Discipline"
+                value={`${disciplineScore}%`}
+                icon={<TrendingUp size={24} />}
+                data-testid="discipline-score-card"
+              />
+              <StatCard
+                title="Active Goals"
+                value={goals.length.toString()}
+                icon={<Target size={24} />}
+                data-testid="active-goals-card"
+              />
+              <StatCard
+                title="Tasks Today"
+                value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
+                icon={<CheckCircle size={24} />}
+                data-testid="tasks-today-card"
+              />
+            </div>
+          )}
         </div>
 
 
         {/* Weekly Analytics */}
         <h2 className="text-xl font-bold text-white mb-4">Weekly Analytics</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {weeklyLoading ? (
+          <AnalyticsSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card className="bg-transparent border cursor-pointer border-white/10 hover:scale-[1.02] transition-all duration-300">
             <h3 className="text-lg font-semibold text-white mb-4">Productivity Score</h3>
             <div className="flex justify-center">
@@ -391,7 +404,8 @@ const Dashboard = () => {
               </BarChart>
             </ResponsiveContainer>
           </Card>
-        </div>
+          </div>
+        )}
 
 
         {(importantTasks.length > 0 || behindTasks.length > 0) && (
@@ -408,12 +422,12 @@ const Dashboard = () => {
                   <p className="text-gray-400 text-sm mb-4">High Priority Tasks, Complete these first.</p>
                   <div className="space-y-3">
                     {importantTasks.slice(0, 4).map(task => (
-                      <motion.div key={task.id} whileHover={{ scale: 1.005 }}>
+                      <Motion.div key={task.id} whileHover={{ scale: 1.005 }}>
                         <TaskItem
                           task={task}
                           onToggle={toggleTaskCompletion}
                         />
-                      </motion.div>
+                      </Motion.div>
                     ))}
                   </div>
                 </div>
@@ -431,18 +445,18 @@ const Dashboard = () => {
                   <p className="text-gray-400 text-sm mb-4">Act fast on these tasks, You are already running late.</p>
                   <div className="space-y-3">
                     {behindTasks.slice(0, 4).map(task => (
-                      <motion.div key={task.id} whileHover={{ scale: 1.005 }}>
+                      <Motion.div key={task.id} whileHover={{ scale: 1.005 }}>
                         <TaskItem
                           task={task}
                           onToggle={toggleTaskCompletion}
                         />
-                      </motion.div>
+                      </Motion.div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-            <div className='flex gap-2 w-full mt-4 pt-4'>
+          <div className='flex flex-col sm:flex-row gap-2 w-full mt-4 pt-4'>
               <Link to="/focus-room" className='flex-1'>
                 <GradientButton className="w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]" data-testid="focus-room-cta">
                   <span>Enter Focus Room</span>
@@ -458,7 +472,19 @@ const Dashboard = () => {
           </div>)}
 
         {/* Today's Tasks */}
-        {hasPlannedTasks && pendingPlannedTasks.length > 0 ? (
+        {loading ? (
+          <SkeletonCard className="mb-6">
+            <div className="flex justify-between items-center mb-5">
+              <SkeletonBlock className="h-6 w-48" />
+              <SkeletonBlock className="h-4 w-16" />
+            </div>
+            <div className="space-y-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <SkeletonBlock key={index} className="h-16 w-full" />
+              ))}
+            </div>
+          </SkeletonCard>
+        ) : hasPlannedTasks && pendingPlannedTasks.length > 0 ? (
           <Card className="mb-6 bg-white/5 border border-white/10 backdrop-blur-lg shadow-[0_0_40px_rgba(99,102,241,0.2)]">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">Today's Planned Tasks</h2>
@@ -468,7 +494,7 @@ const Dashboard = () => {
             </div>
             <div className="space-y-3">
               {pendingPlannedTasks.slice(0, 5).map((item, index) => (
-                <motion.div
+                <Motion.div
                   key={item.id}
                   whileHover={{ scale: 1.02 }}
                   initial={{ opacity: 0, y: 10 }}
@@ -522,9 +548,9 @@ const Dashboard = () => {
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </Motion.div>
               ))}
-              <div className='flex gap-2 w-full h-full justify-between mt-4'>
+            <div className='flex flex-col sm:flex-row gap-2 w-full h-full justify-between mt-4'>
                 <Link to="/focus-room">
                   <GradientButton className="w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]" data-testid="focus-room-cta">
                     <span>Enter Focus Room</span>
@@ -574,7 +600,15 @@ const Dashboard = () => {
 
 
         {/* Goals Progress */}
-        {goals.length > 0 && (
+        {loading ? (
+          <div className="mb-6">
+            <div className="flex justify-between items-center mb-4">
+              <SkeletonBlock className="h-6 w-40" />
+              <SkeletonBlock className="h-4 w-16" />
+            </div>
+            <TrackerGridSkeleton count={4} />
+          </div>
+        ) : goals.length > 0 && (
           <div className="mb-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-white">Goals Progress</h2>
@@ -584,7 +618,7 @@ const Dashboard = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {topGoals.map((goal, index) => (
-                <motion.div
+                <Motion.div
                   key={goal.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -596,7 +630,7 @@ const Dashboard = () => {
                     progress={calculateGoalProgress(goal.id)}
                     onClick={() => { }}
                   />
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
@@ -615,7 +649,7 @@ const Dashboard = () => {
               {topProjects.map((project, index) => {
                 const linkedGoal = goals.find(g => g.id === project.goalId);
                 return (
-                  <motion.div
+                  <Motion.div
                     key={project.id}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -628,7 +662,7 @@ const Dashboard = () => {
                       linkedGoal={linkedGoal?.title}
                       onClick={() => { }}
                     />
-                  </motion.div>
+                  </Motion.div>
                 );
               })}
             </div>
@@ -646,7 +680,7 @@ const Dashboard = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {topHabits.map((habit, index) => (
-                <motion.div
+                <Motion.div
                   key={habit.id}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -654,7 +688,7 @@ const Dashboard = () => {
                   onClick={() => navigate('/trackers/habits')}
                 >
                   <HabitCard key={habit.id} habit={habit} />
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
           </div>
