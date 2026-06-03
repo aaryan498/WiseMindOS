@@ -96,7 +96,7 @@ const valueCards = [
 const teamMembers = [
   {
     name: 'Aaryan Kumar',
-    role: 'Core Maintainer',
+    role: 'Project Admin',
     handle: '@aaryan498',
     bio: 'Shapes the product direction and keeps the platform centered on aligned execution, modular architecture, and long-term focus.',
     focus: ['Vision', 'Architecture', 'AI'],
@@ -104,30 +104,6 @@ const teamMembers = [
       { label: 'GitHub', href: 'https://github.com/aaryan498', icon: Github },
       { label: 'LinkedIn', href: 'https://www.linkedin.com/company/wisemindos', icon: Linkedin },
       { label: 'Email', href: 'mailto:hello@wisemindos.com?subject=For%20Aaryan%20Kumar', icon: Mail },
-    ],
-  },
-  {
-    name: 'Ramya',
-    role: 'Open Source Collaborator',
-    handle: '@ramyacm23',
-    bio: 'Helps turn product ideas into contributor-friendly work, keeping public pages, feature polish, and project momentum moving together.',
-    focus: ['Community', 'UX', 'Delivery'],
-    socials: [
-      { label: 'GitHub', href: 'https://github.com/ramyacm23', icon: Github },
-      { label: 'LinkedIn', href: 'https://www.linkedin.com/company/wisemindos', icon: Linkedin },
-      { label: 'Email', href: 'mailto:hello@wisemindos.com?subject=For%20Ramya', icon: Mail },
-    ],
-  },
-  {
-    name: 'Shakti Shrey',
-    role: 'Frontend Contributor',
-    handle: '@ShaktiShrey-01',
-    bio: 'Brings product experiences to life with thoughtful interfaces, smoother interactions, and a strong eye for contributor-ready implementation.',
-    focus: ['Frontend', 'Motion', 'Polish'],
-    socials: [
-      { label: 'GitHub', href: 'https://github.com/ShaktiShrey-01', icon: Github },
-      { label: 'LinkedIn', href: 'https://www.linkedin.com/company/wisemindos', icon: Linkedin },
-      { label: 'Email', href: 'mailto:hello@wisemindos.com?subject=For%20Shakti%20Shrey', icon: Mail },
     ],
   },
 ];
@@ -453,20 +429,20 @@ const About = () => {
             <div className="max-w-3xl">
               <p className="text-sm uppercase tracking-[0.24em] text-indigo-300">Team</p>
               <h2 className="mt-3 young-serif-regular text-3xl font-bold text-white sm:text-4xl">
-                The people shaping WiseMindOS in public.
+                The project admin leading WiseMindOS.
               </h2>
               <p className="mt-4 text-base leading-7 text-gray-400">
-                WiseMindOS grows through focused builders and open-source collaborators who care about clarity,
-                consistency, and making the product easier to improve together.
+                WiseMindOS is guided by a clear product vision focused on clarity, consistency, modular architecture,
+                and long-term execution.
               </p>
             </div>
 
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300 backdrop-blur-lg">
-              Profile-style contributor cards inspired by the dashboard welcome pattern.
+              Profile-style admin card inspired by the dashboard welcome pattern.
             </div>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="mx-auto grid max-w-xl gap-4">
             {teamMembers.map((member, index) => (
               <Motion.div
                 key={member.handle}
