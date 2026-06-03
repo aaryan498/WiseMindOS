@@ -9,6 +9,7 @@ import AppLayout from './layouts/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import Roadmap from './pages/Roadmap';
+import About from './pages/About';
 import Careers from './pages/Careers';
 import Contact from './pages/Contact';
 
@@ -28,11 +29,11 @@ import { ToastContainer } from 'react-toastify';
 import ErrorBoundary from './components/ErrorBoundary';
 import ErrorPage from './pages/ErrorPage';
 
-  function App() {
-    const { token } = useApp();
-    return (
-      <>
-        <ErrorBoundary fallback={<ErrorPage />}>
+function App() {
+  const { token } = useApp();
+
+  return (
+    <ErrorBoundary fallback={<ErrorPage />}>
         <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           {/* Public Routes */}
@@ -42,6 +43,7 @@ import ErrorPage from './pages/ErrorPage';
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/report" element={<Reports />} />
           <Route path="/roadmap" element={<Roadmap />} />
+          <Route path="/about" element={<About />} />
           <Route path="/careers" element={<Careers />} />
           <Route path="/contact" element={<Contact />} />
 
@@ -64,8 +66,8 @@ import ErrorPage from './pages/ErrorPage';
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </ErrorBoundary>
-    );
-  }
+    </ErrorBoundary>
+  );
+}
 
 export default App;
