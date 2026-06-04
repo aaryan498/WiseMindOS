@@ -280,9 +280,10 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Card className="mb-6 w-full  relative overflow-hidden bg-white/15 backdrop-blur-xl border-20 border-black/20 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
+          <Card className="mb-6 w-full relative overflow-hidden bg-white/15 backdrop-blur-xl border-20 border-black/20 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
+  <div className="flex flex-col lg:flex-row items-center lg:items-center gap-8 w-full">
 
-            <div className="rounded w-full mb-6 flex flex-col items-center">
+            <div className="rounded flex flex-col items-center shrink-0 w-full lg:w-auto lg:min-w-[220px]">
               <div className='w-full flex items-end justify-end'>
                 <button
                   type="button"
@@ -314,12 +315,12 @@ const Dashboard = () => {
               </div>
             </div>
 
-                <div className='flex flex-col items-center md:items-start flex-1 w-full'>
+                <div className='flex flex-col items-center lg:items-start flex-1 min-w-0 w-full text-center lg:text-left'>
                   <span className='text-3xl md:text-4xl default-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400'>{user.name || 'User'}</span>
                   <span className='cursor-pointer text-sm font-medium text-indigo-400/80 mb-3'>@{user.username || 'username'}</span>
                   <p className='text-gray-300 text-sm md:text-base text-center md:text-left mb-6 max-w-lg leading-relaxed'>{user.bio || 'Add Bio'}</p>
 
-                  <div className='flex flex-wrap justify-center md:justify-start gap-6 w-full'>
+                  <div className='flex flex-wrap justify-center lg:justify-start gap-8 w-full'>
                     <div className="flex flex-col">
                       <p className="text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{productivityScore}%</p>
                       <p className="text-xs text-indigo-300 uppercase tracking-wider font-semibold">Productivity</p>
@@ -341,13 +342,15 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <div className="w-full md:w-auto mt-6 md:mt-0 flex items-center justify-center">
-                  <GradientButton className="w-full md:w-40 py-3 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_35px_rgba(99,102,241,0.6)] hover:scale-[1.05] transform-gpu transition-all duration-300 ease-in-out border border-indigo-400/20">
+                <div className="w-full lg:w-auto flex items-center justify-center lg:justify-end shrink-0">
+                  <GradientButton className="w-full sm:w-72 lg:w-40 py-3 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_35px_rgba(99,102,241,0.6)] hover:scale-[1.05] transform-gpu transition-all duration-300 ease-in-out border border-indigo-400/20">
                     <UserPlus2 size={20} />
                     <span>Connect</span>
                   </GradientButton>
                 </div>
-          </Card>
+              </div>
+            </Card>
+          
 
         </Motion.div>
 
