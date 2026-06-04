@@ -281,8 +281,8 @@ const Dashboard = () => {
           transition={{ duration: 0.6 }}
         >
           <Card className="mb-6 w-full  relative overflow-hidden bg-white/15 backdrop-blur-xl border-20 border-black/20 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
-
-            <div className="rounded w-full mb-6 flex flex-col items-center">
+            <div className="flex flex-col md:flex-row items-center justify-between w-full gap-6">
+              <div className="rounded w-full mb-6 flex flex-col items-center">
               <div className='w-full flex items-end justify-end'>
                 <button
                   type="button"
@@ -314,7 +314,8 @@ const Dashboard = () => {
               </div>
             </div>
 
-                <div className='flex flex-col items-center md:items-start flex-1 w-full'>
+            <div className="flex-1 w-full flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className='flex flex-col items-center md:items-start flex-1 w-full'>
                   <span className='text-3xl md:text-4xl default-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400'>{user.name || 'User'}</span>
                   <span className='cursor-pointer text-sm font-medium text-indigo-400/80 mb-3'>@{user.username || 'username'}</span>
                   <p className='text-gray-300 text-sm md:text-base text-center md:text-left mb-6 max-w-lg leading-relaxed'>{user.bio || 'Add Bio'}</p>

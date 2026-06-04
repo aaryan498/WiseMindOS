@@ -313,9 +313,11 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
             {/* Branding */}
             <div>
-              <h2 className="text-2xl young-serif-regular font-bold mb-4">
-                Wise<span className="bg-gradient-to-r text-3xl baloo-2-400 from-indigo-500 to-purple-500 bg-clip-text text-transparent">Mind</span>OS
-              </h2>
+              <Link to="/" className="inline-block group">
+                <h2 className="text-2xl young-serif-regular font-bold mb-4 transition-all duration-300 group-hover:scale-[1.02]">
+                  Wise<span className="bg-gradient-to-r text-3xl baloo-2-400 from-indigo-500 to-purple-500 bg-clip-text text-transparent transition-all duration-300 group-hover:brightness-125">Mind</span>OS
+                </h2>
+              </Link>
               <p className="text-gray-400 text-sm leading-relaxed">
                 Your intelligent life tracking and simulation system.
                 Optimize your habits, goals, and future decisions.
@@ -325,19 +327,31 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
             {/* Product Links */}
             <div>
               <h3 className="text-white font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
+              <ul className="space-y-3 text-gray-400 text-sm">
                 <li>
-                  <Link to="/features" className="hover:text-white transition cursor-pointer">
+                  <Link 
+                    to="/features" 
+                    className="group flex items-center text-gray-400 hover:text-indigo-400 transition-all duration-300 hover:translate-x-2 cursor-pointer"
+                  >
+                    <span className="opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 mr-2 bg-gradient-to-r from-indigo-500 to-purple-500 w-1.5 h-1.5 rounded-full inline-block"></span>
                     Features
                   </Link>
                 </li>
                 <li>
-                  <Link to="/pricing" className="hover:text-white transition cursor-pointer">
+                  <Link 
+                    to="/pricing" 
+                    className="group flex items-center text-gray-400 hover:text-indigo-400 transition-all duration-300 hover:translate-x-2 cursor-pointer"
+                  >
+                    <span className="opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 mr-2 bg-gradient-to-r from-indigo-500 to-purple-500 w-1.5 h-1.5 rounded-full inline-block"></span>
                     Pricing
                   </Link>
                 </li>
                 <li>
-                  <Link to="/roadmap" className="hover:text-white transition">
+                  <Link 
+                    to="/roadmap" 
+                    className="group flex items-center text-gray-400 hover:text-indigo-400 transition-all duration-300 hover:translate-x-2 cursor-pointer"
+                  >
+                    <span className="opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 mr-2 bg-gradient-to-r from-indigo-500 to-purple-500 w-1.5 h-1.5 rounded-full inline-block"></span>
                     Roadmap
                   </Link>
                 </li>
@@ -347,19 +361,31 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
             {/* Company Links */}
             <div>
               <h3 className="text-white font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
+              <ul className="space-y-3 text-gray-400 text-sm">
                 <li>
-                  <Link to="/about" className="hover:text-white transition cursor-pointer">
+                  <Link 
+                    to="/about" 
+                    className="group flex items-center text-gray-400 hover:text-indigo-400 transition-all duration-300 hover:translate-x-2 cursor-pointer"
+                  >
+                    <span className="opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 mr-2 bg-gradient-to-r from-indigo-500 to-purple-500 w-1.5 h-1.5 rounded-full inline-block"></span>
                     About
                   </Link>
                 </li>
                 <li>
-                  <Link to="/careers" className="hover:text-white transition cursor-pointer">
+                  <Link 
+                    to="/careers" 
+                    className="group flex items-center text-gray-400 hover:text-indigo-400 transition-all duration-300 hover:translate-x-2 cursor-pointer"
+                  >
+                    <span className="opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 mr-2 bg-gradient-to-r from-indigo-500 to-purple-500 w-1.5 h-1.5 rounded-full inline-block"></span>
                     Careers
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contact" className="hover:text-white transition cursor-pointer">
+                  <Link 
+                    to="/contact" 
+                    className="group flex items-center text-gray-400 hover:text-indigo-400 transition-all duration-300 hover:translate-x-2 cursor-pointer"
+                  >
+                    <span className="opacity-0 -ml-3 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 mr-2 bg-gradient-to-r from-indigo-500 to-purple-500 w-1.5 h-1.5 rounded-full inline-block"></span>
                     Contact
                   </Link>
                 </li>
@@ -370,11 +396,11 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
             <div>
               <h3 className="text-white font-semibold mb-4">Get Started</h3>
 
-              <Link to="/signup">
-                <GradientButton className="bg-white text-black hover:bg-gray-200 w-full mb-4">
+              <Link to="/signup" className="group block">
+                <GradientButton className="bg-white text-black hover:bg-gray-200 w-full mb-4 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] transition-all duration-300">
                   <span className="flex items-center justify-center gap-2">
                     Start Free
-                    <ArrowRight size={18} />
+                    <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1.5" />
                   </span>
                 </GradientButton>
               </Link>
@@ -388,7 +414,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
           {/* Bottom Line */}
           <div className="mt-12 pt-6 border-t border-gray-700 text-center text-gray-400 text-sm">
-            © 2026 <span className="text-white font-semibold">WiseMindOS</span>. All rights reserved.
+            © 2026 <Link to="/" className="text-white font-semibold hover:text-indigo-400 transition-colors duration-300">WiseMindOS</Link>. All rights reserved.
           </div>
 
         </div>
