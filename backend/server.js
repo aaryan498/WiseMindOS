@@ -11,10 +11,15 @@ import dailyPlanRouter from './routes/dailyPlanRoute.js';
 import notebookRouter from './routes/notebookRoute.js';
 import pageRouter from './routes/pageRoute.js';
 import weeklyStatRouter from './routes/weeklyStatRoute.js';
+import notificationRouter from './routes/notifications.js';
+import { initNotificationScheduler } from './utils/notificationScheduler.js';
 
 const app = express();
 const port = process.env.PORT || 4000;
 connectDB();
+
+// Initialize notification scheduler
+initNotificationScheduler();
 
 app.use(express.json());
 app.use(cors());
@@ -30,7 +35,7 @@ app.use('/api/daily-plan', dailyPlanRouter);
 app.use('/api/notebooks', notebookRouter);
 app.use('/api/pages', pageRouter);
 app.use('/api/stats', weeklyStatRouter);
-
+app.use('/api/notifications', notificationRouter);
 
 
 app.get('/', (req, res)=>{
@@ -40,4 +45,3 @@ app.get('/', (req, res)=>{
 app.listen(port, ()=>{
     console.log(`Server running : http://localhost:${port}`);
 })
-

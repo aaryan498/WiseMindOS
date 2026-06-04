@@ -23,6 +23,7 @@
     "mongodb": "^7.1.1",
     "mongoose": "^9.3.3",
     "multer": "^2.1.1",
+    "node-cron": "^4.2.1",
     "nodemon": "^3.1.14",
     "validator": "^13.15.35"
   }

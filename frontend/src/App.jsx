@@ -14,6 +14,7 @@ import Pricing from './pages/Pricing';
 import Careers from './pages/Careers';
 import Contact from './pages/Contact';
 import About from './pages/About';
+import NotificationSettingsPage from './pages/NotificationSettingsPage';
 
 
 import FutureTwin from './modules/simulator_room/FutureTwin';
@@ -50,6 +51,7 @@ function App() {
           <Route path="/careers" element={<Careers />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
+          <Route path="/settings/notifications" element={<NotificationSettingsPage />} />
 
           {/* Protected Routes with AppLayout */}
           <Route element={<AppLayout />}>
