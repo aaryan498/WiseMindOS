@@ -373,9 +373,24 @@ body * {
   --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-from), var(--tw-gradient-to)) !important;
 }
 
+[data-theme="light"] .from-gray-900 {
+  --tw-gradient-from: #f4f8ff var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(244, 248, 255, 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-via-stops, var(--tw-gradient-from), var(--tw-gradient-to)) !important;
+}
+
+[data-theme="light"] .via-black {
+  --tw-gradient-via: #eef4ff var(--tw-gradient-via-position) !important;
+  --tw-gradient-via-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to) !important;
+}
+
 [data-theme="light"] .via-gray-900 {
   --tw-gradient-via: #eef4ff var(--tw-gradient-via-position) !important;
   --tw-gradient-via-stops: var(--tw-gradient-from), var(--tw-gradient-via), var(--tw-gradient-to) !important;
+}
+
+[data-theme="light"] .to-gray-900 {
+  --tw-gradient-to: #f7f0ff var(--tw-gradient-to-position) !important;
 }
 
 [data-theme="light"] .to-black {
@@ -384,12 +399,20 @@ body * {
 
 [data-theme="light"] .bg-gray-900,
 [data-theme="light"] .bg-gray-800,
+[data-theme="light"] .bg-gray-800\/50,
 [data-theme="light"] .bg-gray-700,
+[data-theme="light"] .bg-gray-900\/90,
+[data-theme="light"] .bg-gray-900\/50,
+[data-theme="light"] .bg-gray-900\/30,
+[data-theme="light"] .bg-gray-900\/20,
 [data-theme="light"] .bg-gray-700\/50,
 [data-theme="light"] .bg-gray-700\/30,
 [data-theme="light"] .bg-white\/5,
 [data-theme="light"] .bg-white\/10,
+[data-theme="light"] .bg-white\/15,
+[data-theme="light"] .bg-white\/20,
 [data-theme="light"] .bg-black\/20,
+[data-theme="light"] .bg-black\/25,
 [data-theme="light"] .bg-black\/30,
 [data-theme="light"] .bg-black\/40,
 [data-theme="light"] .bg-black\/50 {
@@ -401,7 +424,12 @@ body * {
 }
 
 [data-theme="light"] .bg-gray-800,
+[data-theme="light"] .bg-gray-800\/50,
 [data-theme="light"] .bg-gray-700,
+[data-theme="light"] .bg-gray-900\/90,
+[data-theme="light"] .bg-gray-900\/50,
+[data-theme="light"] .bg-gray-900\/30,
+[data-theme="light"] .bg-gray-900\/20,
 [data-theme="light"] .bg-gray-700\/50,
 [data-theme="light"] .bg-gray-700\/30 {
   background-color: rgba(255, 255, 255, 0.92) !important;
@@ -416,8 +444,17 @@ body * {
   background-color: rgba(255, 255, 255, 0.82) !important;
 }
 
+[data-theme="light"] .bg-white\/15,
+[data-theme="light"] .bg-white\/20 {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
 [data-theme="light"] .bg-black\/20 {
   background-color: rgba(191, 204, 231, 0.24) !important;
+}
+
+[data-theme="light"] .bg-black\/25 {
+  background-color: rgba(191, 204, 231, 0.3) !important;
 }
 
 [data-theme="light"] .bg-black\/30 {
@@ -433,11 +470,15 @@ body * {
 }
 
 [data-theme="light"] .border-white\/10,
+[data-theme="light"] .border-white\/15,
+[data-theme="light"] .border-white\/25,
 [data-theme="light"] .border-white\/5,
+[data-theme="light"] .border-gray-700,
 [data-theme="light"] .border-gray-600 {
   border-color: var(--wm-border) !important;
 }
 
+[data-theme="light"] .text-gray-100,
 [data-theme="light"] .text-white,
 [data-theme="light"] .text-gray-200,
 [data-theme="light"] .text-gray-300 {
@@ -465,11 +506,34 @@ body * {
 [data-theme="light"] .bg-gradient-to-r .text-white,
 [data-theme="light"] .bg-gradient-to-br .text-white,
 [data-theme="light"] .bg-gradient-to-b .text-white,
+[data-theme="light"] .bg-gradient-to-t .text-white,
 [data-theme="light"] .bg-indigo-600 .text-white,
 [data-theme="light"] .bg-green-600 .text-white,
 [data-theme="light"] .bg-red-600 .text-white,
 [data-theme="light"] .bg-blue-600 .text-white {
   color: #fff !important;
+}
+
+[data-theme="light"] .hover\:bg-white\/5:hover {
+  background-color: rgba(255, 255, 255, 0.82) !important;
+}
+
+[data-theme="light"] .hover\:bg-white\/10:hover {
+  background-color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[data-theme="light"] .hover\:bg-gray-600:hover,
+[data-theme="light"] .hover\:bg-gray-700:hover {
+  background-color: rgba(233, 240, 255, 0.96) !important;
+}
+
+[data-theme="light"] .hover\:text-white:hover {
+  color: var(--wm-text) !important;
+}
+
+[data-theme="light"] .hover\:border-white\/30:hover,
+[data-theme="light"] .hover\:border-white\/25:hover {
+  border-color: var(--wm-border-strong) !important;
 }
 
 .Toastify__toast {
