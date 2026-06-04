@@ -15,7 +15,7 @@ const ProjectCard = ({ project, progress, linkedGoal, onClick }) => {
 
   return (
     <Card 
-      className="hover:scale-105 transition-transform duration-300 cursor-pointer bg-white/5 border border-white/10 backdrop-blur-lg" 
+      className="wm-card hover:scale-105 transition-transform duration-300 cursor-pointer" 
       onClick={onClick}
       aria-label={`Open project ${project.title}. Progress ${progress} percent.`}
       data-testid={`project-card-${project.id}`}
@@ -31,10 +31,10 @@ const ProjectCard = ({ project, progress, linkedGoal, onClick }) => {
         )}
       </div>
       
-      <h3 className="text-lg font-bold text-white mb-2">{project.title}</h3>
+      <h3 className="wm-text-primary text-lg font-bold mb-2">{project.title}</h3>
       
       {project.deadline && (
-        <div className="flex items-center text-gray-400 text-sm mb-4">
+        <div className="wm-text-secondary flex items-center text-sm mb-4">
           <Calendar size={14} className="mr-2" />
           <span>{getTimeRemaining(project.deadline)}</span>
         </div>

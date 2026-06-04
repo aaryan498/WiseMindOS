@@ -140,21 +140,21 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <div className="wm-page-shell min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <motion.div
-        className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
+        className="wm-page-orb wm-page-orb--secondary absolute top-20 left-10 w-72 h-72 rounded-full"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
 
       <motion.div
-        className="absolute bottom-20 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
+        className="wm-page-orb wm-page-orb--primary absolute bottom-20 right-10 w-72 h-72 rounded-full"
         animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="w-full max-w-2xl">
         <div className="text-center mb-8">
-          <motion.h1 className="text-4xl young-serif-regular font-bold text-white mb-2"
+          <motion.h1 className="wm-page-title text-4xl young-serif-regular font-bold mb-2"
             animate={{
               textShadow: [
                 "0px 0px 0px rgba(99,102,241,0)",        // no glow
@@ -170,7 +170,7 @@ const Onboarding = () => {
             }}>
             Wise<span className="bg-gradient-to-r from-indigo-400 baloo-2-700 md:text-5xl to-violet-400 bg-clip-text text-transparent">Mind</span>OS
           </motion.h1>
-          <p className="text-gray-400">Let's set up your Life Operating System</p>
+          <p className="wm-page-subtitle">Let's set up your Life Operating System</p>
           <div className="flex items-center justify-center mt-6">
 
             {[1, 2, 3].map((s, index) => (
@@ -215,12 +215,7 @@ const Onboarding = () => {
           </div>
         </div>
 
-        <Card className="
-bg-white/5 backdrop-blur-xl 
-border border-white/10 
-rounded-2xl p-8
-shadow-[0_0_40px_rgba(99,102,241,0.2)]
-">
+        <Card className="wm-card-strong rounded-2xl p-8 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
           <motion.div
             key={step}
             initial={{ opacity: 0, x: 40 }}

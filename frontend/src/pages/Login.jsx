@@ -10,7 +10,7 @@ import { showToast } from '../utils/toastHelper';
 import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
-  const { token, setToken, user, setUser, navigate } = useApp()
+  const { token, setToken, user, setUser, navigate, theme } = useApp()
   const [formData, setFormData] = useState({
     identifier: '',
     password: ''
@@ -93,22 +93,22 @@ const Login = () => {
   }, [token, user, navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <div className="wm-page-shell min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <motion.div
-        className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
+        className="wm-page-orb wm-page-orb--secondary absolute top-20 left-10 w-72 h-72 rounded-full"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
 
       <motion.div
-        className="absolute bottom-20 right-10 w-72 h-72 bg-indigo-500 rounded-full blur-3xl opacity-20"
+        className="wm-page-orb wm-page-orb--primary absolute bottom-20 right-10 w-72 h-72 rounded-full"
         animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to="/">
-            <motion.h1 className="text-4xl young-serif-regular font-bold text-white mb-2"
+            <motion.h1 className="wm-page-title text-4xl young-serif-regular font-bold mb-2"
               animate={{
                 textShadow: [
                   "0px 0px 0px rgba(99,102,241,0)",        // no glow
@@ -125,16 +125,15 @@ const Login = () => {
               Wise<span className="bg-gradient-to-r from-indigo-500 to-purple-600 baloo-2-700 md:text-5xl bg-clip-text text-transparent">Mind</span>OS
             </motion.h1>
           </Link>
-          <p className="text-gray-400">Welcome back! Login to continue</p>
+          <p className="wm-page-subtitle">Welcome back! Login to continue</p>
         </div>
 
         <Card className="
-bg-white/5 backdrop-blur-xl 
-border border-white/10 
+wm-card-strong
 rounded-2xl p-8
 shadow-[0_0_40px_rgba(99,102,241,0.2)]
 ">
-          <h2 className="text-2xl font-bold young-serif-regular text-center text-gray-200 mb-6">Login</h2>
+          <h2 className="wm-text-primary text-2xl font-bold young-serif-regular text-center mb-6">Login</h2>
 
           {error && (
             <div className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-4">
@@ -183,8 +182,8 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
           </form>
 
           <div className="relative my-6 flex items-center justify-center">
-            <div className="absolute w-full border-t border-white/10"></div>
-            <span className="relative bg-[#161320] px-3 text-xs uppercase text-gray-500 tracking-wider">
+            <div className="absolute w-full border-t border-[var(--wm-border)]"></div>
+            <span className="relative bg-[var(--wm-surface-strong)] px-3 text-xs uppercase wm-text-muted tracking-wider">
               Or continue with
             </span>
           </div>
@@ -232,16 +231,16 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
                 setError("Google Login Failed. Please try again.");
                 showToast({ message: "Google Auth Failed", status: "error" });
               }}
-              theme="filled_black"
+              theme={theme === 'light' ? 'outline' : 'filled_black'}
               shape="pill"
               width="100%"
             />
           </div>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-400">
+            <p className="wm-text-secondary">
               Don't have an account?{' '}
-              <Link to="/signup" className="text-indigo-400 hover:text-indigo-300 font-semibold">
+              <Link to="/signup" className="wm-link font-semibold">
                 Sign up
               </Link>
             </p>

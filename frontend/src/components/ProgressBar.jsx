@@ -4,12 +4,12 @@ const ProgressBar = ({ progress, className = '', showLabel = true }) => {
   return (
     <div className={`w-full ${className}`}>
       {showLabel && (
-        <div className="flex justify-between text-sm text-gray-400 mb-2">
+        <div className="wm-text-secondary flex justify-between text-sm mb-2">
           <span>Progress</span>
           <span>{clampedProgress}%</span>
         </div>
       )}
-      <div className="w-full bg-gray-700 rounded-full h-3 overflow-hidden">
+      <div className="w-full bg-[var(--wm-border)] rounded-full h-3 overflow-hidden">
         <div
           className="bg-gradient-to-r from-indigo-600 to-violet-600 h-full rounded-full transition-all duration-500"
           style={{ width: `${clampedProgress}%` }}

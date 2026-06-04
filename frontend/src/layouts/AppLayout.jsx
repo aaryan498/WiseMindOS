@@ -11,7 +11,7 @@ const AppLayout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="wm-page-shell">
       <Outlet />
       <BottomNav />
     </div>

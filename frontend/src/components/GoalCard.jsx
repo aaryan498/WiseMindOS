@@ -36,7 +36,7 @@ const GoalCard = ({ goal, progress, onClick }) => {
 
   return (
     <Card
-      className="hover:scale-105 transition-all duration-300 cursor-pointer bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]"
+      className="wm-card hover:scale-105 transition-all duration-300 cursor-pointer shadow-[0_0_30px_rgba(99,102,241,0.15)]"
       onClick={handleGoalClick}
       aria-label={`Open goal ${goal.title}. Progress ${progress} percent.`}
       data-testid={`goal-card-${goal.id}`}
@@ -56,7 +56,7 @@ const GoalCard = ({ goal, progress, onClick }) => {
       </div>
 
       {/* TITLE */}
-      <h3 className="text-lg md:text-xl font-bold text-white mb-1">
+      <h3 className="wm-text-primary text-lg md:text-xl font-bold mb-1">
         {goal.title}
       </h3>
 
@@ -67,7 +67,7 @@ const GoalCard = ({ goal, progress, onClick }) => {
 
       {/* DESCRIPTION */}
       {goal.description && (
-        <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+        <p className="wm-text-secondary text-sm mb-4 line-clamp-2">
           {goal.description}
         </p>
       )}
@@ -77,15 +77,15 @@ const GoalCard = ({ goal, progress, onClick }) => {
 
         {/* Percentage */}
         <div className="text-right mb-2">
-          <p className="text-2xl font-bold text-white">{progress}%</p>
-          <p className="text-xs text-gray-400">Progress</p>
+          <p className="wm-text-primary text-2xl font-bold">{progress}%</p>
+          <p className="wm-text-secondary text-xs">Progress</p>
         </div>
         <ProgressBar showLabel={false} progress={progress} className="mb-3" />
       </div>
 
       {/* DEADLINE */}
       {goal.deadline && (
-        <div className="flex items-center text-gray-400 text-xs border-t border-white/10 pt-3">
+        <div className="wm-text-secondary flex items-center text-xs border-t border-[var(--wm-border)] pt-3">
           <Calendar size={14} className="mr-2" />
           <span>Due: {goal.deadline}</span>
         </div>

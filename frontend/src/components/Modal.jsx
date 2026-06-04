@@ -20,46 +20,40 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 pb-20">
-
-      {/* Overlay */}
       <div
-        className="absolute inset-0 bg-black/70"
+        className="wm-modal-overlay absolute inset-0"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Modal Box */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         className="
-        relative
-        bg-white/5 backdrop-blur-xl border border-white/10
-        rounded-2xl
-        max-w-md w-full
-        max-h-[calc(100vh-100px)]
-        flex flex-col
-        shadow-2xl
-      ">
-
-        {/* Header */}
-        <div className="flex justify-between items-center p-6 pb-3 border-b border-white/10">
-          <h2 id={titleId} className="text-xl font-bold text-white">{title}</h2>
+          wm-modal-shell
+          relative
+          rounded-2xl
+          max-w-md w-full
+          max-h-[calc(100vh-100px)]
+          flex flex-col
+        "
+      >
+        <div className="flex justify-between items-center p-6 pb-3 border-b border-[var(--wm-border)]">
+          <h2 id={titleId} className="wm-text-primary text-xl font-bold">{title}</h2>
           <button
+            type="button"
             onClick={onClose}
             aria-label={`Close ${title}`}
-            className="text-gray-400 hover:text-white transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            className="text-[var(--wm-text-muted)] hover:text-[var(--wm-text)] transition-colors rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
           >
-            <span aria-hidden="true">✕</span>
+            <span aria-hidden="true">×</span>
           </button>
         </div>
 
-        {/* Scrollable Content */}
         <div className="p-6 overflow-y-auto flex-1">
           {children}
         </div>
-
       </div>
     </div>
   );

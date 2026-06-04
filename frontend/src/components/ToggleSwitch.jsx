@@ -20,7 +20,7 @@ const ToggleSwitch = ({ checked, onChange, label }) => {
             w-14 h-8 rounded-full transition-all duration-300
             ${checked
               ? 'bg-gradient-to-r from-green-500 to-emerald-500 shadow-[0_0_15px_rgba(34,197,94,0.6)]'
-              : 'bg-gray-600'
+              : 'bg-[var(--wm-border)]'
             }
           `}
         />
@@ -53,7 +53,7 @@ const ToggleSwitch = ({ checked, onChange, label }) => {
 
       {/* LABEL */}
       {label && (
-        <span className="ml-3 text-sm text-gray-300">
+        <span className="wm-text-secondary ml-3 text-sm">
           {label}
         </span>
       )}

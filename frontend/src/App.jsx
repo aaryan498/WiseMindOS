@@ -30,13 +30,15 @@ import { useApp } from './store/AppContext';
 import { ToastContainer } from 'react-toastify';
 import ErrorBoundary from './components/ErrorBoundary';
 import ErrorPage from './pages/ErrorPage';
+import ThemeToggle from './components/ThemeToggle';
 
 function App() {
-  const { token } = useApp();
+  const { token, theme } = useApp();
 
   return (
     <ErrorBoundary fallback={<ErrorPage />}>
-        <ToastContainer position="top-right" autoClose={3000} />
+        <ThemeToggle />
+        <ToastContainer position="top-right" autoClose={3000} theme={theme === 'light' ? 'light' : 'dark'} />
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={token ? <Navigate to="/dashboard" replace /> : <Landing />} />

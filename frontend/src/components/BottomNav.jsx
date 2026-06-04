@@ -33,9 +33,7 @@ const BottomNav = () => {
         aria-label="Primary app navigation"
         className="
           fixed bottom-0 left-0 right-0 z-50
-          bg-black/40 backdrop-blur-xl
-          border-t border-white/10
-          shadow-[0_-10px_30px_rgba(0,0,0,0.5)]
+          wm-nav-shell backdrop-blur-xl
         "
       >
         <div className="flex justify-around items-center h-16 relative before:absolute before:top-0 before:left-0 before:right-0 before:h-[1px] before:bg-gradient-to-r before:from-indigo-500 before:to-purple-500">
@@ -62,14 +60,14 @@ const BottomNav = () => {
                   className={`
                     flex flex-col items-center justify-center
                     px-3 py-1 rounded-xl transition-all duration-300
-                    ${isActive ? 'text-indigo-400' : 'text-gray-400'}
+                    ${isActive ? 'text-indigo-500' : 'wm-text-muted'}
                   `}
                   whileTap={{ scale: 0.9 }}
                 >
                   {isActive && (
                     <Motion.div
                       layoutId="nav-pill"
-                      className="absolute w-14 h-10 rounded-xl bg-indigo-500/10 blur-md"
+                      className="absolute w-14 h-10 rounded-xl bg-indigo-500/15 blur-md"
                     />
                   )}
 
@@ -96,14 +94,14 @@ const BottomNav = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/10 text-red-500 mb-4 border border-red-500/20">
             <LogOut aria-hidden="true" size={32} />
           </div>
-          <p className="text-gray-300 mb-6 text-sm">
+          <p className="wm-text-secondary mb-6 text-sm">
             Are you sure you want to log out? Any unsaved progress will be lost.
           </p>
           <div className="flex gap-4 justify-center">
             <button
               type="button"
               onClick={() => setIsLogoutModalOpen(false)}
-              className="px-5 py-2.5 rounded-xl border border-white/10 text-gray-300 hover:bg-white/5 transition-colors cursor-pointer text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+              className="wm-outline-button px-5 py-2.5 rounded-xl transition-colors cursor-pointer text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
             >
               Cancel
             </button>

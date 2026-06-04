@@ -18,8 +18,8 @@ const Card = ({ children, className = '', onClick, onKeyDown, role, tabIndex, ..
       tabIndex={tabIndex ?? (isInteractive ? 0 : undefined)}
       onClick={onClick}
       onKeyDown={handleKeyDown}
-      className={`bg-gray-800 rounded-2xl p-6 shadow-lg ${
-        isInteractive ? 'focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900' : ''
+      className={`wm-card rounded-2xl p-6 shadow-lg ${
+        isInteractive ? 'focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400' : ''
       } ${className}`}
       {...props}
     >

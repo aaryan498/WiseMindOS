@@ -5,6 +5,7 @@ import { showToast } from '../utils/toastHelper';
 import { useRef } from 'react';
 
 const AppContext = createContext();
+const THEME_KEY = 'wisemind_theme';
 
 export const useApp = () => {
   const context = useContext(AppContext);
@@ -20,6 +21,15 @@ export const AppProvider = ({ children }) => {
   const navigate = useNavigate();
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const [loading, setLoading] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+
+    if (savedTheme === 'light' || savedTheme === 'dark') {
+      return savedTheme;
+    }
+
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  });
 
   // User state
   const [user, setUser] = useState(() => {
@@ -34,6 +44,12 @@ export const AppProvider = ({ children }) => {
       setToken(storedToken);
     }
   }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
 
   // Persist user to localStorage
   useEffect(() => {
@@ -955,6 +971,10 @@ export const AppProvider = ({ children }) => {
     setUser(null);
   };
 
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
+
   // AUTO SAVE DAILY STATS
   useEffect(() => {
     if (!token || !user || !dailyPlan) return;
@@ -980,9 +1000,12 @@ export const AppProvider = ({ children }) => {
 
   const value = {
     token,
+    theme,
     user,
     setUser,
     setToken,
+    setTheme,
+    toggleTheme,
     navigate,
     backendURL,
     loading,

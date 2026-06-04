@@ -11,7 +11,7 @@ const EmptyState = ({
 }) => {
   return (
     <Card
-      className={`bg-white/5 backdrop-blur-xl border border-white/10 text-center ${className}`}
+      className={`wm-card text-center ${className}`}
     >
       <div className="flex flex-col items-center justify-center py-12 px-4">
         {Icon && (
@@ -19,9 +19,9 @@ const EmptyState = ({
             <Icon size={40} aria-hidden="true" />
           </div>
         )}
-        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <h3 className="wm-text-primary text-lg font-semibold">{title}</h3>
         {description && (
-          <p className="mt-2 max-w-md text-sm leading-6 text-gray-400">
+          <p className="wm-text-secondary mt-2 max-w-md text-sm leading-6">
             {description}
           </p>
         )}
