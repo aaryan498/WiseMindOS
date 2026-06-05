@@ -20,12 +20,53 @@ import Modal from '../components/Modal';
 import InputField from '../components/InputField';
 import { AnalyticsSkeleton, DashboardStatsSkeleton, SkeletonCard, SkeletonBlock, TrackerGridSkeleton } from '../components/LoadingSkeleton';
 
+const getGreetingByHour = (hour) => {
+  // Night: 22:00 - 04:59
+  if (hour >= 22 || hour < 5) {
+    return {
+      text: 'Hey Night Owl',
+      emoji: '🦉',
+      gradientClass: 'bg-gradient-to-r from-indigo-400 via-violet-400 to-purple-600',
+      glowClass: 'shadow-[0_0_28px_rgba(99,102,241,0.22)]',
+    };
+  }
+
+  // Morning: 05:00 - 11:59
+  if (hour >= 5 && hour < 12) {
+    return {
+      text: 'Good Morning',
+      emoji: '🌅',
+      gradientClass: 'bg-gradient-to-r from-amber-300 via-yellow-300 to-orange-400',
+      glowClass: 'shadow-[0_0_24px_rgba(251,191,36,0.22)]',
+    };
+  }
+
+  // Afternoon: 12:00 - 16:59
+  if (hour >= 12 && hour < 17) {
+    return {
+      text: 'Good Afternoon',
+      emoji: '🌤️',
+      gradientClass: 'bg-gradient-to-r from-orange-400 via-amber-400 to-rose-500',
+      glowClass: 'shadow-[0_0_24px_rgba(249,115,22,0.22)]',
+    };
+  }
+
+  // Evening: 17:00 - 21:59
+  return {
+    text: 'Good Evening',
+    emoji: '🌆',
+    gradientClass: 'bg-gradient-to-r from-indigo-300 via-purple-400 to-fuchsia-500',
+    glowClass: 'shadow-[0_0_24px_rgba(129,140,248,0.22)]',
+  };
+};
+
 
 const Dashboard = () => {
 
   const [weeklyData, setWeeklyData] = useState([]);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showEditProfilePic, setShowEditProfilePic] = useState(false);
+  const [currentHour, setCurrentHour] = useState(() => new Date().getHours());
 
   const {
     goals,
@@ -80,6 +121,15 @@ const Dashboard = () => {
     console.log("Weekly Data:", weeklyData);
   }, []);
 
+  useEffect(() => {
+    const syncTime = () => setCurrentHour(new Date().getHours());
+
+    syncTime();
+    const intervalId = setInterval(syncTime, 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   const avgProductivity =
     weeklyData.length > 0
       ? Math.round(weeklyData.reduce((sum, d) => sum + d.productivity, 0) / weeklyData.length)
@@ -104,6 +154,7 @@ const Dashboard = () => {
   const topGoals = goals.slice(0, 4);
   const topProjects = projects.slice(0, 4);
   const topHabits = habits.slice(0, 3);
+  const greeting = getGreetingByHour(currentHour);
 
   const productivityInsights = useMemo(() => {
     const completedDailyTasks = todayPlannedTasks.filter(task => task.completed).length;
@@ -286,6 +337,19 @@ const Dashboard = () => {
               <div className='w-full flex items-end justify-end'>
                 <button onClick={() => setShowEditProfile(true)} className='bg-white/10 hover:bg-white/15 cursor-pointer border flex gap-2 border-white/15 hover:border-white/25 hover:translate-y-0.5 px-3 py-3 rounded-full text-white default-bold shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300'> <UserPen size={20} /></button>
               </div>
+              <Motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.45 }}
+                className={`mb-3 flex items-center gap-3 rounded-full px-4 py-2 bg-white/5 border border-white/10 ${greeting?.glowClass || ''}`}
+              >
+                <span className={`inline-flex items-center justify-center w-9 h-9 rounded-full text-xl ${greeting?.gradientClass || 'bg-gradient-to-r from-amber-300 to-orange-400'} text-white`}>{greeting?.emoji || '👋'}</span>
+
+                <div className='flex flex-col leading-tight'>
+                  <span className='text-lg md:text-2xl default-bold text-white'>{greeting?.text || 'Hello'}</span>
+                  <span className='text-xs text-gray-300'>Welcome back — keep going ✨</span>
+                </div>
+              </Motion.div>
               {/* Image div  */}
               <div className='h-30 w-30 rounded-full relative group border-6 border-black/15 shadow-[0_0_40px_rgba(99,102,241,0.2)] shrink-0'>
                 <img src={user.profile_picture || profile_pic} className='w-full h-full object-cover rounded-full' alt="" />
