@@ -295,11 +295,11 @@ const Dashboard = () => {
                 <button onClick={() => setShowEditProfile(true)} className='bg-white/5 hover:bg-white/15 cursor-pointer border flex gap-2 border-white/10 hover:border-white/20 hover:scale-105 px-3 py-2.5 rounded-full text-white default-bold shadow-lg transition-all duration-300'> <UserPen size={18} /></button>
               </div>
 
-              {/* Layout for Avatar & Info (Row on Desktop, Col on Mobile) */}
-              <div className="flex flex-col md:flex-row items-center md:items-start gap-6 w-full md:px-4">
+              {/* Layout for Avatar & Info (Row on Desktop, Col on Mobile & Tablet) */}
+              <div className="flex flex-col lg:flex-row items-center gap-6 w-full lg:px-4">
                 
                 {/* Image div  */}
-                <div className='h-32 w-32 md:h-36 md:w-36 rounded-full relative group p-[3px] bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_30px_rgba(99,102,241,0.5)] shrink-0'>
+                <div className='h-32 w-32 md:h-36 md:w-36 lg:h-40 lg:w-40 rounded-full relative group p-[3px] bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_30px_rgba(99,102,241,0.5)] shrink-0'>
                   <img src={user.profile_picture || profile_pic} className='w-full h-full object-cover rounded-full border-[4px] border-[#0f1015]' alt="" />
                   <div onClick={()=>setShowEditProfilePic(true)} className='w-full h-full bg-black/60 absolute rounded-full inset-0 cursor-pointer opacity-0 z-10 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-sm'>
                     <div className='h-full w-full flex items-center justify-center'>
@@ -309,24 +309,24 @@ const Dashboard = () => {
                   <div className='border-4 h-6 w-6 rounded-full z-10 bottom-1 absolute right-2 border-green-500 bg-green-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]'></div>
                 </div>
 
-                <div className='flex flex-col items-center md:items-start flex-1 w-full'>
-                  <span className='text-3xl md:text-4xl default-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400'>{user.name || 'User'}</span>
-                  <span className='cursor-pointer text-sm font-medium text-indigo-400/80 mb-3'>@{user.username || 'username'}</span>
-                  <p className='text-gray-300 text-sm md:text-base text-center md:text-left mb-6 max-w-lg leading-relaxed'>{user.bio || 'Add Bio'}</p>
+                <div className='flex flex-col items-center lg:items-start flex-1 w-full'>
+                  <span className='text-3xl md:text-4xl default-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-400 text-center lg:text-left'>{user.name || 'User'}</span>
+                  <span className='cursor-pointer text-sm font-medium text-indigo-400/80 mb-3 text-center lg:text-left'>@{user.username || 'username'}</span>
+                  <p className='text-gray-300 text-sm md:text-base text-center lg:text-left mb-6 max-w-2xl leading-relaxed'>{user.bio || 'Add Bio'}</p>
 
-                  <div className='flex flex-wrap justify-center md:justify-start gap-6 w-full'>
-                    <div className="flex flex-col">
+                  <div className='flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-6 w-full'>
+                    <div className="flex flex-col items-center lg:items-start">
                       <p className="text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{productivityScore}%</p>
                       <p className="text-xs text-indigo-300 uppercase tracking-wider font-semibold">Productivity</p>
                     </div>
-                    <div className="w-px h-10 bg-white/10 hidden md:block"></div>
-                    <div className="flex flex-col">
+                    <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
+                    <div className="flex flex-col items-center lg:items-start">
                       <p className="text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{disciplineScore}%</p>
                       <p className="text-xs text-emerald-300 uppercase tracking-wider font-semibold">Discipline</p>
                     </div>
-                    <div className="w-px h-10 bg-white/10 hidden md:block"></div>
-                    <div className="flex flex-col">
-                      <div className="flex items-end gap-1 h-8">
+                    <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
+                    <div className="flex flex-col items-center lg:items-start">
+                      <div className="flex items-end justify-center lg:justify-start gap-1 h-8 w-full">
                         {productivityInsights.heatmap.slice(-7).map((d, i) => (
                            <div key={i} className="w-1.5 bg-indigo-500 rounded-t-sm opacity-80" style={{ height: `${Math.max(15, d.value)}%` }}></div>
                         ))}
@@ -336,8 +336,8 @@ const Dashboard = () => {
                   </div>
                 </div>
 
-                <div className="w-full md:w-auto mt-6 md:mt-0 flex items-center justify-center">
-                  <GradientButton className="w-full md:w-40 py-3 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_35px_rgba(99,102,241,0.6)] hover:scale-[1.05] transform-gpu transition-all duration-300 ease-in-out border border-indigo-400/20">
+                <div className="w-full md:w-auto mt-2 lg:mt-0 flex items-center justify-center shrink-0">
+                  <GradientButton className="w-full md:w-64 lg:w-40 py-3 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_35px_rgba(99,102,241,0.6)] hover:scale-[1.05] transform-gpu transition-all duration-300 ease-in-out border border-indigo-400/20">
                     <UserPlus2 size={20} />
                     <span>Connect</span>
                   </GradientButton>
