@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const backendURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
@@ -30,11 +31,20 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            // Token expired or invalid
-            localStorage.removeItem('token');
-            localStorage.removeItem('wisemind_user');
-            window.location.href = '/login';
+        if (error.response) {
+            if (error.response.status === 401) {
+                // Token expired or invalid
+                localStorage.removeItem('token');
+                localStorage.removeItem('wisemind_user');
+                window.location.href = '/login';
+            } else {
+                // Global error toast for structured backend errors
+                const errorMessage = error.response.data?.message || 'An unexpected server error occurred.';
+                toast.error(errorMessage);
+            }
+        } else {
+            // Network error or other unhandled exception
+            toast.error('Network error. Please check your connection.');
         }
         return Promise.reject(error);
     }
