@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import {AnimatePresence, motion } from 'framer-motion';
 import { ArrowRight, Check, Shield, Sparkles, Zap } from 'lucide-react';
 import Card from '../components/Card';
 import GradientButton from '../components/GradientButton';
@@ -14,11 +14,23 @@ const plans = [
     cta: 'Start Free',
     accent: 'from-indigo-500 to-blue-500',
     features: [
-      '21-day habit tracking',
-      'Daily task and goal boards',
-      'Basic productivity insights',
-      'FutureTwin trial prompts',
-    ],
+        {
+          text: '21-day habit tracking',
+          tooltip: 'Track and build habits consistently for 21 days.'
+        },
+        {
+          text: 'Daily task and goal boards',
+          tooltip: 'Organize your daily tasks and long-term goals in one place.'
+        },
+        {
+          text: 'Basic productivity insights',
+          tooltip: 'Get simple insights on your daily productivity patterns.'
+        },
+        {
+          text: 'FutureTwin trial prompts',
+          tooltip: 'Limited AI prompts to explore your future outcome predictions.'
+        },
+      ],
   },
   {
     name: 'Pro',
@@ -29,10 +41,22 @@ const plans = [
     accent: 'from-purple-500 to-indigo-500',
     highlighted: true,
     features: [
-      'Advanced analytics and reports',
-      'Unlimited goals and projects',
-      'FutureTwin scenario simulations',
-      'Priority habit and focus insights',
+      {
+        text: 'Advanced analytics and reports',
+        tooltip: 'Deep insights into your habits, goals, and performance trends.'
+      },
+      {
+        text: 'Unlimited goals and projects',
+        tooltip: 'Create and manage unlimited goals and projects.'
+      },
+      {
+        text: 'FutureTwin scenario simulations',
+        tooltip: 'Simulate how your habits may impact your future outcomes.'
+      },
+      {
+        text: 'Priority habit and focus insights',
+        tooltip: 'Highlights what you should focus on first each day.'
+      },
     ],
   },
   {
@@ -43,10 +67,22 @@ const plans = [
     cta: 'Plan Together',
     accent: 'from-fuchsia-500 to-purple-500',
     features: [
-      'Shared progress dashboards',
-      'Team planning rooms',
-      'Admin-ready member controls',
-      'Guided onboarding support',
+      {
+        text: 'Shared progress dashboards',
+        tooltip: 'Track progress together with your team in real time.'
+      },
+      {
+        text: 'Team planning rooms',
+        tooltip: 'Collaborative spaces for planning and coordination.'
+      },
+      {
+        text: 'Admin-ready member controls',
+        tooltip: 'Manage roles, permissions, and team structure easily.'
+      },
+      {
+        text: 'Guided onboarding support',
+        tooltip: 'Step-by-step help for onboarding your team.'
+      },
     ],
   },
 ];
@@ -142,8 +178,19 @@ const Pricing = () => {
                   </div>
                   <p className="text-gray-400 min-h-14">{plan.description}</p>
                   <div className="my-8">
-                    <span className="text-5xl font-extrabold">${price}</span>
-                    <span className="text-gray-400 ml-2">{cadence}</span>
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={price + cadence}
+                        initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                        transition={{ duration: 0.4 }}
+                        className="flex items-end justify-center"
+                      >
+                        <span className="text-5xl font-extrabold">${price}</span>
+                        <span className="text-gray-400 ml-2">{cadence}</span>
+                      </motion.div>
+                    </AnimatePresence>
                   </div>
                   <Link to="/signup" className="block min-w-0 mb-8">
                     <GradientButton className="w-full flex items-center justify-center gap-2">
@@ -152,10 +199,21 @@ const Pricing = () => {
                     </GradientButton>
                   </Link>
                   <ul className="space-y-3">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-3 text-gray-300">
+                    {plan.features.map((feature, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-3 text-gray-300 group relative"
+                      >
                         <Check size={18} className="mt-0.5 text-indigo-300 flex-shrink-0" />
-                        <span>{feature}</span>
+
+                        <span className="relative cursor-help">
+                          {feature.text}
+
+                          {/* Tooltip */}
+                          <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-64 bg-black/90 text-xs text-gray-200 p-2 rounded-lg border border-white/10 z-10">
+                            {feature.tooltip}
+                          </div>
+                        </span>
                       </li>
                     ))}
                   </ul>
