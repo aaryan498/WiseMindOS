@@ -1,6 +1,7 @@
 import axios from 'axios';
+import { getBackendURL } from '../config/env';
 
-const backendURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+const backendURL = getBackendURL();
 
 const apiClient = axios.create({
     baseURL: backendURL,

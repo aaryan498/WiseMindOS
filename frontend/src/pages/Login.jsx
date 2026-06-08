@@ -19,6 +19,9 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const getAuthErrorMessage = (error, fallback) => {
+    if (!error?.response && error?.request) {
+      return 'Unable to reach the server. The demo may be temporarily unavailable — please try again in a moment.';
+    }
     return error?.response?.data?.message || error?.message || fallback;
   };
 

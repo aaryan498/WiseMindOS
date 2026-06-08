@@ -400,6 +400,14 @@ npm install
 
 * Ensure the backend server is running.
 * Verify that `VITE_BACKEND_URL` points to the correct backend URL.
+* For the live demo, the frontend expects the backend at `https://wise-mind-os-backend.vercel.app`. If login shows a network error, confirm the backend Vercel deployment is healthy and has `MONGODB_URI`, `JWT_SECRET`, and related env vars configured.
+
+### Demo Site Network Errors (Vercel)
+
+* The backend must export the Express app for Vercel serverless (not use `app.listen()` in production).
+* Set these environment variables on the **backend** Vercel project: `MONGODB_URI`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+* Set these on the **frontend** Vercel project: `VITE_BACKEND_URL=https://wise-mind-os-backend.vercel.app`, `VITE_GOOGLE_CLIENT_ID`.
+* Verify backend health: `GET https://wise-mind-os-backend.vercel.app/api/health` should return `{ "success": true }`.
 
 ### Port Already in Use
 - If the application fails to start because a port is already in use, stop the conflicting process or update the port configuration.

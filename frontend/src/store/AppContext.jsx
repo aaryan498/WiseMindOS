@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { goalAPI, projectAPI, taskAPI, habitAPI, dailyPlanAPI, statsAPI, notebookAPI, pageAPI, authAPI } from '../api/apiService';
 import { showToast } from '../utils/toastHelper';
 import { useRef } from 'react';
+import { getBackendURL } from '../config/env';
 
 const AppContext = createContext();
 
@@ -18,7 +19,7 @@ export const AppProvider = ({ children }) => {
 
   const [token, setToken] = useState('');
   const navigate = useNavigate();
-  const backendURL = import.meta.env.VITE_BACKEND_URL;
+  const backendURL = getBackendURL();
   const [loading, setLoading] = useState(false);
 
   // User state
