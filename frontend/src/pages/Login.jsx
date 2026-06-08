@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import InputField from '../components/InputField';
 import GradientButton from '../components/GradientButton';
@@ -8,6 +8,8 @@ import { useApp } from '../store/AppContext';
 import { authAPI } from '../api/apiService';
 import { showToast } from '../utils/toastHelper';
 import { GoogleLogin } from '@react-oauth/google';
+const submissionLock = useRef(false);
+
 
 const Login = () => {
   const { token, setToken, user, setUser, navigate } = useApp()
@@ -81,8 +83,9 @@ const Login = () => {
       showToast({ message, status: "error" })
     }
     finally {
-      setIsLoading(false);
-    }
+  submissionLock.current = false;
+  setIsLoading(false);
+}
   };
 
   useEffect(() => {
