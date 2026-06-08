@@ -44,8 +44,8 @@ const Onboarding = () => {
       return false;
     }
 
-    setGoals([
-      ...goals,
+    setGoals(prev => [
+      ...prev,
       {
         id: `temp-${Date.now()}`,
         title: trimmedTitle,
@@ -69,10 +69,12 @@ const Onboarding = () => {
   };
 
   const handleRemoveGoal = (goalId) => {
-    setGoals(goals.filter(g => g.id !== goalId));
-    const newMap = { ...executionMap };
-    delete newMap[goalId];
-    setExecutionMap(newMap);
+    setGoals(prev => prev.filter(g => g.id !== goalId));
+    setExecutionMap(prev => {
+      const newMap = { ...prev };
+      delete newMap[goalId];
+      return newMap;
+    });
   };
 
   const handleStep1Next = () => {
@@ -87,26 +89,52 @@ const Onboarding = () => {
   const [selectedGoalForMapping, setSelectedGoalForMapping] = useState(null);
 
   const handleAddExecution = () => {
-    if (!currentExecution.title.trim() || !selectedGoalForMapping) return;
+    const trimmedTitle = currentExecution.title.trim();
+    if (!trimmedTitle || !selectedGoalForMapping) return;
 
-    const goalMap = executionMap[selectedGoalForMapping] || { projects: [], tasks: [] };
+    const newItem = {
+      id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      title: trimmedTitle,
+      deadline: currentExecution.deadline
+    };
 
-    if (currentExecution.type === 'project') {
-      goalMap.projects.push({
-        id: `temp-${Date.now()}`,
-        title: currentExecution.title,
-        deadline: currentExecution.deadline
-      });
-    } else {
-      goalMap.tasks.push({
-        id: `temp-${Date.now()}`,
-        title: currentExecution.title,
-        deadline: currentExecution.deadline
-      });
-    }
+    setExecutionMap(prev => {
+      const goalMap = prev[selectedGoalForMapping] || { projects: [], tasks: [] };
+      return {
+        ...prev,
+        [selectedGoalForMapping]: {
+          ...goalMap,
+          projects: currentExecution.type === 'project'
+            ? [...goalMap.projects, newItem]
+            : goalMap.projects,
+          tasks: currentExecution.type === 'task'
+            ? [...goalMap.tasks, newItem]
+            : goalMap.tasks
+        }
+      };
+    });
 
-    setExecutionMap({ ...executionMap, [selectedGoalForMapping]: goalMap });
-    setCurrentExecution({ type: 'task', title: '', deadline: '' });
+    setCurrentExecution(prev => ({ ...prev, title: '', deadline: '' }));
+  };
+
+  const handleRemoveExecution = (goalId, type, itemId) => {
+    setExecutionMap(prev => {
+      const goalMap = prev[goalId];
+      if (!goalMap) return prev;
+
+      return {
+        ...prev,
+        [goalId]: {
+          ...goalMap,
+          projects: type === 'project'
+            ? goalMap.projects.filter(p => p.id !== itemId)
+            : goalMap.projects,
+          tasks: type === 'task'
+            ? goalMap.tasks.filter(t => t.id !== itemId)
+            : goalMap.tasks
+        }
+      };
+    });
   };
 
   const handleStep2Next = () => {
@@ -125,29 +153,23 @@ const Onboarding = () => {
     }
 
     // Create all projects and tasks
-    Object.keys(executionMap).forEach(tempGoalId => {
+    const executionPromises = [];
+    for (const tempGoalId of Object.keys(executionMap)) {
       const realGoalId = goalIdMap[tempGoalId];
+      if (!realGoalId) continue;
+
       const { projects, tasks } = executionMap[tempGoalId];
 
-      // Create projects
       projects.forEach(project => {
-        const createdProject = addProject({
-          ...project,
-          goalId: realGoalId
-        });
-
-        // If project has no tasks, you might want to add a default task
+        executionPromises.push(addProject({ ...project, goalId: realGoalId }));
       });
 
-      // Create tasks
       tasks.forEach(task => {
-        addTask({
-          ...task,
-          goalId: realGoalId,
-          createdFrom: 'onboarding'
-        });
+        executionPromises.push(addTask({ ...task, goalId: realGoalId, createdFrom: 'onboarding' }));
       });
-    });
+    }
+
+    await Promise.all(executionPromises);
 
     // Set onboarding flag
     localStorage.setItem('wisemind_hasOnboarded', 'true');
@@ -161,7 +183,7 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center px-4 py-12 relative overflow-hidden">
+    <div className="min-h-screen bg-linear-to-br from-black via-gray-900 to-black flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <motion.div
         className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
@@ -189,7 +211,7 @@ const Onboarding = () => {
               repeat: Infinity,
               ease: "easeInOut"
             }}>
-            Wise<span className="bg-gradient-to-r from-indigo-400 baloo-2-700 md:text-5xl to-violet-400 bg-clip-text text-transparent">Mind</span>OS
+            Wise<span className="bg-linear-to-r from-indigo-400 baloo-2-700 md:text-5xl to-violet-400 bg-clip-text text-transparent">Mind</span>OS
           </motion.h1>
           <p className="text-gray-400">Let's set up your Life Operating System</p>
           <div className="flex items-center justify-center mt-6">
@@ -202,7 +224,7 @@ const Onboarding = () => {
                   className={`
           w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold
           ${step > s
-                      ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                      ? "bg-linear-to-r from-indigo-500 to-purple-500 text-white"
                       : step === s
                         ? "bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.6)]"
                         : "bg-gray-700 text-gray-400"
@@ -220,7 +242,7 @@ const Onboarding = () => {
                   <div className="w-16 h-1 mx-2 relative overflow-hidden rounded-full bg-gray-700">
 
                     <motion.div
-                      className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                      className="absolute top-0 left-0 h-full bg-linear-to-r from-indigo-500 to-purple-500"
                       animate={{
                         width: step > s ? "100%" : "0%"
                       }}
@@ -286,7 +308,7 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
                   )}
                   <button
                     onClick={handleAddGoal}
-                    className="w-full py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)]  hover:-translate-y-1 active:scale-95 transition-all duration-300
+                    className="w-full py-3 bg-linear-to-r from-indigo-600 via-purple-600 to-indigo-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)]  hover:-translate-y-1 active:scale-95 transition-all duration-300
         shadow-lg text-white rounded-lg"
                     data-testid="add-goal-btn"
                   >
@@ -420,7 +442,7 @@ ${alreadyAdded
                         onClick={handleAddExecution}
                         className="
 w-full py-3 
-bg-gradient-to-r from-green-500 to-emerald-600 
+bg-linear-to-r from-green-500 to-emerald-600 
 hover:shadow-[0_0_20px_rgba(34,197,94,0.6)]
 hover:-translate-y-1 active:scale-95 
 transition-all duration-300 
@@ -448,7 +470,16 @@ text-white rounded-lg
                             <div className="mb-2">
                               <p className="text-xs text-gray-500 mb-1">Projects:</p>
                               {map.projects.map(p => (
-                                <p key={p.id} className="text-sm text-gray-300 ml-3">• {p.title}</p>
+                                <div key={p.id} className="flex justify-between items-center ml-3 mb-1">
+                                  <p className="text-sm text-gray-300 truncate mr-2">• {p.title}</p>
+                                  <button
+                                    onClick={() => handleRemoveExecution(goal.id, 'project', p.id)}
+                                    className="text-xs text-red-400 hover:text-red-300 transition-colors shrink-0"
+                                    data-testid={`remove-project-${p.id}`}
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
                               ))}
                             </div>
                           )}
@@ -456,7 +487,16 @@ text-white rounded-lg
                             <div>
                               <p className="text-xs text-gray-500 mb-1">Tasks:</p>
                               {map.tasks.map(t => (
-                                <p key={t.id} className="text-sm text-gray-300 ml-3">• {t.title}</p>
+                                <div key={t.id} className="flex justify-between items-center ml-3 mb-1">
+                                  <p className="text-sm text-gray-300 truncate mr-2">• {t.title}</p>
+                                  <button
+                                    onClick={() => handleRemoveExecution(goal.id, 'task', t.id)}
+                                    className="text-xs text-red-400 hover:text-red-300 transition-colors shrink-0"
+                                    data-testid={`remove-task-${t.id}`}
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
                               ))}
                             </div>
                           )}
