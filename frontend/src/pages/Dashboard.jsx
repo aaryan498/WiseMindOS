@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+ import { Link, useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts';
 import { TrendingUp, Target, CheckCircle, Zap, ArrowRight, UserPlus2, Camera, CalendarDays, Star, AlertTriangle, UserPen, LucideTrophy, Pencil, Activity, Flame, BarChart3, Timer } from 'lucide-react';
 import { useApp } from '../store/AppContext';
@@ -120,10 +120,36 @@ const Dashboard = () => {
   const topProjects = (projects || []).slice(0, 4);
   const topHabits = (habits || []).slice(0, 3);
 
+  const getWeekRange = () => {
+    const now = new Date();
+    // Monday-start week
+    const day = (now.getDay() + 6) % 7; // 0..6 (Mon..Sun)
+    const start = new Date(now);
+    start.setDate(now.getDate() - day);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+
+    return { start, end };
+  };
+
+  const { start: weekStart, end: weekEnd } = useMemo(() => getWeekRange(), []);
+
   const productivityInsights = useMemo(() => {
     const completedDailyTasks = (todayPlannedTasks || []).filter(task => task.completed).length;
     const completedTasks = (tasks || []).filter(task => task.completed || task.status === 'completed').length;
-    const completedHabits = (habits || []).filter(habit => habit.lastCompleted && isToday(habit.lastCompleted)).length;
+
+    const totalHabits = (habits || []).length;
+
+
+    const totalHabitCompletions = (habits || []).reduce((sum, habit) => {
+      const last = habit?.lastCompleted ? new Date(habit.lastCompleted) : null;
+      if (last && last >= weekStart && last <= weekEnd) return sum + 1;
+      return sum;
+    }, 0);
+
     const goalProgressValues = (goals || []).map(goal => {
       const progress = calculateGoalProgress(goal.id);
       return progress || Number(goal.progress) || 0;
@@ -131,27 +157,33 @@ const Dashboard = () => {
     const avgGoalProgress = goalProgressValues.length
       ? Math.round(goalProgressValues.reduce((sum, value) => sum + value, 0) / goalProgressValues.length)
       : 0;
-    const habitCompletion = (habits || []).length
-      ? Math.round((completedHabits / habits.length) * 100)
-      : 0;
+
+    const habitCompletion = totalHabits ? Math.round((totalHabitCompletions / totalHabits) * 100) : 0;
+
     const taskCompletion = (tasks || []).length
       ? Math.round((completedTasks / tasks.length) * 100)
       : 0;
+
     const consistencyDays = weeklyData.filter(day => {
       const dailyScore = Math.round(((day.productivity || 0) + (day.discipline || 0)) / 2);
       return dailyScore >= 70;
     }).length;
+
     const consistencyScore = weeklyData.length
       ? Math.round((consistencyDays / weeklyData.length) * 100)
       : productivityScore;
+
     const firstHalf = weeklyData.slice(0, Math.ceil(weeklyData.length / 2));
     const secondHalf = weeklyData.slice(Math.ceil(weeklyData.length / 2));
+
     const avg = (items, key) => items.length
       ? items.reduce((sum, item) => sum + (item[key] || 0), 0) / items.length
       : 0;
+
     const trendDelta = weeklyData.length > 1
       ? Math.round(avg(secondHalf, 'productivity') - avg(firstHalf, 'productivity'))
       : 0;
+
     const heatmap = weeklyData.length
       ? weeklyData.map(day => ({
           name: day.name,
@@ -165,11 +197,15 @@ const Dashboard = () => {
       completedDailyTasks,
       avgGoalProgress,
       habitCompletion,
+      totalHabitCompletionsInWeek: totalHabitCompletions,
+      totalHabits,
       taskCompletion,
       consistencyScore,
       trendDelta,
       heatmap,
     };
+  };
+  
   }, [todayPlannedTasks, tasks, habits, goals, weeklyData, productivityScore, calculateGoalProgress]);
 
   const insightCards = [
@@ -184,7 +220,7 @@ const Dashboard = () => {
     {
       title: 'Habit Completion',
       value: `${productivityInsights.habitCompletion}%`,
-      detail: `${habits.filter(habit => habit.lastCompleted && isToday(habit.lastCompleted)).length}/${habits.length || 0} habits done`,
+      detail: `${productivityInsights.totalHabitCompletionsInWeek}/${productivityInsights.totalHabits} habits done`,
       icon: <Activity size={22} />,
       accent: 'from-emerald-500/25 to-teal-500/10',
       text: 'text-emerald-300',
