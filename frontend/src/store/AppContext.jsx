@@ -946,11 +946,17 @@ export const AppProvider = ({ children }) => {
     setUser(null);
   };
 
-  // AUTO SAVE DAILY STATS
+  // AUTO SAVE DAILY STATS (debounced to prevent concurrent duplicate writes)
+  const statsSaveTimerRef = useRef(null);
+
   useEffect(() => {
     if (!token || !user || !dailyPlan) return;
 
-    const saveStats = async () => {
+    if (statsSaveTimerRef.current) {
+      clearTimeout(statsSaveTimerRef.current);
+    }
+
+    statsSaveTimerRef.current = setTimeout(async () => {
       try {
         const productivity = calculateProductivityScore();
         const discipline = calculateDisciplineScore();
@@ -963,9 +969,13 @@ export const AppProvider = ({ children }) => {
       } catch (error) {
         console.log("Stats save failed:", error);
       }
-    };
+    }, 2000);
 
-    saveStats();
+    return () => {
+      if (statsSaveTimerRef.current) {
+        clearTimeout(statsSaveTimerRef.current);
+      }
+    };
 
   }, [token, user, dailyPlan]);
 
