@@ -85,15 +85,21 @@ const addToDailyPlan = async (req, res, next) => {
             return res.json({ success: false, message: 'Already added to daily plan' });
         }
 
-        // Fetch completion status from source if applicable
+        // Validate source record exists
         let completed = false;
         if (source === 'task' && taskId) {
             const task = await taskModel.findOne({ _id: taskId, userId });
-            if (task) completed = task.completed;
+            if (!task) {
+                return res.json({ success: false, message: 'Task not found' });
+            }
+            completed = task.completed;
         }
         if (source === 'habit' && habitId) {
             const habit = await habitModel.findOne({ _id: habitId, userId });
-            if (habit && habit.lastCompleted && isToday(habit.lastCompleted)) {
+            if (!habit) {
+                return res.json({ success: false, message: 'Habit not found' });
+            }
+            if (habit.lastCompleted && isToday(habit.lastCompleted)) {
                 completed = true;
             }
         }
