@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { toast } from 'react-toastify';
+import { showToast } from '../utils/toastHelper';
 
 const backendURL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
@@ -40,11 +40,11 @@ apiClient.interceptors.response.use(
             } else {
                 // Global error toast for structured backend errors
                 const errorMessage = error.response.data?.message || 'An unexpected server error occurred.';
-                toast.error(errorMessage);
+                showToast({ message: errorMessage, status: 'error' });
             }
         } else {
             // Network error or other unhandled exception
-            toast.error('Network error. Please check your connection.');
+            showToast({ message: 'Network error. Please check your connection.', status: 'error' });
         }
         return Promise.reject(error);
     }
