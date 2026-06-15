@@ -385,7 +385,8 @@ npm run server
 ### Terminal 2
 
 ```bash
-cd WiseMindOS/frontend
+# FIX: Adjusted path to correct directory location from the project root folder context
+cd frontend
 npm run dev
 ```
 
