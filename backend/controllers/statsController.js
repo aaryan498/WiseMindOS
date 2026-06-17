@@ -62,8 +62,12 @@ const getWeeklyStats = async (req, res, next) => {
   try {
     const userId = req.body.userId || req.headers.userid;
 
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setUTCHours(0, 0, 0, 0);
+
     const stats = await dailyStatsModel
-      .find({ userId })
+      .find({ userId, date: { $gte: sevenDaysAgo } })
       .sort({ date: 1 }); // oldest → newest
 
     res.json({ success: true, data: stats });
