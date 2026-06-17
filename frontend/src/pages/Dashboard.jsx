@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts';
-import { TrendingUp, Target, CheckCircle, Zap, ArrowRight, UserPlus2, Camera, CalendarDays, Star, AlertTriangle, UserPen, LucideTrophy, Pencil, Activity, Flame, BarChart3, Timer } from 'lucide-react';
+import { TrendingUp, Target, CheckCircle, Zap, ArrowRight, UserPlus2, Camera, CalendarDays, Star, AlertTriangle, UserPen, LucideTrophy, Pencil, Activity, Flame, BarChart3, Timer, Download } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
@@ -20,6 +20,45 @@ import Modal from '../components/Modal';
 import InputField from '../components/InputField';
 import { AnalyticsSkeleton, DashboardStatsSkeleton, SkeletonCard, SkeletonBlock, TrackerGridSkeleton } from '../components/LoadingSkeleton';
 
+const formatWeeklyAnalyticsDate = (value) => new Date(value).toISOString().split('T')[0];
+
+const escapeCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const downloadWeeklyAnalyticsCsv = (weeklyData) => {
+  const csvRows = [
+    ['Date', 'Day', 'Productivity Score', 'Discipline Score'],
+    ...weeklyData.map((entry) => [
+      entry.date,
+      entry.name,
+      entry.productivity,
+      entry.discipline
+    ])
+  ];
+
+  const csvContent = csvRows
+    .map((row) => row.map(escapeCsvValue).join(','))
+    .join('\r\n');
+
+  const fileLabel = weeklyData.length
+    ? `${weeklyData[0].date}-to-${weeklyData[weeklyData.length - 1].date}`
+    : formatWeeklyAnalyticsDate(new Date());
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const downloadUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+
+  anchor.href = downloadUrl;
+  anchor.download = `weekly-analytics-${fileLabel}.csv`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(downloadUrl);
+};
+
+const isToday = (date) => {
+  if (!date) return false;
+  const d = new Date(date);
+  return !isNaN(d.getTime()) && d.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
+};
 
 const Dashboard = () => {
 
@@ -47,7 +86,11 @@ const Dashboard = () => {
     calculateDisciplineScore
   } = useApp();
 
-  const [newProfile, setNewProfile] = useState({ name: user.name, username: user.username, bio: user.bio });
+  const [newProfile, setNewProfile] = useState({ 
+    name: user?.name || '', 
+    username: user?.username || '', 
+    bio: user?.bio || '' 
+  });
   const [newProfilePic, setNewProfilePic] = useState(null);
   const [weeklyLoading, setWeeklyLoading] = useState(true);
 
@@ -61,6 +104,7 @@ const Dashboard = () => {
 
         if (res.success) {
           const formatted = res.data.map(item => ({
+            date: formatWeeklyAnalyticsDate(item.date),
             name: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
             productivity: item.productivity,
             discipline: item.discipline
@@ -94,38 +138,37 @@ const Dashboard = () => {
   const disciplineScore = useMemo(() => calculateDisciplineScore(), [tasks, habits]);
 
   const userLevel = useMemo(
-    () => Math.max(1, goals.length + habits.length + Math.floor((productivityScore + disciplineScore) / 20)),
-    [goals.length, habits.length, productivityScore, disciplineScore]
+    () => Math.max(1, (goals?.length || 0) + (habits?.length || 0) + Math.floor((productivityScore + disciplineScore) / 20)),
+    [goals?.length, habits?.length, productivityScore, disciplineScore]
   );
 
   // Get today's planned tasks from dailyPlan
   const todayPlannedTasks = dailyPlan?.plannedTasks || [];
-  const pendingPlannedTasks = todayPlannedTasks.filter(t => !t.completed);
+  const pendingPlannedTasks = todayPlannedTasks?.filter(t => !t.completed) || [];
   const hasPlannedTasks = todayPlannedTasks.length > 0;
 
   const importantTasks = getImportantTasks();
   const behindTasks = getBehindTasks();
 
-  const topGoals = goals.slice(0, 4);
-  const topProjects = projects.slice(0, 4);
-  const topHabits = habits.slice(0, 3);
+  const topGoals = (goals || []).slice(0, 4);
+  const topProjects = (projects || []).slice(0, 4);
+  const topHabits = (habits || []).slice(0, 3);
 
   const productivityInsights = useMemo(() => {
-    const completedDailyTasks = todayPlannedTasks.filter(task => task.completed).length;
-    const completedTasks = tasks.filter(task => task.completed || task.status === 'completed').length;
-    const isToday = (date) => new Date(date).toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
-    const completedHabits = habits.filter(habit => habit.lastCompleted && isToday(habit.lastCompleted)).length;
-    const goalProgressValues = goals.map(goal => {
+    const completedDailyTasks = (todayPlannedTasks || []).filter(task => task.completed).length;
+    const completedTasks = (tasks || []).filter(task => task.completed || task.status === 'completed').length;
+    const completedHabits = (habits || []).filter(habit => habit.lastCompleted && isToday(habit.lastCompleted)).length;
+    const goalProgressValues = (goals || []).map(goal => {
       const progress = calculateGoalProgress(goal.id);
       return progress || Number(goal.progress) || 0;
     });
     const avgGoalProgress = goalProgressValues.length
       ? Math.round(goalProgressValues.reduce((sum, value) => sum + value, 0) / goalProgressValues.length)
       : 0;
-    const habitCompletion = habits.length
+    const habitCompletion = (habits || []).length
       ? Math.round((completedHabits / habits.length) * 100)
       : 0;
-    const taskCompletion = tasks.length
+    const taskCompletion = (tasks || []).length
       ? Math.round((completedTasks / tasks.length) * 100)
       : 0;
     const consistencyDays = weeklyData.filter(day => {
@@ -197,6 +240,14 @@ const Dashboard = () => {
       text: 'text-fuchsia-300',
     },
   ];
+
+  const handleWeeklyAnalyticsExport = () => {
+    if (!weeklyData.length) {
+      return;
+    }
+
+    downloadWeeklyAnalyticsCsv(weeklyData);
+  };
 
   const handleEditProfile = async (e) => {
     e.preventDefault();
@@ -518,7 +569,21 @@ const Dashboard = () => {
         </div>
 
         {/* Weekly Analytics */}
-        <h2 className="text-xl font-bold text-white mb-4">Weekly Analytics</h2>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">Weekly Analytics</h2>
+            <p className="text-sm text-gray-400">Download your weekly scores for Excel or Google Sheets.</p>
+          </div>
+          <GradientButton
+            onClick={handleWeeklyAnalyticsExport}
+            disabled={!weeklyData.length}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 px-5 py-2.5"
+            data-testid="weekly-analytics-export-btn"
+          >
+            <Download size={18} />
+            <span>Export CSV</span>
+          </GradientButton>
+        </div>
         {weeklyLoading ? (
           <AnalyticsSkeleton />
         ) : (

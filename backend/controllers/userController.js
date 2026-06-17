@@ -21,6 +21,11 @@ const loginUser = async (req, res, next) => {
 
         const { identifier, password } = req.body;
 
+        // Reject non-string inputs to prevent MongoDB operator injection
+        if (typeof identifier !== 'string' || typeof password !== 'string') {
+            return res.status(400).json({ success: false, message: 'Invalid input.' });
+        }
+
         const user = await userModel.findOne({
             $or: [
                 { email: identifier },
@@ -151,6 +156,16 @@ const registerUser = async (req, res, next) => {
     try {
 
         const { name, email, password, username } = req.body;
+
+        // Reject non-string inputs to prevent MongoDB operator injection
+        if (
+            typeof name !== 'string' ||
+            typeof email !== 'string' ||
+            typeof password !== 'string' ||
+            typeof username !== 'string'
+        ) {
+            return res.status(400).json({ success: false, message: 'Invalid input.' });
+        }
 
         // Checking if there is the user exists in database with the same email.
         const exists = await userModel.findOne({ email });

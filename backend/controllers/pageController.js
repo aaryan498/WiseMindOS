@@ -64,6 +64,14 @@ export const updatePage = async (req, res, next) => {
     const { pageId, content } = req.body;
     const userId = req.body.userId;
 
+    if (content === undefined || content === null) {
+      return res.json({ success: false, message: "Content is required" });
+    }
+
+    if (typeof content !== "string") {
+      return res.json({ success: false, message: "Content must be a string" });
+    }
+
     if (content.length > 10000) {
       return res.json({ success: false, message: "Max 10KB content allowed" });
     }

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { goalAPI, projectAPI, taskAPI, habitAPI, dailyPlanAPI, statsAPI, notebookAPI, pageAPI, authAPI } from '../api/apiService';
 import { showToast } from '../utils/toastHelper';
@@ -97,14 +97,8 @@ export const AppProvider = ({ children }) => {
 
 
 
-  // BACKEND INTEGRATION: Load initial data when token is available
-  useEffect(() => {
-    if (token && user) {
-      loadInitialData();
-    }
-  }, [token, user]);
 
-  const loadInitialData = async () => {
+  async function loadInitialData() {
     try {
       setLoading(true);
 
@@ -180,8 +174,14 @@ export const AppProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
+  // BACKEND INTEGRATION: Load initial data when token is available
+  useEffect(() => {
+    if (token && user) {
+      loadInitialData();
+    }
+  }, [token, user]);
 
   const updateUser = async (updates) => {
     try {
@@ -727,15 +727,15 @@ export const AppProvider = ({ children }) => {
     setScores({ ...scores, ...newScores });
   };
 
-  const calculateProductivityScore = () => {
+  const calculateProductivityScore = useCallback(() => {
     const todayTasks = dailyPlan?.plannedTasks || [];
 
     if (todayTasks.length === 0) return 0;
     const completed = todayTasks.filter(task => task.completed).length;
     return Math.round((completed / todayTasks.length) * 100);
-  };
+  }, [dailyPlan]);
 
-  const calculateDisciplineScore = () => {
+  const calculateDisciplineScore = useCallback(() => {
     const tasks = dailyPlan?.plannedTasks || [];
 
     if (tasks.length === 0) return 0;
@@ -749,7 +749,7 @@ export const AppProvider = ({ children }) => {
         const completedMinutes =
           completedTime.getHours() * 60 + completedTime.getMinutes();
 
-        const [eh, em] = task.endTime.split(':').map(Number);
+        const [eh, em] = (task.endTime || "00:00").split(':').map(Number);
         const endMinutes = eh * 60 + em;
 
         if (completedMinutes <= endMinutes) {
@@ -759,7 +759,7 @@ export const AppProvider = ({ children }) => {
     });
 
     return Math.round((onTimeCompleted / tasks.length) * 100);
-  };
+  }, [dailyPlan]);
 
   // Add task to daily plan - Backend Integration
   const addToDailyPlan = async (item) => {
@@ -967,7 +967,7 @@ export const AppProvider = ({ children }) => {
 
     saveStats();
 
-  }, [token, user, dailyPlan]);
+  }, [token, user, dailyPlan, calculateProductivityScore, calculateDisciplineScore]);
 
   const value = {
     token,

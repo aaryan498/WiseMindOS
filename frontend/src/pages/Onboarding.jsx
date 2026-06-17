@@ -6,6 +6,7 @@ import GradientButton from '../components/GradientButton';
 import InputField from '../components/InputField';
 import { motion } from 'framer-motion';
 import { getGoalDuplicateError, isDuplicateGoalTitle } from '../utils/helpers';
+import { showToast } from "../utils/toastHelper";
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -17,6 +18,8 @@ const Onboarding = () => {
   const [executionMap, setExecutionMap] = useState({}); // goalId -> { projects: [], tasks: [] }
   const [currentExecution, setCurrentExecution] = useState({ type: 'task', title: '', deadline: '' });
   const [goalError, setGoalError] = useState('');
+  const today = new Date();
+  const minDeadline = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
   const predefinedGoals = [
     'Software Developer',
@@ -433,6 +436,7 @@ ${alreadyAdded
                       <InputField
                         label="Deadline (Optional)"
                         type="date"
+                        min={minDeadline}
                         value={currentExecution.deadline}
                         onChange={(e) => setCurrentExecution({ ...currentExecution, deadline: e.target.value })}
                         data-testid="execution-deadline-input"

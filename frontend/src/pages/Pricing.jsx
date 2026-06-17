@@ -136,11 +136,18 @@ const Pricing = () => {
                   onClick={() => setBilling(option)}
                   className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
                     billing === option
-                      ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-[0_0_22px_rgba(99,102,241,0.35)]'
-                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white ring-2 ring-indigo-400 shadow-[0_0_25px_rgba(99,102,241,0.45)]'
+  : 'text-gray-400 hover:text-white hover:bg-white/10'
                   }`}
                 >
-                  {option === 'monthly' ? 'Monthly' : 'Yearly'}
+                  <div className="flex items-center justify-center gap-2">
+  {billing === option && (
+    <Check size={16} className="text-white" />
+  )}
+  <span>
+    {option === 'monthly' ? 'Monthly' : 'Yearly'}
+  </span>
+</div>
                 </button>
               ))}
             </div>

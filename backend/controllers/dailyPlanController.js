@@ -136,6 +136,11 @@ const removeFromDailyPlan = async (req, res, next) => {
             return res.json({ success: false, message: 'Daily plan not found' });
         }
 
+        const existingTask = dailyPlan.plannedTasks.id(plannedTaskId);
+        if (!existingTask) {
+            return res.json({ success: false, message: 'Planned task not found' });
+        }
+
         dailyPlan.plannedTasks = dailyPlan.plannedTasks.filter(
             pt => pt._id.toString() !== plannedTaskId
         );
