@@ -11,26 +11,28 @@ export const createPage = async (req, res) => {
       return res.json({ success: false, message: "NotebookId required" });
     }
 
-    const notebook = await notebookModel.findOne({ _id: notebookId, userId });
-    if (!notebook) {
-      return res.json({ success: false, message: "Notebook not found" });
-    }
+    const notebook = await notebookModel.findOneAndUpdate(
+      { _id: notebookId, userId, pageCount: { $lt: 100 } },
+      { $inc: { pageCount: 1 } },
+      { new: true }
+    );
 
-    if (notebook.pageCount >= 100) {
+    if (!notebook) {
+      const notebookExists = await notebookModel.exists({ _id: notebookId, userId });
+      if (!notebookExists) {
+        return res.json({ success: false, message: "Notebook not found" });
+      }
       return res.json({ success: false, message: "Max 100 pages allowed" });
     }
 
     const page = new pageModel({
       userId,
       notebookId,
-      title: `Page ${notebook.pageCount + 1}`,
-      order: notebook.pageCount + 1
+      title: `Page ${notebook.pageCount}`,
+      order: notebook.pageCount
     });
 
     await page.save();
-
-    notebook.pageCount += 1;
-    await notebook.save();
 
     res.json({ success: true, page });
 
@@ -104,15 +106,10 @@ export const deletePage = async (req, res) => {
       return res.json({ success: false, message: "Page not found" });
     }
 
-    const notebook = await notebookModel.findOne({
-      _id: notebookId,
-      userId
-    });
-
-    if (notebook && notebook.pageCount > 0) {
-      notebook.pageCount -= 1;
-      await notebook.save();
-    }
+    await notebookModel.findOneAndUpdate(
+      { _id: notebookId, userId, pageCount: { $gt: 0 } },
+      { $inc: { pageCount: -1 } }
+    );
 
     res.json({ success: true });
 
