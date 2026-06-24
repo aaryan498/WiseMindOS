@@ -1,19 +1,32 @@
 import goalModel from '../models/goalModel.js';
+import projectModel from '../models/projectModel.js';
 import taskModel from '../models/taskModel.js';
 
+const normalizeGoalTitle = (title) => (title ?? '').trim().toLowerCase();
+
 // Create Goal
-const createGoal = async (req, res) => {
+const createGoal = async (req, res, next) => {
     try {
         const { title, type, description, deadline } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
 
-        if (!title) {
+        if (!title || !title.trim()) {
             return res.status(400).json({ success: false, message: 'Title is required' });
+        }
+
+        const trimmedTitle = title.trim();
+        const existingGoals = await goalModel.find({ userId });
+        const isDuplicate = existingGoals.some(
+            (goal) => normalizeGoalTitle(goal.title) === normalizeGoalTitle(trimmedTitle)
+        );
+
+        if (isDuplicate) {
+            return res.status(409).json({ success: false, message: 'A goal with this title already exists' });
         }
 
         const newGoal = new goalModel({
             userId,
-            title,
+            title: trimmedTitle,
             type: type || 'personal',
             description: description || '',
             deadline: deadline || null
@@ -23,15 +36,14 @@ const createGoal = async (req, res) => {
         res.json({ success: true, goal: newGoal, message: 'Goal Created Successfully !' });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Get All Goals
-const getGoals = async (req, res) => {
+const getGoals = async (req, res, next) => {
     try {
-        const userId = req.body.userId;
+        const userId = req.user.id;
         const goals = await goalModel.find({ userId });
 
         // Calculate progress dynamically for each goal
@@ -49,16 +61,15 @@ const getGoals = async (req, res) => {
         res.json({ success: true, goals: goalsWithProgress });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Update Goal
-const updateGoal = async (req, res) => {
+const updateGoal = async (req, res, next) => {
     try {
         const { goalId, title, type, description, deadline } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
 
         if (!goalId) {
             return res.status(400).json({ success: false, message: 'Goal ID is required' });
@@ -78,16 +89,15 @@ const updateGoal = async (req, res) => {
         res.json({ success: true, goal, message: 'Goal updated Successfully' });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Delete Goal
-const deleteGoal = async (req, res) => {
+const deleteGoal = async (req, res, next) => {
     try {
         const { goalId } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
 
         if (!goalId) {
             return res.status(400).json({ success: false, message: 'Goal ID is required' });
@@ -98,11 +108,15 @@ const deleteGoal = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Goal not found' });
         }
 
+        await Promise.all([
+            projectModel.updateMany({ userId, goalId }, { $set: { goalId: null } }),
+            taskModel.updateMany({ userId, goalId }, { $set: { goalId: null } }),
+        ]);
+
         res.json({ success: true, message: 'Goal deleted successfully' });
 
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: error.message });
+        next(error);
     }
 };
 

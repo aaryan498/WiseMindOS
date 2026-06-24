@@ -18,6 +18,30 @@ Transform long-term goals into structured daily execution through interconnected
 
 ---
 
+## Table of Contents
+
+- [WiseMindOS](#wisemindos)
+- [Live Demo](#live-demo)
+- [Overview](#overview)
+- [Screenshots](#screenshots)
+- [Core Features](#core-features)
+- [Tech Stack](#tech-stack)
+- [Project Architecture](#project-architecture)
+- [Productivity Workflow Structure](#productivity-workflow-structure)
+- [Current Implemented Modules](#current-implemented-modules)
+- [Getting Started](#getting-started)
+- [API Structure](#api-structure)
+- [Contribution Areas](#contribution-areas)
+- [New Contributors](#new-contributors)
+- [Why WiseMindOS?](#why-wisemindos)
+- [Future Roadmap](#future-roadmap)
+- [Repository Structure](#repository-structure)
+- [License](#license)
+- [Maintainer](#maintainer)
+- [Contributors 🤝](#contributors-)
+
+---
+
 ## Live Demo
 
 | Platform | Link |
@@ -576,3 +600,20 @@ If you find WiseMindOS useful, consider supporting the project by:
 * Sharing feedback and suggestions
 
 Every contribution, whether it's code, documentation, testing, or feedback, helps make WiseMindOS better for the entire community.
+
+---
+
+## Contributors 🤝
+
+We ❤️ our contributors who help make WiseMindOS better every day!
+
+<a href="https://github.com/aaryan498/WiseMindOS/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=aaryan498/WiseMindOS" />
+</a>
+
+### 💡 Want to contribute?
+We welcome all contributors — whether you're fixing bugs, improving UI, or adding features.
+
+- Check out [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Browse open issues
+- Start small, grow big 🚀

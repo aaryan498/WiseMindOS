@@ -13,6 +13,7 @@ import ProjectCard from '../../../components/ProjectCard';
 import EmptyState from '../../../components/EmptyState';
 import { motion as Motion } from 'framer-motion';
 import { SkeletonBlock, SkeletonCard, TrackerGridSkeleton } from '../../../components/LoadingSkeleton';
+import { getGoalDuplicateError } from '../../../utils/helpers';
 
 const GoalTracker = () => {
   const navigate = useNavigate();
@@ -40,12 +41,22 @@ const GoalTracker = () => {
   const [showAddProject, setShowAddProject] = useState(false);
   const [newProject, setNewProject] = useState({ title: '', deadline: '', description: '' });
   const [newGoal, setNewGoal] = useState({ title: '', type: 'mid-term', description: '', deadline: '' });
+  const [goalError, setGoalError] = useState('');
 
   const handleAddGoal = (e) => {
     e.preventDefault();
-    if (!newGoal.title.trim()) return;
-    addGoal(newGoal);
+    const trimmedTitle = newGoal.title.trim();
+    if (!trimmedTitle) return;
+
+    const duplicateError = getGoalDuplicateError(trimmedTitle, goals);
+    if (duplicateError) {
+      setGoalError(duplicateError);
+      return;
+    }
+
+    addGoal({ ...newGoal, title: trimmedTitle });
     setNewGoal({ title: '', type: 'mid-term', description: '', deadline: '' });
+    setGoalError('');
     setShowAddGoal(false);
   };
 
@@ -68,8 +79,8 @@ const GoalTracker = () => {
       goalId: selectedProject.goalId,
       createdFrom: 'project'
     });
-    setNewTask({ title: '', deadline: '', isImportant: false });
-    setShowAddTask(false);
+    setNewProjectTask({ title: '', deadline: '', isImportant: false });
+    setShowAddProjectTask(false);
   };
 
   const handleAddTask = () => {
@@ -672,16 +683,31 @@ const GoalTracker = () => {
       </div>
 
       {/* Add Goal Modal */}
-      <Modal isOpen={showAddGoal} onClose={() => setShowAddGoal(false)} title="Create New Goal">
+      <Modal
+        isOpen={showAddGoal}
+        onClose={() => {
+          setShowAddGoal(false);
+          setGoalError('');
+        }}
+        title="Create New Goal"
+      >
         <form onSubmit={handleAddGoal} className="space-y-4">
           <InputField
             label="Goal Title"
             value={newGoal.title}
-            onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
+            onChange={(e) => {
+              setNewGoal({ ...newGoal, title: e.target.value });
+              if (goalError) setGoalError('');
+            }}
             placeholder="Enter goal title"
             required
             data-testid="goal-title-input"
           />
+          {goalError && (
+            <p className="text-sm text-red-400" role="alert" data-testid="goal-duplicate-error">
+              {goalError}
+            </p>
+          )}
 
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">Category</label>

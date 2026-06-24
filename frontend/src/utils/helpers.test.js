@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { formatDate, calculateStreak, getProductivityScore, getConsistencyScore, validateEmail } from './helpers';
+import {
+  formatDate,
+  calculateStreak,
+  getProductivityScore,
+  getConsistencyScore,
+  validateEmail,
+  normalizeGoalTitle,
+  isDuplicateGoalTitle,
+  getGoalDuplicateError,
+  DUPLICATE_GOAL_MESSAGE
+} from './helpers';
 
 describe('helpers', () => {
   describe('formatDate', () => {
@@ -55,6 +65,46 @@ describe('helpers', () => {
     it('rounds the consistency score correctly', () => {
       const habits = [{ completed: true }, { completed: false }, { completed: false }];
       expect(getConsistencyScore(habits)).toBe(33); // 1/3 * 100 = 33.333
+    });
+  });
+
+  describe('normalizeGoalTitle', () => {
+    it('trims whitespace and lowercases the title', () => {
+      expect(normalizeGoalTitle('  Software Developer  ')).toBe('software developer');
+    });
+  });
+
+  describe('isDuplicateGoalTitle', () => {
+    it('detects duplicates for any goal title with different casing and whitespace', () => {
+      const existingGoals = [{ title: 'Mental Wellness' }];
+      expect(isDuplicateGoalTitle('  mental wellness ', existingGoals)).toBe(true);
+    });
+
+    it('detects cross-entry duplicates between manual and predefined-style titles', () => {
+      const existingGoals = [{ title: 'Civil Servant' }];
+      expect(isDuplicateGoalTitle('  CIVIL SERVANT  ', existingGoals)).toBe(true);
+      expect(isDuplicateGoalTitle('Financial Freedom', [{ title: 'financial freedom' }])).toBe(true);
+    });
+
+    it('returns false for unique titles', () => {
+      const existingGoals = [{ title: 'Career Growth' }];
+      expect(isDuplicateGoalTitle('Better Sleep Schedule', existingGoals)).toBe(false);
+    });
+
+    it('returns false for empty titles', () => {
+      expect(isDuplicateGoalTitle('   ', [{ title: 'Data Scientist' }])).toBe(false);
+    });
+  });
+
+  describe('getGoalDuplicateError', () => {
+    it('returns the shared duplicate message for any matching goal', () => {
+      expect(getGoalDuplicateError('learn new skills', [{ title: 'Learn New Skills' }])).toBe(
+        DUPLICATE_GOAL_MESSAGE
+      );
+    });
+
+    it('returns null when the title is unique', () => {
+      expect(getGoalDuplicateError('Unique Goal', [{ title: 'Career Growth' }])).toBeNull();
     });
   });
 

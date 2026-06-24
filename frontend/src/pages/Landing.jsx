@@ -40,6 +40,40 @@ const Landing = () => {
     }
   ];
 
+  // ── Framer-Motion variants ──────────────────────────────────────────────────
+
+  /** Stagger container: children animate in one after another */
+  const staggerContainer = {
+    hidden: {},
+    visible: {
+      transition: { staggerChildren: 0.08, delayChildren: 0.2 },
+    },
+  };
+
+  /** Each footer link/item fades + slides up on entrance */
+  const fadeUp = {
+    hidden: { opacity: 0, y: 16 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: 'easeOut' } },
+  };
+
+  /** Hover state for nav links – slide right + colour shift */
+  const linkHover = {
+    rest: { x: 0, color: '#9ca3af' },           // gray-400
+    hover: { x: 8, color: '#818cf8' },           // indigo-400
+  };
+
+  /** The small dot/indicator beside each link */
+  const dotVariant = {
+    rest: { scale: 0, opacity: 0 },
+    hover: { scale: 1, opacity: 1, transition: { duration: 0.2 } },
+  };
+
+  /** Footer section entrance */
+  const footerEntrance = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+  };
+
   return (
 <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-x-hidden">
       {/* Hero Section */}
@@ -301,98 +335,171 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-16 px-4 bg-gray-800/50 border-t border-gray-700 relative overflow-hidden">
-
+      {/* ── Footer ─────────────────────────────────────────────────────────────── */}
+      <Motion.footer
+        className="py-16 px-4 bg-gray-800/50 border-t border-gray-700 relative overflow-hidden"
+        variants={footerEntrance}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+      >
         {/* Subtle glow background */}
-        <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/10 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-indigo-900/10 to-transparent" />
 
         <div className="max-w-6xl mx-auto relative">
+          <Motion.div
+            className="grid grid-cols-1 md:grid-cols-4 gap-10"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.1 }}
+          >
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-
-            {/* Branding */}
-            <div>
-              <h2 className="text-2xl young-serif-regular font-bold mb-4">
-                Wise<span className="bg-gradient-to-r text-3xl baloo-2-400 from-indigo-500 to-purple-500 bg-clip-text text-transparent">Mind</span>OS
-              </h2>
+            {/* ── Branding ── */}
+            <Motion.div variants={fadeUp}>
+              <Motion.div
+                whileHover={{ scale: 1.03 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                className="inline-block mb-4"
+              >
+                <Link to="/">
+                  <h2 className="text-2xl young-serif-regular font-bold">
+                    Wise
+                    <span className="bg-gradient-to-r text-3xl baloo-2-400 from-indigo-500 to-purple-500 bg-clip-text text-transparent">
+                      Mind
+                    </span>
+                    OS
+                  </h2>
+                </Link>
+              </Motion.div>
               <p className="text-gray-400 text-sm leading-relaxed">
                 Your intelligent life tracking and simulation system.
                 Optimize your habits, goals, and future decisions.
               </p>
-            </div>
+            </Motion.div>
 
-            {/* Product Links */}
-            <div>
+            {/* ── Product Links ── */}
+            <Motion.div variants={fadeUp}>
               <h3 className="text-white font-semibold mb-4">Product</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>
-                  <Link to="/features" className="hover:text-white transition cursor-pointer">
-                    Features
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/pricing" className="hover:text-white transition cursor-pointer">
-                    Pricing
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/roadmap" className="hover:text-white transition">
-                    Roadmap
-                  </Link>
-                </li>
+              <ul className="space-y-3 text-sm">
+                {[
+                  { label: 'Features', to: '/features' },
+                  { label: 'Pricing',  to: '/pricing'  },
+                  { label: 'Roadmap',  to: '/roadmap'  },
+                ].map(({ label, to }) => (
+                  <Motion.li
+                    key={label}
+                    variants={fadeUp}
+                    initial="rest"
+                    whileHover="hover"
+                    animate="rest"
+                  >
+                    <Link to={to}>
+                      <Motion.span
+                        className="flex items-center gap-2 cursor-pointer"
+                        variants={linkHover}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                      >
+                        <Motion.span
+                          className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex-shrink-0"
+                          variants={dotVariant}
+                        />
+                        {label}
+                      </Motion.span>
+                    </Link>
+                  </Motion.li>
+                ))}
               </ul>
-            </div>
+            </Motion.div>
 
-            {/* Company Links */}
-            <div>
+            {/* ── Company Links ── */}
+            <Motion.div variants={fadeUp}>
               <h3 className="text-white font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400 text-sm">
-                <li>
-                  <Link to="/about" className="hover:text-white transition cursor-pointer">
-                    About
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/careers" className="hover:text-white transition cursor-pointer">
-                    Careers
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/contact" className="hover:text-white transition cursor-pointer">
-                    Contact
-                  </Link>
-                </li>
+              <ul className="space-y-3 text-sm">
+                {[
+                  { label: 'About',   to: '/about'   },
+                  { label: 'Careers', to: '/careers' },
+                  { label: 'Contact', to: '/contact' },
+                ].map(({ label, to }) => (
+                  <Motion.li
+                    key={label}
+                    variants={fadeUp}
+                    initial="rest"
+                    whileHover="hover"
+                    animate="rest"
+                  >
+                    <Link to={to}>
+                      <Motion.span
+                        className="flex items-center gap-2 cursor-pointer"
+                        variants={linkHover}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                      >
+                        <Motion.span
+                          className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex-shrink-0"
+                          variants={dotVariant}
+                        />
+                        {label}
+                      </Motion.span>
+                    </Link>
+                  </Motion.li>
+                ))}
               </ul>
-            </div>
+            </Motion.div>
 
-            {/* CTA / Social */}
-            <div>
+            {/* ── CTA / Get Started ── */}
+            <Motion.div variants={fadeUp}>
               <h3 className="text-white font-semibold mb-4">Get Started</h3>
 
               <Link to="/signup">
-                <GradientButton className="bg-white text-black hover:bg-gray-200 w-full mb-4">
-                  <span className="flex items-center justify-center gap-2">
-                    Start Free
-                    <ArrowRight size={18} />
-                  </span>
-                </GradientButton>
+                <Motion.div
+                  whileHover={{ scale: 1.04, boxShadow: '0 0 28px rgba(99,102,241,0.55)' }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                  className="mb-4 rounded-xl overflow-hidden"
+                >
+                  <GradientButton className="w-full">
+                    <span className="flex items-center justify-center gap-2">
+                      Start Free
+                      <Motion.span
+                        whileHover={{ x: 4 }}
+                        transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+                      >
+                        <ArrowRight size={18} />
+                      </Motion.span>
+                    </span>
+                  </GradientButton>
+                </Motion.div>
               </Link>
 
               <p className="text-gray-400 text-sm">
                 Join thousands building better habits.
               </p>
-            </div>
+            </Motion.div>
 
-          </div>
+          </Motion.div>
 
-          {/* Bottom Line */}
-          <div className="mt-12 pt-6 border-t border-gray-700 text-center text-gray-400 text-sm">
-            © 2026 <span className="text-white font-semibold">WiseMindOS</span>. All rights reserved.
-          </div>
-
+          {/* ── Bottom bar ── */}
+          <Motion.div
+            className="mt-12 pt-6 border-t border-gray-700 text-center text-gray-400 text-sm"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            © 2026{' '}
+            <Motion.span
+              className="inline-block"
+              whileHover={{ color: '#818cf8' }}
+              transition={{ duration: 0.2 }}
+            >
+              <Link to="/" className="text-white font-semibold">
+                WiseMindOS
+              </Link>
+            </Motion.span>
+            . All rights reserved.
+          </Motion.div>
         </div>
-      </footer>
+      </Motion.footer>
     </div>
   );
 };

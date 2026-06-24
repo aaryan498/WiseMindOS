@@ -80,9 +80,13 @@ const Login = () => {
       setError(message);
       showToast({ message, status: "error" })
     }
-    finally {
-      setIsLoading(false);
-    }
+   finally {
+  setFormData((prev) => ({
+    ...prev,
+    password: ''
+  }));
+  setIsLoading(false);
+}
   };
 
   useEffect(() => {

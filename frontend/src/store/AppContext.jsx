@@ -1,8 +1,8 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { goalAPI, projectAPI, taskAPI, habitAPI, dailyPlanAPI, statsAPI, notebookAPI, pageAPI, authAPI } from '../api/apiService';
 import { showToast } from '../utils/toastHelper';
-import { useRef } from 'react';
+import { DUPLICATE_GOAL_MESSAGE, isDuplicateGoalTitle } from '../utils/helpers';
 
 const AppContext = createContext();
 
@@ -16,7 +16,7 @@ export const useApp = () => {
 
 export const AppProvider = ({ children }) => {
 
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState(() => localStorage.getItem('token') || '');
   const navigate = useNavigate();
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const [loading, setLoading] = useState(false);
@@ -26,14 +26,6 @@ export const AppProvider = ({ children }) => {
     const saved = localStorage.getItem('wisemind_user');
     return saved ? JSON.parse(saved) : null;
   });
-
-
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    if (storedToken) {
-      setToken(storedToken);
-    }
-  }, []);
 
   // Persist user to localStorage
   useEffect(() => {
@@ -46,10 +38,15 @@ export const AppProvider = ({ children }) => {
   const [pages, setPages] = useState([]);
 
   // HYBRID: Load initial data from localStorage or use defaults (fallback)
+  const goalsRef = useRef([]);
   const [goals, setGoals] = useState(() => {
     const saved = localStorage.getItem('wisemind_goals');
     return saved ? JSON.parse(saved) : [];
   });
+
+  useEffect(() => {
+    goalsRef.current = goals;
+  }, [goals]);
 
   const [projects, setProjects] = useState(() => {
     const saved = localStorage.getItem('wisemind_projects');
@@ -63,11 +60,6 @@ export const AppProvider = ({ children }) => {
 
   const [habits, setHabits] = useState(() => {
     const saved = localStorage.getItem('wisemind_habits');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [dailyTasks, setDailyTasks] = useState(() => {
-    const saved = localStorage.getItem('wisemind_daily_tasks');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -97,14 +89,8 @@ export const AppProvider = ({ children }) => {
 
 
 
-  // BACKEND INTEGRATION: Load initial data when token is available
-  useEffect(() => {
-    if (token && user) {
-      loadInitialData();
-    }
-  }, [token, user]);
 
-  const loadInitialData = async () => {
+  async function loadInitialData() {
     try {
       setLoading(true);
 
@@ -180,8 +166,14 @@ export const AppProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
+  // BACKEND INTEGRATION: Load initial data when token is available
+  useEffect(() => {
+    if (token && user) {
+      loadInitialData();
+    }
+  }, [token, user]);
 
   const updateUser = async (updates) => {
     try {
@@ -264,14 +256,27 @@ export const AppProvider = ({ children }) => {
 
   // Add Goal - Backend Integration
   const addGoal = async (goal) => {
+    const trimmedTitle = (goal.title ?? '').trim();
+    if (!trimmedTitle) {
+      showToast({ message: 'Goal title is required', status: 'error' });
+      return null;
+    }
+
+    if (isDuplicateGoalTitle(trimmedTitle, goalsRef.current)) {
+      showToast({ message: DUPLICATE_GOAL_MESSAGE, status: 'error' });
+      return null;
+    }
+
     try {
-      const response = await goalAPI.create(goal);
+      const response = await goalAPI.create({ ...goal, title: trimmedTitle });
       if (response.success) {
         const newGoal = {
           ...response.goal,
           id: response.goal._id
         };
-        setGoals([...goals, newGoal]);
+        const updatedGoals = [...goalsRef.current, newGoal];
+        goalsRef.current = updatedGoals;
+        setGoals(updatedGoals);
         showToast({ message: response.message || 'Goal created successfully', status: 'success' })
         return newGoal;
       } else {
@@ -404,11 +409,6 @@ export const AppProvider = ({ children }) => {
           showToast({ message: response.message || 'Failed to update task', status: 'error' })
         }
       }
-
-      // Legacy: Update old dailyTasks for compatibility 
-      setDailyTasks(dailyTasks.map(task =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      ));
     } catch (error) {
       console.error('Error toggling task:', error);
       showToast({ message: error.message || 'Failed to update task', status: 'error' })
@@ -438,14 +438,12 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // const deleteTask = (taskId) => {
   // Delete Task - Backend Integration
   const deleteTask = async (taskId) => {
     try {
       const response = await taskAPI.delete(taskId);
       if (response.success) {
         setTasks(tasks.filter(task => task.id !== taskId));
-        setDailyTasks(dailyTasks.filter(task => task.id !== taskId));
         showToast({ message: response.message || 'Task deleted successfully', status: 'success' })
       } else {
         showToast({ message: response.message || 'Failed to delete task', status: 'error' })
@@ -635,7 +633,14 @@ export const AppProvider = ({ children }) => {
   const deleteNotebook = async (notebookId) => {
     const res = await notebookAPI.delete(notebookId);
     if (res.success) {
-      setNotebooks(prev => prev.filter(n => n.id !== notebookId));
+      if (res.notebooks) {
+        setNotebooks(res.notebooks.map(n => ({
+          ...n,
+          id: n._id
+        })));
+      } else {
+        setNotebooks(prev => prev.filter(n => n.id !== notebookId));
+      }
     }
   };
 
@@ -653,19 +658,9 @@ export const AppProvider = ({ children }) => {
   const createPage = async (notebookId) => {
     const res = await pageAPI.create({ notebookId });
     if (res.success) {
-      setPages(prev => [...prev, { ...res.page, id: res.page._id }]);
+      await loadPages(notebookId);
     }
   };
-
-  // const updatePage = async (pageId, content) => {
-  //   const res = await pageAPI.update({ pageId, content });
-  //   if (res.success) {
-  //     setPages(prev =>
-  //       prev.map(p => p.id === pageId ? { ...p, content } : p)
-  //     );
-  //   }
-  // };
-
 
   const updateTimeout = useRef(null);
   const updatePage = (pageId, content) => {
@@ -683,7 +678,11 @@ export const AppProvider = ({ children }) => {
   const deletePage = async (pageId, notebookId) => {
     const res = await pageAPI.delete(pageId, notebookId);
     if (res.success) {
-      setPages(prev => prev.filter(p => p.id !== pageId));
+      const data = (res.pages ?? []).map(p => ({
+        ...p,
+        id: p._id
+      }));
+      setPages(data);
     }
   };
 
@@ -731,15 +730,15 @@ export const AppProvider = ({ children }) => {
     setScores({ ...scores, ...newScores });
   };
 
-  const calculateProductivityScore = () => {
+  const calculateProductivityScore = useCallback(() => {
     const todayTasks = dailyPlan?.plannedTasks || [];
 
     if (todayTasks.length === 0) return 0;
     const completed = todayTasks.filter(task => task.completed).length;
     return Math.round((completed / todayTasks.length) * 100);
-  };
+  }, [dailyPlan]);
 
-  const calculateDisciplineScore = () => {
+  const calculateDisciplineScore = useCallback(() => {
     const tasks = dailyPlan?.plannedTasks || [];
 
     if (tasks.length === 0) return 0;
@@ -753,7 +752,7 @@ export const AppProvider = ({ children }) => {
         const completedMinutes =
           completedTime.getHours() * 60 + completedTime.getMinutes();
 
-        const [eh, em] = task.endTime.split(':').map(Number);
+        const [eh, em] = (task.endTime || "00:00").split(':').map(Number);
         const endMinutes = eh * 60 + em;
 
         if (completedMinutes <= endMinutes) {
@@ -763,11 +762,7 @@ export const AppProvider = ({ children }) => {
     });
 
     return Math.round((onTimeCompleted / tasks.length) * 100);
-  };
-
-  const setDailyTasksList = (tasksList) => {
-    setDailyTasks(tasksList);
-  };
+  }, [dailyPlan]);
 
   // Add task to daily plan - Backend Integration
   const addToDailyPlan = async (item) => {
@@ -949,17 +944,22 @@ export const AppProvider = ({ children }) => {
     setProjects([]);
     setTasks([]);
     setHabits([]);
-    setDailyTasks([]);
     setDailyPlan({ date: new Date().toISOString().split('T')[0], plannedTasks: [] });
     setScores({ productivity: 0, discipline: 0 });
     setUser(null);
   };
 
-  // AUTO SAVE DAILY STATS
+  // AUTO SAVE DAILY STATS (debounced to prevent duplicate docs under concurrent writes)
+  const saveStatsTimer = useRef(null);
+
   useEffect(() => {
     if (!token || !user || !dailyPlan) return;
 
-    const saveStats = async () => {
+    if (saveStatsTimer.current) {
+      clearTimeout(saveStatsTimer.current);
+    }
+
+    saveStatsTimer.current = setTimeout(async () => {
       try {
         const productivity = calculateProductivityScore();
         const discipline = calculateDisciplineScore();
@@ -972,11 +972,15 @@ export const AppProvider = ({ children }) => {
       } catch (error) {
         console.log("Stats save failed:", error);
       }
+    }, 2000);
+
+    return () => {
+      if (saveStatsTimer.current) {
+        clearTimeout(saveStatsTimer.current);
+      }
     };
 
-    saveStats();
-
-  }, [token, user, dailyPlan]);
+  }, [token, user, dailyPlan, calculateProductivityScore, calculateDisciplineScore]);
 
   const value = {
     token,
@@ -990,7 +994,6 @@ export const AppProvider = ({ children }) => {
     projects,
     tasks,
     habits,
-    dailyTasks,
     dailyPlan,
     scores,
     updateUser,
@@ -1019,7 +1022,6 @@ export const AppProvider = ({ children }) => {
     updatePage,
     deletePage,
     updateScores,
-    setDailyTasksList,
     addToDailyPlan,
     removeFromDailyPlan,
     createManualDailyTask,

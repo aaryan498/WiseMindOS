@@ -116,11 +116,15 @@ const DailyTaskTracker = () => {
     const start = new Date(`2000-01-01T${manualTaskForm.startTime}:00`);
     const end = new Date(`2000-01-01T${manualTaskForm.endTime}:00`);
 
-    const diffMinutes = (end - start) / (1000 * 60);
+    let diffMinutes = (end - start) / (1000 * 60)
+    if (diffMinutes < 0) diffMinutes += 24 * 60
 
     if (diffMinutes < 30) {
-      showToast({ message: "Minimum task duration should be 30 minutes", status: "error" });
-      return;
+        showToast({
+            message: "Minimum task duration should be 30 minutes",
+            status: "error",
+        })
+        return
     }
 
     createManualDailyTask(manualTaskForm);
@@ -138,12 +142,14 @@ const DailyTaskTracker = () => {
     const start = new Date(`2000-01-01T${timeForm.startTime}:00`);
     const end = new Date(`2000-01-01T${timeForm.endTime}:00`);
 
-    const diffMinutes = (end - start) / (1000 * 60);
-
+    let diffMinutes = (end - start) / (1000 * 60)
+    if (diffMinutes < 0) diffMinutes += 24 * 60
     if (diffMinutes < 30) {
-      // alert("Minimum task duration should be 30 minutes");
-      showToast({ message: "Minimum task duration should be 30 minutes", status: "error" });
-      return;
+        showToast({
+            message: "Minimum task duration should be 30 minutes",
+            status: "error",
+        })
+        return
     }
 
     await addToDailyPlan({
@@ -217,7 +223,7 @@ const DailyTaskTracker = () => {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <h1 className="text-3xl young-serif-regular font-bold text-gray-200 mb-2\">Daily Task Planner</h1>
+            <h1 className="text-3xl young-serif-regular font-bold text-gray-200 mb-2">Daily Task Planner</h1>
             <div className="flex items-center gap-2 text-gray-400">
               <Calendar size={20} />
               <p>{format(new Date(), 'EEEE, MMMM d, yyyy')}</p>

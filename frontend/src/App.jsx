@@ -30,12 +30,16 @@ import { useApp } from './store/AppContext';
 import { ToastContainer } from 'react-toastify';
 import ErrorBoundary from './components/ErrorBoundary';
 import ErrorPage from './pages/ErrorPage';
+import CustomCursor from './components/CustomCursor';
+import ScrollToTop from "./components/ScrollToTop";
+import NotFound from "./pages/NotFound";
 
 function App() {
   const { token } = useApp();
 
   return (
     <ErrorBoundary fallback={<ErrorPage />}>
+        <CustomCursor />
         <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           {/* Public Routes */}
@@ -64,12 +68,12 @@ function App() {
             <Route path="/future-twin" element={<FutureTwin />} />
             <Route path="/future" element={<FutureTwin />} />
             <Route path="/library" element={<Library />} />
-
           </Route>
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound/>} />
         </Routes>
+        <ScrollToTop />
     </ErrorBoundary>
   );
 }

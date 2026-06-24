@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, Trash2, Search, Pencil, Book, FileText, Edit } from "lucide-react";
 import { useApp } from "../store/AppContext";
 import { showToast } from "../utils/toastHelper";
@@ -28,9 +28,16 @@ const Bag = () => {
   const filteredNotebooks = notebooks.filter(nb =>
     nb.name.toLowerCase().includes(search.toLowerCase())
   );
-  const filteredPages = pages.filter(p =>
-    p.title
-      ?.toLowerCase()
+
+  const notebookPages = useMemo(() => (
+    pages
+      .filter(p => String(p.notebookId) === String(activeNotebook))
+      .sort((a, b) => a.order - b.order)
+  ), [pages, activeNotebook]);
+
+  const filteredPages = notebookPages.filter(p =>
+    (p.title ?? '')
+      .toLowerCase()
       .includes(pageSearch.toLowerCase())
   );
 
@@ -219,9 +226,9 @@ const Bag = () => {
                         <Trash2
                           size={14}
                           className="text-red-400"
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            deletePage(p.id, activeNotebook);
+                            await deletePage(p.id, activeNotebook);
                             if (activePage === p.id) setActivePage(null);
                           }}
                         />
@@ -292,6 +299,9 @@ const Bag = () => {
                     if (!activePage) return;
                     await updatePage(activePage, currentPage.content || "");
                     showToast({ message: "Saved Content", status: "success" }); 
+                    //redirect to pages view after saving
+                    setView("pages");
+                    setActivePage(null);
                   } catch (error) {
                     showToast({ message: error.message || "Error Saving", status: "success" });
                   }

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, CheckCircle2, CalendarDays, LucideTrophy } from 'lucide-react';
 import { useApp } from '../../store/AppContext';
+import { useFocus } from '../../store/FocusContext';
 import Card from '../../components/Card';
 import { motion } from 'framer-motion'
 import Bag from '../../components/Bag';
@@ -8,92 +8,17 @@ import GradientButton from '../../components/GradientButton';
 import { Link } from 'react-router-dom';
 
 const FocusRoom = () => {
-  const { dailyPlan, toggleDailyPlanTaskCompletion, navigate } = useApp();
-
-  // Pomodoro Timer State
-  const [minutes, setMinutes] = useState(25);
-  const [seconds, setSeconds] = useState(0);
-  const [isActive, setIsActive] = useState(false);
-  const [mode, setMode] = useState('work'); // work, shortBreak, longBreak
-  const [pomodoroCount, setPomodoroCount] = useState(0);
-
-  useEffect(() => {
-    let interval = null;
-    if (isActive) {
-      interval = setInterval(() => {
-        if (seconds === 0) {
-          if (minutes === 0) {
-            // Timer complete
-            handleTimerComplete();
-          } else {
-            setMinutes(minutes - 1);
-            setSeconds(59);
-          }
-        } else {
-          setSeconds(seconds - 1);
-        }
-      }, 1000);
-    } else if (!isActive && seconds !== 0) {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isActive, minutes, seconds]);
-
-  const handleTimerComplete = () => {
-    setIsActive(false);
-
-    if (mode === 'work') {
-      const newCount = pomodoroCount + 1;
-      setPomodoroCount(newCount);
-
-      // After 4 pomodoros, long break
-      if (newCount % 4 === 0) {
-        setMode('longBreak');
-        setMinutes(15);
-      } else {
-        setMode('shortBreak');
-        setMinutes(5);
-      }
-    } else {
-      setMode('work');
-      setMinutes(25);
-    }
-
-    setSeconds(0);
-
-    // Play notification sound (optional)
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('Timer Complete!', {
-        body: mode === 'work' ? 'Time for a break!' : 'Time to work!',
-      });
-    }
-  };
-
-  const toggleTimer = () => {
-    setIsActive(!isActive);
-
-    // Request notification permission
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  };
-
-  const resetTimer = () => {
-    setIsActive(false);
-    setSeconds(0);
-    if (mode === 'work') setMinutes(25);
-    else if (mode === 'shortBreak') setMinutes(5);
-    else setMinutes(15);
-  };
-
-  const switchMode = (newMode) => {
-    setIsActive(false);
-    setMode(newMode);
-    setSeconds(0);
-    if (newMode === 'work') setMinutes(25);
-    else if (newMode === 'shortBreak') setMinutes(5);
-    else setMinutes(15);
-  };
+  const { dailyPlan, toggleDailyPlanTaskCompletion } = useApp();
+  const {
+    mode,
+    pomodoroCount,
+    isActive,
+    minutes,
+    seconds,
+    toggleTimer,
+    resetTimer,
+    switchMode,
+  } = useFocus();
 
   // Get today's planned tasks from dailyPlan
   const todayPlannedTasks = dailyPlan?.plannedTasks || [];

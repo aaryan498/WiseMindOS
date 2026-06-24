@@ -4,16 +4,25 @@ import jwt from 'jsonwebtoken';
 
 import { createGoal, getGoals } from '../controllers/goalController.js';
 import { toggleTaskCompletion } from '../controllers/taskController.js';
+import { loginUser, registerUser } from '../controllers/userController.js';
 import authUser from '../middlewares/auth.js';
 import dailyPlanModel from '../models/dailyPlanModel.js';
 import goalModel from '../models/goalModel.js';
+import notebookModel from '../models/notebookModel.js';
+import pageModel from '../models/pageModel.js';
 import taskModel from '../models/taskModel.js';
+
 
 const originals = [];
 
 function mockResponse() {
     return {
         body: undefined,
+        statusCode: 200,
+        status(code) {
+            this.statusCode = code;
+            return this;
+        },
         json(payload) {
             this.body = payload;
             return payload;
@@ -44,8 +53,28 @@ test('createGoal returns a validation response when title is missing', async () 
     });
 });
 
+test('createGoal rejects duplicate titles for the same user', async () => {
+    const res = mockResponse();
+    replaceProperty(goalModel, 'find', async () => [
+        { title: 'Software Developer' }
+    ]);
+
+    await createGoal({
+        body: {
+            userId: 'user-1',
+            title: '  software developer '
+        }
+    }, res);
+
+    assert.deepEqual(res.body, {
+        success: false,
+        message: 'A goal with this title already exists'
+    });
+});
+
 test('createGoal persists default values for a valid goal', async () => {
     const res = mockResponse();
+    replaceProperty(goalModel, 'find', async () => []);
     let savedGoal;
     replaceProperty(goalModel.prototype, 'save', async function save() {
         savedGoal = this;
@@ -61,6 +90,7 @@ test('createGoal persists default values for a valid goal', async () => {
 
     assert.equal(res.body.success, true);
     assert.equal(res.body.message, 'Goal Created Successfully !');
+    assert.equal(savedGoal.title, 'Ship open-source work');
     assert.equal(savedGoal.type, 'personal');
     assert.equal(savedGoal.description, '');
     assert.equal(savedGoal.deadline, null);
@@ -140,7 +170,7 @@ test('authUser stores decoded user id and calls next for a valid token', async (
     const previousSecret = process.env.JWT_SECRET;
     process.env.JWT_SECRET = 'test-secret';
     const token = jwt.sign({ id: 'user-123' }, process.env.JWT_SECRET);
-    const req = { headers: { token }, body: {} };
+    const req = { headers: { authorization: `Bearer ${token}` }, body: {} };
     let nextCalled = false;
 
     try {
@@ -153,4 +183,42 @@ test('authUser stores decoded user id and calls next for a valid token', async (
 
     assert.equal(nextCalled, true);
     assert.equal(req.body.userId, 'user-123');
+});
+
+test('loginUser rejects object-type identifier (NoSQL injection attempt)', async () => {
+    const res = mockResponse();
+
+    await loginUser({
+        body: { identifier: { $gt: '' }, password: { $gt: '' } }
+    }, res, () => {});
+
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, { success: false, message: 'Invalid input.' });
+});
+
+test('loginUser rejects array-type identifier', async () => {
+    const res = mockResponse();
+
+    await loginUser({
+        body: { identifier: ['admin@example.com'], password: 'somepassword' }
+    }, res, () => {});
+
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, { success: false, message: 'Invalid input.' });
+});
+
+test('registerUser rejects object-type fields (NoSQL injection attempt)', async () => {
+    const res = mockResponse();
+
+    await registerUser({
+        body: {
+            name: { $gt: '' },
+            email: { $gt: '' },
+            password: { $gt: '' },
+            username: { $gt: '' }
+        }
+    }, res, () => {});
+
+    assert.equal(res.statusCode, 400);
+    assert.deepEqual(res.body, { success: false, message: 'Invalid input.' });
 });

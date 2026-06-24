@@ -11,6 +11,7 @@ import dailyPlanRouter from './routes/dailyPlanRoute.js';
 import notebookRouter from './routes/notebookRoute.js';
 import pageRouter from './routes/pageRoute.js';
 import weeklyStatRouter from './routes/weeklyStatRoute.js';
+import errorHandler from './middlewares/errorHandler.js';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -43,15 +44,7 @@ app.get('/', (req, res)=>{
     res.send("WiseMindOS Backend - Server Running...");
 })
 
-app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err);
-    const statusCode = err.statusCode || 500;
-    res.status(statusCode).json({
-        success: false,
-        message: err.message || 'Internal server error',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    });
-});
+app.use(errorHandler);
 
 process.on('uncaughtException', (err) => {
     console.error('Uncaught Exception:', err);

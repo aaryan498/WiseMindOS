@@ -11,14 +11,16 @@ describe('StatCard Component', () => {
 
   it('renders positive trend correctly', () => {
     render(<StatCard title="Revenue" value="$100" trend={{ positive: true, value: 5 }} />);
-    expect(screen.getByText('+ 5%')).toBeInTheDocument();
-    expect(screen.getByText('+ 5%')).toHaveClass('text-green-400');
+    const trendEl = screen.getByText(/↑\s*5%\s*from last week/i);
+    expect(trendEl).toBeInTheDocument();
+    expect(trendEl).toHaveClass('text-emerald-400');
   });
 
   it('renders negative trend correctly', () => {
     render(<StatCard title="Bounce Rate" value="45%" trend={{ positive: false, value: 2 }} />);
-    expect(screen.getByText('- 2%')).toBeInTheDocument();
-    expect(screen.getByText('- 2%')).toHaveClass('text-red-400');
+    const trendEl = screen.getByText(/↓\s*2%\s*from last week/i);
+    expect(trendEl).toBeInTheDocument();
+    expect(trendEl).toHaveClass('text-rose-400');
   });
 
   it('renders icon when provided', () => {
