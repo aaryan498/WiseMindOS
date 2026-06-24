@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import projectModel from '../models/projectModel.js';
 import taskModel from '../models/taskModel.js';
 
@@ -34,19 +35,30 @@ const getProjects = async (req, res) => {
         const userId = req.body.userId;
         const projects = await projectModel.find({ userId });
 
-        // Calculate progress dynamically for each project
-        const projectsWithProgress = await Promise.all(projects.map(async (project) => {
-            const projectTasks = await taskModel.find({ userId, projectId: project._id });
-            const completedTasks = projectTasks.filter(task => task.completed).length;
-            const progress = projectTasks.length > 0 ? Math.round((completedTasks / projectTasks.length) * 100) : 0;
+        // Single aggregation to get task counts for all projects
+        const projectProgress = await taskModel.aggregate([
+            { $match: { userId: new mongoose.Types.ObjectId(userId), projectId: { $ne: null } } },
+            { $group: { _id: "$projectId", total: { $sum: 1 }, completed: { $sum: { $cond: ["$completed", 1, 0] } } } }
+        ]);
 
+        const progressMap = {};
+        projectProgress.forEach(item => {
+            progressMap[item._id.toString()] = {
+                total: item.total,
+                completed: item.completed,
+                progress: item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0
+            };
+        });
+
+        const projectsWithProgress = projects.map(project => {
+            const data = progressMap[project._id.toString()] || { total: 0, completed: 0, progress: 0 };
             return {
                 ...project.toObject(),
-                progress,
-                tasksCompleted: completedTasks,
-                totalTasks: projectTasks.length
+                progress: data.progress,
+                tasksCompleted: data.completed,
+                totalTasks: data.total
             };
-        }));
+        });
 
         res.json({ success: true, projects: projectsWithProgress });
 
