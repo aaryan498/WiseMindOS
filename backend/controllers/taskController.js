@@ -8,7 +8,7 @@ const createTask = async (req, res) => {
         const userId = req.body.userId;
 
         if (!title) {
-            return res.json({ success: false, message: 'Title is required' });
+            return res.status(400).json({ success: false, message: 'Title is required' });
         }
 
         const newTask = new taskModel({
@@ -27,7 +27,7 @@ const createTask = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -40,7 +40,7 @@ const getTasks = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -51,12 +51,12 @@ const updateTask = async (req, res) => {
         const userId = req.body.userId;
 
         if (!taskId) {
-            return res.json({ success: false, message: 'Task ID is required' });
+            return res.status(400).json({ success: false, message: 'Task ID is required' });
         }
 
         const task = await taskModel.findOne({ _id: taskId, userId });
         if (!task) {
-            return res.json({ success: false, message: 'Task not found' });
+            return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
         if (title) task.title = title;
@@ -71,7 +71,7 @@ const updateTask = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -82,13 +82,13 @@ const toggleTaskCompletion = async (req, res) => {
         const userId = req.body.userId;
 
         if (!taskId) {
-            return res.json({ success: false, message: 'Task ID is required' });
+            return res.status(400).json({ success: false, message: 'Task ID is required' });
         }
 
         // SOURCE OF TRUTH: Update Task first
         const task = await taskModel.findOne({ _id: taskId, userId });
         if (!task) {
-            return res.json({ success: false, message: 'Task not found' });
+            return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
         task.completed = !task.completed;
@@ -113,7 +113,7 @@ const toggleTaskCompletion = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -124,12 +124,12 @@ const deleteTask = async (req, res) => {
         const userId = req.body.userId;
 
         if (!taskId) {
-            return res.json({ success: false, message: 'Task ID is required' });
+            return res.status(400).json({ success: false, message: 'Task ID is required' });
         }
 
         const task = await taskModel.findOneAndDelete({ _id: taskId, userId });
         if (!task) {
-            return res.json({ success: false, message: 'Task not found' });
+            return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
         // Remove from DailyPlan if exists
@@ -142,7 +142,7 @@ const deleteTask = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

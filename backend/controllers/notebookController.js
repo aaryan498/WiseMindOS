@@ -8,12 +8,12 @@ export const createNotebook = async (req, res) => {
     const { name } = req.body;
 
     if (!name) {
-      return res.json({ success: false, message: "Name required" });
+      return res.status(400).json({ success: false, message: "Name required" });
     }
 
     const count = await notebookModel.countDocuments({ userId });
     if (count >= 40) {
-      return res.json({ success: false, message: "Max 40 notebooks allowed" });
+      return res.status(400).json({ success: false, message: "Max 40 notebooks allowed" });
     }
 
     const notebook = new notebookModel({
@@ -27,7 +27,7 @@ export const createNotebook = async (req, res) => {
     res.json({ success: true, notebook });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -44,7 +44,7 @@ export const getNotebooks = async (req, res) => {
     res.json({ success: true, notebooks });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -55,7 +55,7 @@ export const updateNotebook = async (req, res) => {
     const userId = req.body.userId;
 
     if (!notebookId || !name) {
-      return res.json({ success: false, message: "NotebookId and name required" });
+      return res.status(400).json({ success: false, message: "NotebookId and name required" });
     }
 
     const notebook = await notebookModel.findOneAndUpdate(
@@ -65,13 +65,13 @@ export const updateNotebook = async (req, res) => {
     );
 
     if (!notebook) {
-      return res.json({ success: false, message: "Notebook not found" });
+      return res.status(404).json({ success: false, message: "Notebook not found" });
     }
 
     res.json({ success: true, notebook });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -88,7 +88,7 @@ export const deleteNotebook = async (req, res) => {
     });
 
     if (!notebook) {
-      return res.json({ success: false, message: "Notebook not found" });
+      return res.status(404).json({ success: false, message: "Notebook not found" });
     }
 
     // delete all pages of this notebook
@@ -97,6 +97,6 @@ export const deleteNotebook = async (req, res) => {
     res.json({ success: true });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };

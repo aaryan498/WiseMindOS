@@ -8,7 +8,7 @@ const createGoal = async (req, res) => {
         const userId = req.body.userId;
 
         if (!title) {
-            return res.json({ success: false, message: 'Title is required' });
+            return res.status(400).json({ success: false, message: 'Title is required' });
         }
 
         const newGoal = new goalModel({
@@ -24,7 +24,7 @@ const createGoal = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -50,7 +50,7 @@ const getGoals = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -61,12 +61,12 @@ const updateGoal = async (req, res) => {
         const userId = req.body.userId;
 
         if (!goalId) {
-            return res.json({ success: false, message: 'Goal ID is required' });
+            return res.status(400).json({ success: false, message: 'Goal ID is required' });
         }
 
         const goal = await goalModel.findOne({ _id: goalId, userId });
         if (!goal) {
-            return res.json({ success: false, message: 'Goal not found' });
+            return res.status(404).json({ success: false, message: 'Goal not found' });
         }
 
         if (title) goal.title = title;
@@ -79,7 +79,7 @@ const updateGoal = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -90,19 +90,19 @@ const deleteGoal = async (req, res) => {
         const userId = req.body.userId;
 
         if (!goalId) {
-            return res.json({ success: false, message: 'Goal ID is required' });
+            return res.status(400).json({ success: false, message: 'Goal ID is required' });
         }
 
         const goal = await goalModel.findOneAndDelete({ _id: goalId, userId });
         if (!goal) {
-            return res.json({ success: false, message: 'Goal not found' });
+            return res.status(404).json({ success: false, message: 'Goal not found' });
         }
 
         res.json({ success: true, message: 'Goal deleted successfully' });
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

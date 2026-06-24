@@ -8,16 +8,16 @@ export const createPage = async (req, res) => {
     const { notebookId } = req.body;
 
     if (!notebookId) {
-      return res.json({ success: false, message: "NotebookId required" });
+      return res.status(400).json({ success: false, message: "NotebookId required" });
     }
 
     const notebook = await notebookModel.findOne({ _id: notebookId, userId });
     if (!notebook) {
-      return res.json({ success: false, message: "Notebook not found" });
+      return res.status(404).json({ success: false, message: "Notebook not found" });
     }
 
     if (notebook.pageCount >= 100) {
-      return res.json({ success: false, message: "Max 100 pages allowed" });
+      return res.status(400).json({ success: false, message: "Max 100 pages allowed" });
     }
 
     const page = new pageModel({
@@ -35,7 +35,7 @@ export const createPage = async (req, res) => {
     res.json({ success: true, page });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -53,7 +53,7 @@ export const getPages = async (req, res) => {
     res.json({ success: true, pages });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -65,7 +65,7 @@ export const updatePage = async (req, res) => {
     const userId = req.body.userId;
 
     if (content.length > 10000) {
-      return res.json({ success: false, message: "Max 10KB content allowed" });
+      return res.status(400).json({ success: false, message: "Max 10KB content allowed" });
     }
 
     const page = await pageModel.findOneAndUpdate(
@@ -78,13 +78,13 @@ export const updatePage = async (req, res) => {
     );
 
     if (!page) {
-      return res.json({ success: false, message: "Page not found" });
+      return res.status(404).json({ success: false, message: "Page not found" });
     }
 
     res.json({ success: true, page });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -101,7 +101,7 @@ export const deletePage = async (req, res) => {
     });
 
     if (!page) {
-      return res.json({ success: false, message: "Page not found" });
+      return res.status(404).json({ success: false, message: "Page not found" });
     }
 
     const notebook = await notebookModel.findOne({
@@ -117,6 +117,6 @@ export const deletePage = async (req, res) => {
     res.json({ success: true });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };

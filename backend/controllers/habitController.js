@@ -22,7 +22,7 @@ const createHabit = async (req, res) => {
         const userId = req.body.userId;
 
         if (!name) {
-            return res.json({ success: false, message: 'Habit name is required' });
+            return res.status(400).json({ success: false, message: 'Habit name is required' });
         }
 
         const newHabit = new habitModel({
@@ -41,7 +41,7 @@ const createHabit = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -54,7 +54,7 @@ const getHabits = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -65,12 +65,12 @@ const updateHabit = async (req, res) => {
         const userId = req.body.userId;
 
         if (!habitId) {
-            return res.json({ success: false, message: 'Habit ID is required' });
+            return res.status(400).json({ success: false, message: 'Habit ID is required' });
         }
 
         const habit = await habitModel.findOne({ _id: habitId, userId });
         if (!habit) {
-            return res.json({ success: false, message: 'Habit not found' });
+            return res.status(404).json({ success: false, message: 'Habit not found' });
         }
 
         if (name) habit.name = name;
@@ -86,7 +86,7 @@ const updateHabit = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -96,12 +96,12 @@ const completeHabit = async (req, res) => {
         const userId = req.body.userId;
 
         if (!habitId) {
-            return res.json({ success: false, message: 'Habit ID is required' });
+            return res.status(400).json({ success: false, message: 'Habit ID is required' });
         }
 
         const habit = await habitModel.findOne({ _id: habitId, userId });
         if (!habit) {
-            return res.json({ success: false, message: 'Habit not found' });
+            return res.status(404).json({ success: false, message: 'Habit not found' });
         }
 
         const today = new Date();
@@ -185,7 +185,7 @@ const completeHabit = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -196,12 +196,12 @@ const deleteHabit = async (req, res) => {
         const userId = req.body.userId;
 
         if (!habitId) {
-            return res.json({ success: false, message: 'Habit ID is required' });
+            return res.status(400).json({ success: false, message: 'Habit ID is required' });
         }
 
         const habit = await habitModel.findOneAndDelete({ _id: habitId, userId });
         if (!habit) {
-            return res.json({ success: false, message: 'Habit not found' });
+            return res.status(404).json({ success: false, message: 'Habit not found' });
         }
 
         // Remove from DailyPlan if exists
@@ -214,7 +214,7 @@ const deleteHabit = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

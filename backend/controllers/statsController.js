@@ -7,7 +7,7 @@ const saveDailyStats = async (req, res) => {
     const userId = req.body.userId || req.headers.userid;
 
     if (productivity === undefined || discipline === undefined) {
-      return res.json({ success: false, message: 'Scores are required' });
+      return res.status(400).json({ success: false, message: 'Scores are required' });
     }
 
     // ✅ Normalize date (IMPORTANT for unique index)
@@ -53,7 +53,7 @@ const saveDailyStats = async (req, res) => {
 
   } catch (error) {
     console.log(error);
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -71,7 +71,7 @@ const getWeeklyStats = async (req, res) => {
 
   } catch (error) {
     console.log(error);
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 

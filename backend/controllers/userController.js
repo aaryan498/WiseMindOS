@@ -29,7 +29,7 @@ const loginUser = async (req, res) => {
         });
 
         if (!user) {
-            return res.json({ success: false, message: "User not found. Please Register first." })
+            return res.status(404).json({ success: false, message: "User not found. Please Register first." })
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -39,13 +39,13 @@ const loginUser = async (req, res) => {
             return res.json({ success: true, message: "Login Successful", token, name: user.name, email: user.email, username: user.username, bio: user.bio, profile_picture: user.profile_picture })
         }
         else {
-            return res.json({ success: false, message: "Invalid Credentials" })
+            return res.status(401).json({ success: false, message: "Invalid Credentials" })
         }
 
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message })
+        res.status(500).json({ success: false, message: error.message })
     }
 
 }
@@ -57,7 +57,7 @@ const googleLogin = async (req, res) => {
 
         // Check if credential is provided
         if (!credential) {
-            return res.json({ success: false, message: "Google token credential is required." });
+            return res.status(400).json({ success: false, message: "Google token credential is required." });
         }
 
         // Verify the token and get user information
@@ -143,7 +143,7 @@ const googleLogin = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        return res.json({ success: false, message: error.message });
+        return res.status(500).json({ success: false, message: error.message });
     }
 }
 
@@ -157,21 +157,21 @@ const registerUser = async (req, res) => {
         // Checking if there is the user exists in database with the same email.
         const exists = await userModel.findOne({ email });
         if (exists) {
-            return res.json({ success: false, message: "User already Exists." })
+            return res.status(400).json({ success: false, message: "User already Exists." })
         }
 
         const existsUsername = await userModel.findOne({ username });
         if (existsUsername) {
-            return res.json({ success: false, message: "Username already taken. Try another !" })
+            return res.status(400).json({ success: false, message: "Username already taken. Try another !" })
         }
 
 
         // Validating email format and strong password
         if (!validator.isEmail(email)) {
-            return res.json({ success: false, message: "Please enter a valid email." })
+            return res.status(400).json({ success: false, message: "Please enter a valid email." })
         }
         if (password.length < 8) {
-            return res.json({ success: false, message: "Password must at least contain 8 characters." })
+            return res.status(400).json({ success: false, message: "Password must at least contain 8 characters." })
         }
 
 
@@ -198,7 +198,7 @@ const registerUser = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message })
+        res.status(500).json({ success: false, message: error.message })
     }
 
 }
@@ -212,7 +212,7 @@ const updateUser = async (req, res) => {
         // Find current user
         const user = await userModel.findById(userId);
         if (!user) {
-            return res.json({ success: false, message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
         let isModified = false;
@@ -224,7 +224,7 @@ const updateUser = async (req, res) => {
                 _id: { $ne: userId }
             });
             if (existingUsername) {
-                return res.json({
+                return res.status(400).json({
                     success: false,
                     message: "Username already taken. Try another!"
                 });
@@ -266,7 +266,7 @@ const updateUser = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -279,7 +279,7 @@ const updateUserProfilePic = async (req, res) => {
         // Find current user
         const user = await userModel.findById(userId);
         if (!user) {
-            return res.json({ success: false, message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
         let isModified = false;
@@ -344,7 +344,7 @@ const updateUserProfilePic = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

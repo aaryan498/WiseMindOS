@@ -38,7 +38,7 @@ const getTodayPlan = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -50,19 +50,19 @@ const addToDailyPlan = async (req, res) => {
         const today = new Date().toISOString().split('T')[0];
 
         if (!source || !title || !startTime || !endTime) {
-            return res.json({ success: false, message: 'Missing required fields' });
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
         if (!['task', 'habit', 'manual'].includes(source)) {
-            return res.json({ success: false, message: 'Invalid source type' });
+            return res.status(400).json({ success: false, message: 'Invalid source type' });
         }
 
         // Validation based on source
         if (source === 'task' && !taskId) {
-            return res.json({ success: false, message: 'taskId required for task source' });
+            return res.status(400).json({ success: false, message: 'taskId required for task source' });
         }
         if (source === 'habit' && !habitId) {
-            return res.json({ success: false, message: 'habitId required for habit source' });
+            return res.status(400).json({ success: false, message: 'habitId required for habit source' });
         }
 
         // Get or create today's plan
@@ -83,7 +83,7 @@ const addToDailyPlan = async (req, res) => {
         });
 
         if (alreadyExists) {
-            return res.json({ success: false, message: 'Already added to daily plan' });
+            return res.status(409).json({ success: false, message: 'Already added to daily plan' });
         }
 
         // Fetch completion status from source if applicable
@@ -118,7 +118,7 @@ const addToDailyPlan = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -130,12 +130,12 @@ const removeFromDailyPlan = async (req, res) => {
         const today = new Date().toISOString().split('T')[0];
 
         if (!plannedTaskId) {
-            return res.json({ success: false, message: 'Planned task ID is required' });
+            return res.status(400).json({ success: false, message: 'Planned task ID is required' });
         }
 
         const dailyPlan = await dailyPlanModel.findOne({ userId, date: today });
         if (!dailyPlan) {
-            return res.json({ success: false, message: 'Daily plan not found' });
+            return res.status(404).json({ success: false, message: 'Daily plan not found' });
         }
 
         dailyPlan.plannedTasks = dailyPlan.plannedTasks.filter(
@@ -147,7 +147,7 @@ const removeFromDailyPlan = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -159,17 +159,17 @@ const toggleDailyPlanTask = async (req, res) => {
         const today = new Date().toISOString().split('T')[0];
 
         if (!plannedTaskId) {
-            return res.json({ success: false, message: 'Planned task ID is required' });
+            return res.status(400).json({ success: false, message: 'Planned task ID is required' });
         }
 
         const dailyPlan = await dailyPlanModel.findOne({ userId, date: today });
         if (!dailyPlan) {
-            return res.json({ success: false, message: 'Daily plan not found' });
+            return res.status(404).json({ success: false, message: 'Daily plan not found' });
         }
 
         const plannedTask = dailyPlan.plannedTasks.id(plannedTaskId);
         if (!plannedTask) {
-            return res.json({ success: false, message: 'Planned task not found' });
+            return res.status(404).json({ success: false, message: 'Planned task not found' });
         }
 
         // SSOT: Update source first, then reflect in DailyPlan
@@ -232,7 +232,7 @@ const toggleDailyPlanTask = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -244,7 +244,7 @@ const clearDailyPlan = async (req, res) => {
 
         const dailyPlan = await dailyPlanModel.findOne({ userId, date: today });
         if (!dailyPlan) {
-            return res.json({ success: false, message: 'Daily plan not found' });
+            return res.status(404).json({ success: false, message: 'Daily plan not found' });
         }
 
         dailyPlan.plannedTasks = [];
@@ -254,7 +254,7 @@ const clearDailyPlan = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

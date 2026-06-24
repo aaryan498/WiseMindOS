@@ -8,7 +8,7 @@ const createProject = async (req, res) => {
         const userId = req.body.userId;
 
         if (!title) {
-            return res.json({ success: false, message: 'Title is required' });
+            return res.status(400).json({ success: false, message: 'Title is required' });
         }
 
         const newProject = new projectModel({
@@ -24,7 +24,7 @@ const createProject = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -52,7 +52,7 @@ const getProjects = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -63,12 +63,12 @@ const updateProject = async (req, res) => {
         const userId = req.body.userId;
 
         if (!projectId) {
-            return res.json({ success: false, message: 'Project ID is required' });
+            return res.status(400).json({ success: false, message: 'Project ID is required' });
         }
 
         const project = await projectModel.findOne({ _id: projectId, userId });
         if (!project) {
-            return res.json({ success: false, message: 'Project not found' });
+            return res.status(404).json({ success: false, message: 'Project not found' });
         }
 
         if (title) project.title = title;
@@ -81,7 +81,7 @@ const updateProject = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
@@ -92,19 +92,19 @@ const deleteProject = async (req, res) => {
         const userId = req.body.userId;
 
         if (!projectId) {
-            return res.json({ success: false, message: 'Project ID is required' });
+            return res.status(400).json({ success: false, message: 'Project ID is required' });
         }
 
         const project = await projectModel.findOneAndDelete({ _id: projectId, userId });
         if (!project) {
-            return res.json({ success: false, message: 'Project not found' });
+            return res.status(404).json({ success: false, message: 'Project not found' });
         }
 
         res.json({ success: true, message: 'Project deleted successfully' });
 
     } catch (error) {
         console.log(error);
-        res.json({ success: false, message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 
