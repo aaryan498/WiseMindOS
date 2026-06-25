@@ -79,7 +79,18 @@ test('getGoals calculates progress from completed goal tasks', async () => {
         toObject: () => ({ _id: 'goal-1', title: 'Testing coverage' })
     };
 
-    replaceProperty(goalModel, 'find', async () => [goal]);
+    replaceProperty(goalModel, 'countDocuments', async () => 1);
+    
+    const mockQuery = {
+        sort() { return this; },
+        skip() { return this; },
+        limit() { return this; },
+        then(resolve) {
+            resolve([goal]);
+        }
+    };
+    replaceProperty(goalModel, 'find', () => mockQuery);
+    
     replaceProperty(taskModel, 'find', async () => [
         { completed: true },
         { completed: false },

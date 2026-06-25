@@ -35,8 +35,41 @@ const createTask = async (req, res) => {
 const getTasks = async (req, res) => {
     try {
         const userId = req.body.userId;
-        const tasks = await taskModel.find({ userId });
-        res.json({ success: true, tasks });
+        const page = Number(req.body?.page || req.query?.page) || 1;
+        let limit = Number(req.body?.limit || req.query?.limit) || 20;
+
+        // Enforce maximum page size limits
+        const maxLimit = 100;
+        if (limit > maxLimit) limit = maxLimit;
+        if (limit < 1) limit = 20;
+
+        const skip = (page - 1) * limit;
+
+        // Sorting support (default sorting by createdAt desc)
+        const sortBy = req.body?.sortBy || req.query?.sortBy || 'createdAt';
+        const sortOrder = req.body?.sortOrder || req.query?.sortOrder || 'desc';
+        const sortOptions = {};
+        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+        const total = await taskModel.countDocuments({ userId });
+        const tasks = await taskModel.find({ userId })
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit);
+
+        const totalPages = Math.ceil(total / limit);
+
+        res.json({
+            success: true,
+            data: tasks,
+            tasks, // Backward compatibility
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages
+            }
+        });
 
     } catch (error) {
         console.log(error);
