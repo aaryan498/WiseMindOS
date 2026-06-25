@@ -19,6 +19,7 @@ const Signup = () => {
     password: '',
   });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const passwordRules = [
     { label: 'At least 8 characters', isValid: formData.password.length >= 8 },
@@ -31,7 +32,7 @@ const Signup = () => {
     return error?.response?.data?.message || error?.message || fallback;
   };
 
-  const handleSignUpSubmit = async(e) => {
+  const handleSignUpSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -58,17 +59,19 @@ const Signup = () => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
 
       const response = await authAPI.register(payload);
-      
-      if(response.success){
+
+      if (response.success) {
         // Store token
         setToken(response.token);
         localStorage.setItem('token', response.token);
-        
+
         // Save user data
-        const userData = response.user || { 
+        const userData = response.user || {
           name: payload.name,
           username: payload.username,
           email: payload.email,
@@ -78,16 +81,19 @@ const Signup = () => {
         localStorage.setItem('wisemind_user', JSON.stringify(userData));
         showToast({ message: response.message || 'Account created successfully!', status: 'success' })
         navigate('/onboarding')
-      } else{
-          setError(response.message || 'Signup failed');
-          showToast({ message: response.message || 'Signup failed', status: 'error' })
+      } else {
+        setError(response.message || 'Signup failed');
+        showToast({ message: response.message || 'Signup failed', status: 'error' })
       }
-      
+
     } catch (error) {
-        console.error('Signup error:', error);
-        const message = getAuthErrorMessage(error, 'Unable to create your account. Please try again.');
-        setError(message);
-        showToast({ message, status: 'error' })
+      console.error('Signup error:', error);
+      const message = getAuthErrorMessage(error, 'Unable to create your account. Please try again.');
+      setError(message);
+      showToast({ message, status: 'error' })
+    }
+    finally {
+      setIsLoading(false);
     }
   };
 
@@ -189,8 +195,24 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]'>
                 ))}
               </div>
 
-              <GradientButton type="submit" className="w-full mt-5" data-testid="signup-continue-btn">
-                Create Account
+              <GradientButton
+                aria-busy={isLoading}
+                type="submit"
+                className="w-full mt-5"
+                disabled={isLoading}
+                data-testid="signup-continue-btn"
+              >
+                {isLoading ? (
+                  <>
+                    <svg aria-hidden="true" focusable="false" className="animate-spin h-4 w-4 mr-2 inline" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                    </svg>
+                    <span role="status" aria-live="polite" >Creating Account...</span>
+                  </>
+                ) : (
+                  'Create Account'
+                )}
               </GradientButton>
             </form>
             <div className="mt-6 text-center">

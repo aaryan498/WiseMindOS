@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Plus, Filter } from 'lucide-react';
+import { CheckCircle2, ClipboardList, Filter, Plus, SearchX } from 'lucide-react';
 import { useApp } from '../../../store/AppContext';
 import Card from '../../../components/Card';
 import TaskItem from '../../../components/TaskItem';
 import GradientButton from '../../../components/GradientButton';
 import InputField from '../../../components/InputField';
 import Modal from '../../../components/Modal';
-import { motion } from 'framer-motion';
+import EmptyState from '../../../components/EmptyState';
+import { motion as Motion } from 'framer-motion';
 
 const SoloTaskTracker = () => {
   const {
@@ -49,22 +50,27 @@ const SoloTaskTracker = () => {
 
   const pendingTasks = filteredTasks.filter(t => !t.completed);
   const completedTasks = filteredTasks.filter(t => t.completed);
+  const hasActiveFilters = Boolean(filterGoal || filterProject);
+  const clearFilters = () => {
+    setFilterGoal('');
+    setFilterProject('');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-      <motion.div
+      <Motion.div
         className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
 
-      <motion.div
+      <Motion.div
         className="absolute bottom-20 right-10 w-72 h-72 bg-cyan-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-4xl mx-auto">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-between items-center mb-6"
@@ -80,7 +86,7 @@ const SoloTaskTracker = () => {
           >
             <Plus size={24} />
           </button>
-        </motion.div>
+        </Motion.div>
 
         {/* Filters */}
         <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
@@ -92,10 +98,7 @@ const SoloTaskTracker = () => {
 
             {(filterGoal || filterProject) && (
               <button
-                onClick={() => {
-                  setFilterGoal('');
-                  setFilterProject('');
-                }}
+                onClick={clearFilters}
                 className="text-xs text-indigo-400 hover:text-indigo-300"
               >
                 Reset
@@ -134,10 +137,7 @@ const SoloTaskTracker = () => {
           </div>
           {(filterGoal || filterProject) && (
             <button
-              onClick={() => {
-                setFilterGoal('');
-                setFilterProject('');
-              }}
+              onClick={clearFilters}
               className="mt-3 text-sm text-indigo-400 hover:text-indigo-300"
               data-testid="clear-filters-btn"
             >
@@ -152,7 +152,7 @@ const SoloTaskTracker = () => {
           {pendingTasks.length > 0 ? (
             <div className="space-y-3">
               {pendingTasks.map((task, index) => (
-                <motion.div
+                <Motion.div
                   key={task.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -164,11 +164,30 @@ const SoloTaskTracker = () => {
                     onToggle={toggleTaskCompletion}
                     onDelete={deleteTask}
                   />
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
+          ) : filteredTasks.length === 0 ? (
+            <EmptyState
+              icon={hasActiveFilters ? SearchX : ClipboardList}
+              title={hasActiveFilters ? 'No tasks match these filters' : 'No tasks yet'}
+              description={
+                hasActiveFilters
+                  ? 'Clear the filters to see everything, or create a task for this goal or project.'
+                  : 'Capture the next small action and keep your day moving.'
+              }
+              actionLabel={hasActiveFilters ? 'Clear Filters' : 'Add Your First Task'}
+              onAction={hasActiveFilters ? clearFilters : () => setShowAddTask(true)}
+              testId={hasActiveFilters ? 'empty-clear-filters-btn' : 'empty-add-task-btn'}
+              className="border-0 bg-transparent shadow-none"
+            />
           ) : (
-            <p className="text-gray-400 text-center py-8">No pending tasks. Great job! 🎉</p>
+            <EmptyState
+              icon={CheckCircle2}
+              title="All visible tasks are complete"
+              description="Nothing pending in this view. Completed tasks stay below for review."
+              className="border-0 bg-transparent shadow-none"
+            />
           )}
         </Card>
 
@@ -192,25 +211,6 @@ const SoloTaskTracker = () => {
           </Card>
         )}
 
-        {filteredTasks.length === 0 && (
-          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 text-center">
-            <div className="text-center py-16">
-              <div className="text-5xl mb-4">📋</div>
-
-              <p className="text-gray-400 text-lg mb-2">
-                No tasks yet.
-              </p>
-
-              <p className="text-indigo-400 text-sm mb-6">
-                Start organizing your day like a pro 🚀
-              </p>
-
-              <GradientButton onClick={() => setShowAddTask(true)}>
-                Add Your First Task
-              </GradientButton>
-            </div>
-          </Card>
-        )}
       </div>
 
       {/* Add Task Modal */}

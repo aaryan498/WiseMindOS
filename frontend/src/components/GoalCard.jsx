@@ -4,8 +4,8 @@ import ProgressBar from './ProgressBar';
 
 const GoalCard = ({ goal, progress, onClick }) => {
 
-  const handleGoalClick = (goal) => {
-    setSelectedGoal(goal);
+  const handleGoalClick = () => {
+    onClick?.(goal);
   };
 
   const getTypeColor = (type) => {
@@ -37,7 +37,8 @@ const GoalCard = ({ goal, progress, onClick }) => {
   return (
     <Card
       className="hover:scale-105 transition-all duration-300 cursor-pointer bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]"
-      onClick={()=>handleGoalClick(goal)}
+      onClick={handleGoalClick}
+      aria-label={`Open goal ${goal.title}. Progress ${progress} percent.`}
       data-testid={`goal-card-${goal.id}`}
     >
       {/* TOP */}
@@ -45,7 +46,7 @@ const GoalCard = ({ goal, progress, onClick }) => {
         
         {/* Icon */}
         <div className={`p-3 bg-gradient-to-r ${getTypeColor(goal.type)} rounded-xl`}>
-          <Target size={22} className="text-white" />
+          <Target aria-hidden="true" size={22} className="text-white" />
         </div>
 
         {/* Status Badge */}

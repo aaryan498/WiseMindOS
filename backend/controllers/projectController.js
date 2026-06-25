@@ -2,10 +2,10 @@ import projectModel from '../models/projectModel.js';
 import taskModel from '../models/taskModel.js';
 
 // Create Project
-const createProject = async (req, res) => {
+const createProject = async (req, res, next) => {
     try {
         const { title, goalId, deadline, description } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
 
         if (!title) {
             return res.json({ success: false, message: 'Title is required' });
@@ -23,15 +23,14 @@ const createProject = async (req, res) => {
         res.json({ success: true, project: newProject, message: 'Project Created Successfully' });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Get All Projects
-const getProjects = async (req, res) => {
+const getProjects = async (req, res, next) => {
     try {
-        const userId = req.body.userId;
+        const userId = req.user.id;
         const projects = await projectModel.find({ userId });
 
         // Calculate progress dynamically for each project
@@ -51,16 +50,15 @@ const getProjects = async (req, res) => {
         res.json({ success: true, projects: projectsWithProgress });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Update Project
-const updateProject = async (req, res) => {
+const updateProject = async (req, res, next) => {
     try {
         const { projectId, title, goalId, deadline, description } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
 
         if (!projectId) {
             return res.json({ success: false, message: 'Project ID is required' });
@@ -80,16 +78,15 @@ const updateProject = async (req, res) => {
         res.json({ success: true, project, message: 'Project Updated Successfully' });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Delete Project
-const deleteProject = async (req, res) => {
+const deleteProject = async (req, res, next) => {
     try {
         const { projectId } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
 
         if (!projectId) {
             return res.json({ success: false, message: 'Project ID is required' });
@@ -100,11 +97,12 @@ const deleteProject = async (req, res) => {
             return res.json({ success: false, message: 'Project not found' });
         }
 
+        await taskModel.updateMany({ userId, projectId }, { $set: { projectId: null } });
+
         res.json({ success: true, message: 'Project deleted successfully' });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 

@@ -11,6 +11,7 @@ import dailyPlanRouter from './routes/dailyPlanRoute.js';
 import notebookRouter from './routes/notebookRoute.js';
 import pageRouter from './routes/pageRoute.js';
 import weeklyStatRouter from './routes/weeklyStatRoute.js';
+import errorHandler from './middlewares/errorHandler.js';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -36,6 +37,8 @@ app.use('/api/stats', weeklyStatRouter);
 app.get('/', (req, res)=>{
     res.send("WiseMindOS Backend - Server Running...");
 })
+
+app.use(errorHandler);
 
 app.listen(port, ()=>{
     console.log(`Server running : http://localhost:${port}`);

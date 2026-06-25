@@ -9,7 +9,11 @@ import AppLayout from './layouts/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import Roadmap from './pages/Roadmap';
+import Features from './pages/Features';
+import Pricing from './pages/Pricing';
 import Careers from './pages/Careers';
+import Contact from './pages/Contact';
+import About from './pages/About';
 
 
 import FutureTwin from './modules/simulator_room/FutureTwin';
@@ -24,11 +28,18 @@ import Library from './modules/library_room/Library';
 
 import { useApp } from './store/AppContext';
 import { ToastContainer } from 'react-toastify';
+import ErrorBoundary from './components/ErrorBoundary';
+import ErrorPage from './pages/ErrorPage';
+import CustomCursor from './components/CustomCursor';
+import ScrollToTop from "./components/ScrollToTop";
+import NotFound from "./pages/NotFound";
 
-  function App() {
-    const { token } = useApp();
-    return (
-      <>
+function App() {
+  const { token } = useApp();
+
+  return (
+    <ErrorBoundary fallback={<ErrorPage />}>
+        <CustomCursor />
         <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           {/* Public Routes */}
@@ -37,8 +48,12 @@ import { ToastContainer } from 'react-toastify';
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/report" element={<Reports />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/roadmap" element={<Roadmap />} />
           <Route path="/careers" element={<Careers />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
 
           {/* Protected Routes with AppLayout */}
           <Route element={<AppLayout />}>
@@ -53,14 +68,14 @@ import { ToastContainer } from 'react-toastify';
             <Route path="/future-twin" element={<FutureTwin />} />
             <Route path="/future" element={<FutureTwin />} />
             <Route path="/library" element={<Library />} />
-
           </Route>
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound/>} />
         </Routes>
-      </>
-    );
-  }
+        <ScrollToTop />
+    </ErrorBoundary>
+  );
+}
 
 export default App;

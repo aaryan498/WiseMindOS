@@ -17,9 +17,9 @@ const isToday = (date) => {
 };
 
 // Get Today's Daily Plan (or create if not exists)
-const getTodayPlan = async (req, res) => {
+const getTodayPlan = async (req, res, next) => {
     try {
-        const userId = req.body.userId;
+        const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
 
         let dailyPlan = await dailyPlanModel.findOne({ userId, date: today });
@@ -37,16 +37,15 @@ const getTodayPlan = async (req, res) => {
         res.json({ success: true, dailyPlan });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Add Task to Daily Plan
-const addToDailyPlan = async (req, res) => {
+const addToDailyPlan = async (req, res, next) => {
     try {
         const { source, taskId, habitId, title, startTime, endTime, isImportant } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
 
         if (!source || !title || !startTime || !endTime) {
@@ -63,6 +62,20 @@ const addToDailyPlan = async (req, res) => {
         }
         if (source === 'habit' && !habitId) {
             return res.json({ success: false, message: 'habitId required for habit source' });
+        }
+
+        // Validate that the source record exists
+        if (source === 'task' && taskId) {
+            const task = await taskModel.findOne({ _id: taskId, userId });
+            if (!task) {
+                return res.json({ success: false, message: 'Task not found' });
+            }
+        }
+        if (source === 'habit' && habitId) {
+            const habit = await habitModel.findOne({ _id: habitId, userId });
+            if (!habit) {
+                return res.json({ success: false, message: 'Habit not found' });
+            }
         }
 
         // Get or create today's plan
@@ -117,16 +130,15 @@ const addToDailyPlan = async (req, res) => {
         res.json({ success: true, dailyPlan, message: 'Task added for today' });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Remove from Daily Plan
-const removeFromDailyPlan = async (req, res) => {
+const removeFromDailyPlan = async (req, res, next) => {
     try {
         const { plannedTaskId } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
 
         if (!plannedTaskId) {
@@ -138,6 +150,11 @@ const removeFromDailyPlan = async (req, res) => {
             return res.json({ success: false, message: 'Daily plan not found' });
         }
 
+        const existingTask = dailyPlan.plannedTasks.id(plannedTaskId);
+        if (!existingTask) {
+            return res.json({ success: false, message: 'Planned task not found' });
+        }
+
         dailyPlan.plannedTasks = dailyPlan.plannedTasks.filter(
             pt => pt._id.toString() !== plannedTaskId
         );
@@ -146,16 +163,15 @@ const removeFromDailyPlan = async (req, res) => {
         res.json({ success: true, dailyPlan, message: 'Task removed successfully !' });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Toggle Daily Plan Task Completion (CRITICAL - Updates source first, then reflects)
-const toggleDailyPlanTask = async (req, res) => {
+const toggleDailyPlanTask = async (req, res, next) => {
     try {
         const { plannedTaskId } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
 
         if (!plannedTaskId) {
@@ -231,15 +247,14 @@ const toggleDailyPlanTask = async (req, res) => {
         res.json({ success: true, dailyPlan });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 // Clear Daily Plan
-const clearDailyPlan = async (req, res) => {
+const clearDailyPlan = async (req, res, next) => {
     try {
-        const userId = req.body.userId;
+        const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
 
         const dailyPlan = await dailyPlanModel.findOne({ userId, date: today });
@@ -253,8 +268,7 @@ const clearDailyPlan = async (req, res) => {
         res.json({ success: true, dailyPlan });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 

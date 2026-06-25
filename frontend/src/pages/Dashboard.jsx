@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, ResponsiveContainer, LabelList } from 'recharts';
-import { TrendingUp, Target, CheckCircle, Zap, ArrowRight, UserPlus2, Camera, CalendarDays, Star, AlertTriangle, UserPen, LucideTrophy, Pencil, Activity, Flame, BarChart3 } from 'lucide-react';
+import { TrendingUp, Target, CheckCircle, Zap, ArrowRight, UserPlus2, Camera, CalendarDays, Star, AlertTriangle, UserPen, LucideTrophy, Pencil, Activity, Flame, BarChart3, Timer, Download } from 'lucide-react';
 import { useApp } from '../store/AppContext';
 import Card from '../components/Card';
 import StatCard from '../components/StatCard';
@@ -20,6 +20,45 @@ import Modal from '../components/Modal';
 import InputField from '../components/InputField';
 import { AnalyticsSkeleton, DashboardStatsSkeleton, SkeletonCard, SkeletonBlock, TrackerGridSkeleton } from '../components/LoadingSkeleton';
 
+const formatWeeklyAnalyticsDate = (value) => new Date(value).toISOString().split('T')[0];
+
+const escapeCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+const downloadWeeklyAnalyticsCsv = (weeklyData) => {
+  const csvRows = [
+    ['Date', 'Day', 'Productivity Score', 'Discipline Score'],
+    ...weeklyData.map((entry) => [
+      entry.date,
+      entry.name,
+      entry.productivity,
+      entry.discipline
+    ])
+  ];
+
+  const csvContent = csvRows
+    .map((row) => row.map(escapeCsvValue).join(','))
+    .join('\r\n');
+
+  const fileLabel = weeklyData.length
+    ? `${weeklyData[0].date}-to-${weeklyData[weeklyData.length - 1].date}`
+    : formatWeeklyAnalyticsDate(new Date());
+  const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
+  const downloadUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+
+  anchor.href = downloadUrl;
+  anchor.download = `weekly-analytics-${fileLabel}.csv`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  URL.revokeObjectURL(downloadUrl);
+};
+
+const isToday = (date) => {
+  if (!date) return false;
+  const d = new Date(date);
+  return !isNaN(d.getTime()) && d.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
+};
 
 const Dashboard = () => {
 
@@ -47,7 +86,11 @@ const Dashboard = () => {
     calculateDisciplineScore
   } = useApp();
 
-  const [newProfile, setNewProfile] = useState({ name: user.name, username: user.username, bio: user.bio });
+  const [newProfile, setNewProfile] = useState({ 
+    name: user?.name || '', 
+    username: user?.username || '', 
+    bio: user?.bio || '' 
+  });
   const [newProfilePic, setNewProfilePic] = useState(null);
   const [weeklyLoading, setWeeklyLoading] = useState(true);
 
@@ -61,6 +104,7 @@ const Dashboard = () => {
 
         if (res.success) {
           const formatted = res.data.map(item => ({
+            date: formatWeeklyAnalyticsDate(item.date),
             name: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
             productivity: item.productivity,
             discipline: item.discipline
@@ -93,33 +137,38 @@ const Dashboard = () => {
   const productivityScore = useMemo(() => calculateProductivityScore(), [tasks, habits, goals]);
   const disciplineScore = useMemo(() => calculateDisciplineScore(), [tasks, habits]);
 
+  const userLevel = useMemo(
+    () => Math.max(1, (goals?.length || 0) + (habits?.length || 0) + Math.floor((productivityScore + disciplineScore) / 20)),
+    [goals?.length, habits?.length, productivityScore, disciplineScore]
+  );
+
   // Get today's planned tasks from dailyPlan
   const todayPlannedTasks = dailyPlan?.plannedTasks || [];
-  const pendingPlannedTasks = todayPlannedTasks.filter(t => !t.completed);
+  const pendingPlannedTasks = todayPlannedTasks?.filter(t => !t.completed) || [];
   const hasPlannedTasks = todayPlannedTasks.length > 0;
 
   const importantTasks = getImportantTasks();
   const behindTasks = getBehindTasks();
 
-  const topGoals = goals.slice(0, 4);
-  const topProjects = projects.slice(0, 4);
-  const topHabits = habits.slice(0, 3);
+  const topGoals = (goals || []).slice(0, 4);
+  const topProjects = (projects || []).slice(0, 4);
+  const topHabits = (habits || []).slice(0, 3);
 
   const productivityInsights = useMemo(() => {
-    const completedDailyTasks = todayPlannedTasks.filter(task => task.completed).length;
-    const completedTasks = tasks.filter(task => task.completed || task.status === 'completed').length;
-    const completedHabits = habits.filter(habit => habit.completed).length;
-    const goalProgressValues = goals.map(goal => {
+    const completedDailyTasks = (todayPlannedTasks || []).filter(task => task.completed).length;
+    const completedTasks = (tasks || []).filter(task => task.completed || task.status === 'completed').length;
+    const completedHabits = (habits || []).filter(habit => habit.lastCompleted && isToday(habit.lastCompleted)).length;
+    const goalProgressValues = (goals || []).map(goal => {
       const progress = calculateGoalProgress(goal.id);
       return progress || Number(goal.progress) || 0;
     });
     const avgGoalProgress = goalProgressValues.length
       ? Math.round(goalProgressValues.reduce((sum, value) => sum + value, 0) / goalProgressValues.length)
       : 0;
-    const habitCompletion = habits.length
+    const habitCompletion = (habits || []).length
       ? Math.round((completedHabits / habits.length) * 100)
       : 0;
-    const taskCompletion = tasks.length
+    const taskCompletion = (tasks || []).length
       ? Math.round((completedTasks / tasks.length) * 100)
       : 0;
     const consistencyDays = weeklyData.filter(day => {
@@ -169,7 +218,7 @@ const Dashboard = () => {
     {
       title: 'Habit Completion',
       value: `${productivityInsights.habitCompletion}%`,
-      detail: `${habits.filter(habit => habit.completed).length}/${habits.length || 0} habits done`,
+      detail: `${habits.filter(habit => habit.lastCompleted && isToday(habit.lastCompleted)).length}/${habits.length || 0} habits done`,
       icon: <Activity size={22} />,
       accent: 'from-emerald-500/25 to-teal-500/10',
       text: 'text-emerald-300',
@@ -191,6 +240,14 @@ const Dashboard = () => {
       text: 'text-fuchsia-300',
     },
   ];
+
+  const handleWeeklyAnalyticsExport = () => {
+    if (!weeklyData.length) {
+      return;
+    }
+
+    downloadWeeklyAnalyticsCsv(weeklyData);
+  };
 
   const handleEditProfile = async (e) => {
     e.preventDefault();
@@ -280,70 +337,123 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Card className="mb-6 w-full  relative overflow-hidden bg-white/15 backdrop-blur-xl border-20 border-black/20 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
+          <Card
+            className="mb-6 w-full relative overflow-hidden bg-white/15 backdrop-blur-xl border border-white/20 shadow-[0_0_40px_rgba(99,102,241,0.2)] p-4 sm:p-6"
+            data-testid="dashboard-profile-card"
+          >
+            <button
+              type="button"
+              onClick={() => setShowEditProfile(true)}
+              aria-label="Edit profile details"
+              className="absolute top-4 right-4 z-10 bg-white/10 hover:bg-white/15 cursor-pointer border flex gap-2 border-white/15 hover:border-white/25 px-3 py-3 rounded-full text-white default-bold shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            >
+              <UserPen aria-hidden="true" size={20} />
+            </button>
 
-            <div className="rounded w-full mb-6 flex flex-col items-center">
-              <div className='w-full flex items-end justify-end'>
-                <button onClick={() => setShowEditProfile(true)} className='bg-white/10 hover:bg-white/15 cursor-pointer border flex gap-2 border-white/15 hover:border-white/25 hover:translate-y-0.5 px-3 py-3 rounded-full text-white default-bold shadow-[0_0_10px_rgba(255,255,255,0.2)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transition-all duration-300'> <UserPen size={20} /></button>
-              </div>
-              {/* Image div  */}
-              <div className='h-30 w-30 rounded-full relative group border-6 border-black/15 shadow-[0_0_40px_rgba(99,102,241,0.2)] shrink-0'>
-                <img src={user.profile_picture || profile_pic} className='w-full h-full object-cover rounded-full' alt="" />
-                <div onClick={()=>setShowEditProfilePic(true)} className='w-full h-full bg-black/50 absolute rounded-full inset-0 cursor-pointer opacity-0 z-10 group-hover:opacity-100'>
-                  <div className='h-full w-full flex items-center justify-center'>
-                    <Camera size={18} className='text-white' />
+            <div
+              className="grid grid-cols-1 sm:grid-cols-[7.5rem_1fr] md:grid-cols-[7.5rem_1fr_auto] gap-x-5 gap-y-4 md:gap-x-6 lg:gap-x-8 w-full pt-12 sm:pt-2 items-start"
+              data-testid="profile-card-layout"
+            >
+              <div className="flex justify-center sm:justify-start sm:row-span-2 md:row-span-1">
+                <div className="relative p-1 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-amber-400 shadow-[0_0_30px_rgba(99,102,241,0.45)]">
+                  <div className="h-28 w-28 sm:h-[7.5rem] sm:w-[7.5rem] rounded-full relative group border-4 border-black/20 bg-black/30 overflow-hidden">
+                    <img
+                      src={user.profile_picture || profile_pic}
+                      className="w-full h-full object-cover rounded-full"
+                      alt={`${user.name || 'User'} profile`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowEditProfilePic(true)}
+                      aria-label="Change profile picture"
+                      className="w-full h-full bg-black/50 absolute rounded-full inset-0 cursor-pointer opacity-0 z-10 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+                    >
+                      <div className="h-full w-full flex items-center justify-center">
+                        <Camera aria-hidden="true" size={18} className="text-white" />
+                      </div>
+                    </button>
+                    <div className="border-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full z-10 bottom-1 absolute right-1 border-green-400 bg-green-400" />
                   </div>
                 </div>
-                <div className='border-6 h-5 w-5 rounded-full z-10 bottom-1 absolute right-1 border-green-400'></div>
               </div>
-              <div className='flex flex-col items-center'>
-                <span className='text-3xl md:text-4xl text-center default-bold text-gray-100'>{user.name || 'User'}</span>
-                <span className='cursor-pointer text-sm text-gray-300'>@{user.username || 'username'}</span>
+
+              <div className="flex flex-col items-center sm:items-start min-w-0 text-center sm:text-left sm:col-start-2">
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/15 border border-orange-400/30 text-orange-300 text-xs font-semibold">
+                    <Flame size={12} aria-hidden="true" />
+                    Builder
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-semibold">
+                    Level {userLevel}
+                  </span>
+                </div>
+
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl default-bold text-white truncate max-w-full">
+                  {user.name || 'User'}
+                </h2>
+                <span className="cursor-pointer text-sm font-medium text-indigo-400 mb-2 truncate max-w-full">
+                  @{user.username || 'username'}
+                </span>
+                <p className="text-gray-300 text-sm md:text-base mb-4 max-w-full leading-relaxed break-words">
+                  {user.bio || 'Add Bio'}
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-2 sm:gap-x-6 w-full">
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-lg sm:text-xl font-bold text-white">{productivityScore}%</p>
+                    <p className="text-[10px] sm:text-xs text-indigo-300 uppercase tracking-wider font-semibold">Productivity</p>
+                  </div>
+                  <div className="w-px h-8 bg-white/10 hidden sm:block" />
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-lg sm:text-xl font-bold text-white">{disciplineScore}%</p>
+                    <p className="text-[10px] sm:text-xs text-emerald-300 uppercase tracking-wider font-semibold">Discipline</p>
+                  </div>
+                  <div className="w-px h-8 bg-white/10 hidden sm:block" />
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-end gap-1 h-7">
+                      {productivityInsights?.heatmap?.slice(-7)?.map((d, i) => (
+                        <div
+                          key={i}
+                          className="w-1.5 bg-indigo-500 rounded-t-sm opacity-80"
+                          style={{ height: `${Math.max(15, d.value)}%` }}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-gray-400 uppercase tracking-wider font-semibold">7D Activity</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="w-full sm:col-span-2 md:col-span-1 md:col-start-3 md:row-start-1 flex justify-center sm:justify-end shrink-0">
+                <GradientButton
+                  className="w-full max-w-xs sm:max-w-none md:min-w-[9.5rem] px-6 py-3 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_35px_rgba(99,102,241,0.6)] hover:scale-[1.05] transform-gpu transition-all duration-300 ease-in-out border border-indigo-400/20"
+                  data-testid="profile-connect-btn"
+                >
+                  <UserPlus2 size={20} />
+                  <span>Connect</span>
+                </GradientButton>
               </div>
             </div>
-
-            <div className='text-gray-400 mb-6'>{user.bio || 'Add Bio'}</div>
-
-            <div className='flex flex-wrap justify-around gap-4 mb-4'>
-              <div className="text-center">
-                <p className="text-lg font-bold text-indigo-400">{productivityScore}%</p>
-                <p className="text-xs text-gray-400">Productivity</p>
-              </div>
-
-              <div className="text-center">
-                <p className="text-lg font-bold text-green-400">{disciplineScore}%</p>
-                <p className="text-xs text-gray-400">Discipline</p>
-              </div>
-            </div>
-
-            <GradientButton className="w-full h-full flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.5)]">
-              <UserPlus2 size={20} />
-              <span>Connect</span>
-            </GradientButton>
-
           </Card>
 
         </Motion.div>
 
 
-        <div className='rounded-2xl p-6 mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]'>
+        <div className="mb-6">
+          <ClockWidget />
+        </div>
 
-          {/* Clock Widget & Focus Room */}
-          <div className="mb-6">
-            <ClockWidget />
-          </div>
-
-          {/* Stats Grid */}
-          {loading ? (
-            <DashboardStatsSkeleton />
-          ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Stats Grid */}
+        {loading ? (
+          <DashboardStatsSkeleton />
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 mb-6">
 
               <StatCard
                 title="Productivity"
                 value={`${productivityScore}%`}
                 icon={<Zap size={24} />}
-                // trend={{positive: false, value: 20}}
+                trend={{positive: productivityInsights.trendDelta >= 0, value: Math.abs(productivityInsights.trendDelta)}}
                 data-testid="productivity-score-card"
               />
               <StatCard
@@ -353,6 +463,19 @@ const Dashboard = () => {
                 data-testid="discipline-score-card"
               />
               <StatCard
+                title="Focus Hours"
+                value="12.5h"
+                icon={<Timer size={24} />}
+                trend={{positive: true, value: 15}}
+                data-testid="focus-hours-card"
+              />
+              <StatCard
+                title="Habit Streak"
+                value="14 Days"
+                icon={<Flame size={24} />}
+                data-testid="habit-streak-card"
+              />
+              <StatCard
                 title="Active Goals"
                 value={goals.length.toString()}
                 icon={<Target size={24} />}
@@ -360,13 +483,12 @@ const Dashboard = () => {
               />
               <StatCard
                 title="Tasks Today"
-                value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length}`}
+                value={`${dailyPlan?.plannedTasks.filter(t => t.completed).length}/${dailyPlan?.plannedTasks.length || 0}`}
                 icon={<CheckCircle size={24} />}
                 data-testid="tasks-today-card"
               />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Productivity Insights */}
         <div className="mb-6">
@@ -447,7 +569,21 @@ const Dashboard = () => {
         </div>
 
         {/* Weekly Analytics */}
-        <h2 className="text-xl font-bold text-white mb-4">Weekly Analytics</h2>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-white">Weekly Analytics</h2>
+            <p className="text-sm text-gray-400">Download your weekly scores for Excel or Google Sheets.</p>
+          </div>
+          <GradientButton
+            onClick={handleWeeklyAnalyticsExport}
+            disabled={!weeklyData.length}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:via-teal-500 hover:to-cyan-500 px-5 py-2.5"
+            data-testid="weekly-analytics-export-btn"
+          >
+            <Download size={18} />
+            <span>Export CSV</span>
+          </GradientButton>
+        </div>
         {weeklyLoading ? (
           <AnalyticsSkeleton />
         ) : (
@@ -701,13 +837,15 @@ const Dashboard = () => {
                         {/* Completion Toggle */}
                         <button
                           onClick={() => toggleDailyPlanTaskCompletion(item.id)}
+                          aria-label={`${item.completed ? 'Mark incomplete' : 'Mark complete'}: ${item.title}`}
+                          aria-pressed={item.completed}
                           className={`p-2 rounded-lg transition-all ${item.completed
                             ? 'bg-green-500/20 text-green-400'
                             : 'bg-gray-700/50 text-gray-400 hover:bg-green-500/20 hover:text-green-400'
-                            }`}
+                            } focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900`}
                           data-testid={`toggle-planned-task-${item.id}`}
                         >
-                          <CheckCircle size={20} />
+                          <CheckCircle aria-hidden="true" size={20} />
                         </button>
                       </div>
                     </div>
@@ -730,31 +868,40 @@ const Dashboard = () => {
             </div>
           </Card>
         ) : hasPlannedTasks && pendingPlannedTasks.length == 0 ? (
-          <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
-            <div className="text-center py-8">
-              <LucideTrophy size={48} className="text-indigo-400 mx-auto mb-3 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]" />
-              <h3 className="text-xl font-bold text-white mb-2">"Hooray !!"</h3>
-              <h3 className="text-xl font-bold text-white mb-2">All tasks for today is completed.</h3>
-              <p className="text-gray-400 mb-4">
-                Plan Ahead, Keep pushing yourself...
-              </p>
-              <Link to="/trackers/daily-tasks">
-                <GradientButton data-testid="plan-now-btn">
+          <Card className="mb-6 relative overflow-hidden bg-gradient-to-br from-emerald-900/20 to-teal-900/10 backdrop-blur-3xl border border-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.1)] group">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-4 md:p-2 gap-6">
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full">
+                <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:scale-105 transition-transform duration-300 shrink-0">
+                  <LucideTrophy size={32} className="text-emerald-400" />
+                </div>
+                <div className="text-center md:text-left">
+                  <h3 className="text-xl font-bold text-white mb-1 drop-shadow-md">Hooray! All tasks completed.</h3>
+                  <p className="text-gray-400 text-sm">Plan Ahead, Keep pushing yourself or take a break.</p>
+                </div>
+              </div>
+              <Link to="/trackers/daily-tasks" className="w-full md:w-auto shrink-0">
+                <GradientButton className="w-full md:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 px-8" data-testid="plan-now-btn">
                   Plan Ahead
                 </GradientButton>
               </Link>
             </div>
           </Card>
         ) : !hasPlannedTasks && (
-          <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.15)]">
-            <div className="text-center py-8">
-              <CalendarDays size={48} className="text-indigo-400 mx-auto mb-3 drop-shadow-[0_0_10px_rgba(99,102,241,0.6)]" />
-              <h3 className="text-xl font-bold text-white mb-2">Plan Your Day to Stay Productive</h3>
-              <p className="text-gray-400 mb-4">
-                Create a structured daily plan to maximize your productivity
-              </p>
-              <Link to="/trackers/daily-tasks">
-                <GradientButton data-testid="plan-now-btn">
+          <Card className="mb-6 relative overflow-hidden bg-gradient-to-br from-indigo-900/20 to-purple-900/10 backdrop-blur-3xl border border-indigo-500/20 shadow-[0_0_40px_rgba(99,102,241,0.1)] group">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-700"></div>
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-4 md:p-2 gap-6">
+              <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full">
+                <div className="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.2)] group-hover:scale-105 transition-transform duration-300 shrink-0">
+                  <CalendarDays size={32} className="text-indigo-400" />
+                </div>
+                <div className="text-center md:text-left">
+                  <h3 className="text-xl font-bold text-white mb-1 drop-shadow-md">Plan Your Day to Stay Productive</h3>
+                  <p className="text-gray-400 text-sm">Create a structured daily plan to maximize your productivity</p>
+                </div>
+              </div>
+              <Link to="/trackers/daily-tasks" className="w-full md:w-auto shrink-0">
+                <GradientButton className="w-full md:w-auto px-8" data-testid="plan-now-btn">
                   Plan Now
                 </GradientButton>
               </Link>
@@ -859,12 +1006,20 @@ const Dashboard = () => {
         )}
 
         {/* FutureTwin CTA */}
-        <Card className="bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-white mb-2">Doubt on Self ? Ask Your Twin...</h2>
-            <p className="text-gray-300 mb-4">Use FutureTwin to predict outcomes and optimize your decisions.</p>
-            <Link to="/future-twin">
-              <GradientButton data-testid="future-twin-cta">
+        <Card className="mb-6 relative overflow-hidden bg-gradient-to-br from-fuchsia-900/20 to-purple-900/10 backdrop-blur-3xl border border-fuchsia-500/20 shadow-[0_0_40px_rgba(192,38,211,0.1)] group">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-fuchsia-500/10 via-transparent to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-700"></div>
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between p-4 md:p-2 gap-6">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full">
+              <div className="p-4 bg-fuchsia-500/10 rounded-2xl border border-fuchsia-500/20 shadow-[0_0_15px_rgba(192,38,211,0.2)] group-hover:scale-105 transition-transform duration-300 shrink-0">
+                <Star size={32} className="text-fuchsia-400" />
+              </div>
+              <div className="text-center md:text-left">
+                <h2 className="text-xl font-bold text-white mb-1 drop-shadow-md">Doubt on Self ? Ask Your Twin...</h2>
+                <p className="text-gray-400 text-sm">Use FutureTwin to predict outcomes and optimize your decisions.</p>
+              </div>
+            </div>
+            <Link to="/future-twin" className="w-full md:w-auto shrink-0">
+              <GradientButton className="w-full md:w-auto bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500" data-testid="future-twin-cta">
                 Question your FutureTwin
               </GradientButton>
             </Link>
@@ -893,8 +1048,9 @@ const Dashboard = () => {
           />
 
           <div>
-            <label className="block text-gray-300 text-sm font-medium mb-2">Bio</label>
+            <label htmlFor="profile-bio" className="block text-gray-300 text-sm font-medium mb-2">Bio</label>
             <textarea
+              id="profile-bio"
               value={newProfile.bio}
               onChange={(e) => setNewProfile({ ...newProfile, bio: e.target.value })}
               placeholder="Say something intresting about you..."
@@ -916,12 +1072,23 @@ const Dashboard = () => {
           <div className='flex flex-col gap-3 items-center'>
             <label htmlFor="profile_picture" className='block text-gray-300 text-sm font-medium mb-2'>
               Click to upload
-              <input hidden type="file" accept='image/*' id='profile_picture' className='w-full p-3 border border-gray-200 rounded-lg' onChange={(e) => setNewProfilePic(e.target.files[0])} />
+              <input hidden type="file" accept='.png, .jpg, .jpeg, .webp' id='profile_picture' className='w-full p-3 border border-gray-200 rounded-lg' onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+                  if (allowedTypes.includes(file.type)) {
+                    setNewProfilePic(file);
+                  } else {
+                    alert('Please upload a valid picture format (.png, .jpg, .jpeg, .webp)');
+                    e.target.value = '';
+                  }
+                }
+              }} />
 
               <div className='group/profile relative'>
-                <img src={newProfilePic ? URL.createObjectURL(newProfilePic) : user.profile_picture || profile_pic} alt="" className='w-24 h-24 rounded-full object-cover mt-2' />
+                <img src={newProfilePic ? URL.createObjectURL(newProfilePic) : user.profile_picture || profile_pic} alt="Profile picture preview" className='w-24 h-24 rounded-full object-cover mt-2' />
                 <div className='absolute hidden cursor-pointer group-hover/profile:flex top-0 left-0 right-0 bottom-0 bg-black/20 rounded-full items-center justify-center'>
-                  <Pencil className='w-5 h-5 text-white' />
+                  <Pencil aria-hidden="true" className='w-5 h-5 text-white' />
                 </div>
               </div>
             </label>

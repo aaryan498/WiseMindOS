@@ -15,11 +15,16 @@ const createToken = (id) => {
 
 
 // Route for user Login 
-const loginUser = async (req, res) => {
+const loginUser = async (req, res, next) => {
 
     try {
 
         const { identifier, password } = req.body;
+
+        // Reject non-string inputs to prevent MongoDB operator injection
+        if (typeof identifier !== 'string' || typeof password !== 'string') {
+            return res.status(400).json({ success: false, message: 'Invalid input.' });
+        }
 
         const user = await userModel.findOne({
             $or: [
@@ -44,14 +49,13 @@ const loginUser = async (req, res) => {
 
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message })
+        next(error);
     }
 
 }
 
 //Route for Google SignIn
-const googleLogin = async (req, res) => {
+const googleLogin = async (req, res, next) => {
     try {
         const { credential } = req.body;
 
@@ -142,17 +146,26 @@ const googleLogin = async (req, res) => {
             profile_picture: user.profile_picture
         });
     } catch (error) {
-        console.log(error);
-        return res.json({ success: false, message: error.message });
+        next(error);
     }
 }
 
 // Route for User register
-const registerUser = async (req, res) => {
+const registerUser = async (req, res, next) => {
 
     try {
 
         const { name, email, password, username } = req.body;
+
+        // Reject non-string inputs to prevent MongoDB operator injection
+        if (
+            typeof name !== 'string' ||
+            typeof email !== 'string' ||
+            typeof password !== 'string' ||
+            typeof username !== 'string'
+        ) {
+            return res.status(400).json({ success: false, message: 'Invalid input.' });
+        }
 
         // Checking if there is the user exists in database with the same email.
         const exists = await userModel.findOne({ email });
@@ -197,16 +210,15 @@ const registerUser = async (req, res) => {
 
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message })
+        next(error);
     }
 
 }
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
     try {
 
-        const userId = req.body.userId; // coming from middleware
+        const userId = req.user.id;
         const { name, username, bio } = req.body;
 
         // Find current user
@@ -265,16 +277,15 @@ const updateUser = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 
 
-const updateUserProfilePic = async (req, res) => {
+const updateUserProfilePic = async (req, res, next) => {
     try {
 
-        const userId = req.body.userId; // coming from middleware
+        const userId = req.user.id;
 
         // Find current user
         const user = await userModel.findById(userId);
@@ -289,6 +300,14 @@ const updateUserProfilePic = async (req, res) => {
         // const cover = req.files.cover && req.files.cover[0];
 
         if(profile){
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            if (!allowedTypes.includes(profile.mimetype)) {
+                if (fs.existsSync(profile.path)) {
+                    fs.unlinkSync(profile.path);
+                }
+                return res.json({ success: false, message: "Invalid file type. Only JPEG, PNG, and WebP are allowed." });
+            }
+
             const buffer = fs.readFileSync(profile.path)
             const response = await imagekit.upload({
                 file: buffer,
@@ -343,8 +362,7 @@ const updateUserProfilePic = async (req, res) => {
         });
 
     } catch (error) {
-        console.log(error);
-        res.json({ success: false, message: error.message });
+        next(error);
     }
 };
 

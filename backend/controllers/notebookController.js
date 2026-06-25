@@ -1,10 +1,40 @@
 import notebookModel from "../models/notebookModel.js";
 import pageModel from "../models/pageModel.js";
 
+const buildNotebookReorderUpdate = (_notebook, index) => ({
+  order: index + 1,
+});
+
+export const reorderNotebooks = async (userId) => {
+  const remainingNotebooks = await notebookModel
+    .find({ userId })
+    .sort({ order: 1 });
+
+  const bulkOps = remainingNotebooks
+    .map((notebook, index) => {
+      const desiredOrder = index + 1;
+      if (notebook.order === desiredOrder) return null;
+
+      return {
+        updateOne: {
+          filter: { _id: notebook._id },
+          update: { $set: buildNotebookReorderUpdate(notebook, index) },
+        },
+      };
+    })
+    .filter(Boolean);
+
+  if (bulkOps.length > 0) {
+    await notebookModel.bulkWrite(bulkOps);
+  }
+
+  return remainingNotebooks.length;
+};
+
 // ➤ Create Notebook (max 40)
-export const createNotebook = async (req, res) => {
+export const createNotebook = async (req, res, next) => {
   try {
-    const userId = req.body.userId;
+    const userId = req.user.id;
     const { name } = req.body;
 
     if (!name) {
@@ -33,7 +63,7 @@ export const createNotebook = async (req, res) => {
 
 
 // ➤ Get all notebooks of user
-export const getNotebooks = async (req, res) => {
+export const getNotebooks = async (req, res, next) => {
   try {
     const userId = req.body.userId;
     const page = Number(req.body?.page || req.query?.page) || 1;
@@ -79,10 +109,10 @@ export const getNotebooks = async (req, res) => {
 };
 
 // ➤ Update Notebook Name
-export const updateNotebook = async (req, res) => {
+export const updateNotebook = async (req, res, next) => {
   try {
     const { notebookId, name } = req.body;
-    const userId = req.body.userId;
+    const userId = req.user.id;
 
     if (!notebookId || !name) {
       return res.json({ success: false, message: "NotebookId and name required" });
@@ -107,10 +137,10 @@ export const updateNotebook = async (req, res) => {
 
 
 // ➤ Delete Notebook (with user check + cascade delete)
-export const deleteNotebook = async (req, res) => {
+export const deleteNotebook = async (req, res, next) => {
   try {
     const { notebookId } = req.body;
-    const userId = req.body.userId;
+    const userId = req.user.id;
 
     const notebook = await notebookModel.findOneAndDelete({
       _id: notebookId,
@@ -121,10 +151,16 @@ export const deleteNotebook = async (req, res) => {
       return res.json({ success: false, message: "Notebook not found" });
     }
 
-    // delete all pages of this notebook
-    await pageModel.deleteMany({ notebookId });
+    // delete all pages of this notebook (scoped to authenticated user)
+    await pageModel.deleteMany({ notebookId, userId });
 
-    res.json({ success: true });
+    await reorderNotebooks(userId);
+
+    const notebooks = await notebookModel
+      .find({ userId })
+      .sort({ order: 1 });
+
+    res.json({ success: true, notebooks });
 
   } catch (error) {
     res.json({ success: false, message: error.message });

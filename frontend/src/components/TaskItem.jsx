@@ -1,7 +1,7 @@
 import { Check, Calendar, Flag } from 'lucide-react';
 import { format } from 'date-fns';
 
-const TaskItem = ({ task, onToggle, onDelete, showGoal = true, showProject = true }) => {
+const TaskItem = ({ task, onToggle, onDelete }) => {
   const isLate = task.deadline && new Date(task.deadline) < new Date() && !task.completed;
 
   return (
@@ -19,13 +19,15 @@ const TaskItem = ({ task, onToggle, onDelete, showGoal = true, showProject = tru
         <button
           onClick={() => onToggle(task.id)}
           data-testid={`task-toggle-${task.id}`}
-          className={`w-6 h-6 rounded border-2 flex items-center justify-center cursor-pointer transition-all flex-shrink-0 ${
+          aria-label={`${task.completed ? 'Mark incomplete' : 'Mark complete'}: ${task.title}`}
+          aria-pressed={task.completed}
+          className={`w-6 h-6 rounded border-2 flex items-center justify-center cursor-pointer transition-all flex-shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900 ${
             task.completed 
               ? 'bg-green-600 border-green-600' 
               : 'border-gray-500 hover:border-gray-400'
           }`}
         >
-          {task.completed && <Check size={16} className="text-white" />}
+          {task.completed && <Check aria-hidden="true" size={16} className="text-white" />}
         </button>
         
         <div className="flex-1 min-w-0">
@@ -65,9 +67,10 @@ const TaskItem = ({ task, onToggle, onDelete, showGoal = true, showProject = tru
         <button
           onClick={() => onDelete(task.id)}
           data-testid={`task-delete-${task.id}`}
-          className="text-gray-500 hover:text-red-400 transition-colors ml-2"
+          aria-label={`Delete task: ${task.title}`}
+          className="text-gray-500 hover:text-red-400 transition-colors ml-2 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
         >
-          ×
+          <span aria-hidden="true">×</span>
         </button>
       )}
     </div>

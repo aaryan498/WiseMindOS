@@ -20,10 +20,11 @@
     "google-auth-library": "^10.6.2",
     "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
-    "mongodb": "^7.1.1",
+    "mongodb": "^7.2.0",
     "mongoose": "^9.3.3",
     "multer": "^2.1.1",
     "nodemon": "^3.1.14",
-    "validator": "^13.15.35"
+    "validator": "^13.15.35",
+    "winston": "^3.19.0"
   }
 }

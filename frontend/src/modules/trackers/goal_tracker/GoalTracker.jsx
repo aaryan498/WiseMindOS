@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, ArrowLeft, ChevronRight, Target } from 'lucide-react';
+import { FolderKanban, ListTodo, Plus, ArrowLeft, Target } from 'lucide-react';
 import { useApp } from '../../../store/AppContext';
 import Card from '../../../components/Card';
 import DonutChart from '../../../components/DonutChart';
@@ -10,8 +10,10 @@ import InputField from '../../../components/InputField';
 import Modal from '../../../components/Modal';
 import TaskItem from '../../../components/TaskItem';
 import ProjectCard from '../../../components/ProjectCard';
+import EmptyState from '../../../components/EmptyState';
 import { motion as Motion } from 'framer-motion';
 import { SkeletonBlock, SkeletonCard, TrackerGridSkeleton } from '../../../components/LoadingSkeleton';
+import { getGoalDuplicateError } from '../../../utils/helpers';
 
 const GoalTracker = () => {
   const navigate = useNavigate();
@@ -39,12 +41,22 @@ const GoalTracker = () => {
   const [showAddProject, setShowAddProject] = useState(false);
   const [newProject, setNewProject] = useState({ title: '', deadline: '', description: '' });
   const [newGoal, setNewGoal] = useState({ title: '', type: 'mid-term', description: '', deadline: '' });
+  const [goalError, setGoalError] = useState('');
 
   const handleAddGoal = (e) => {
     e.preventDefault();
-    if (!newGoal.title.trim()) return;
-    addGoal(newGoal);
+    const trimmedTitle = newGoal.title.trim();
+    if (!trimmedTitle) return;
+
+    const duplicateError = getGoalDuplicateError(trimmedTitle, goals);
+    if (duplicateError) {
+      setGoalError(duplicateError);
+      return;
+    }
+
+    addGoal({ ...newGoal, title: trimmedTitle });
     setNewGoal({ title: '', type: 'mid-term', description: '', deadline: '' });
+    setGoalError('');
     setShowAddGoal(false);
   };
 
@@ -67,8 +79,8 @@ const GoalTracker = () => {
       goalId: selectedProject.goalId,
       createdFrom: 'project'
     });
-    setNewTask({ title: '', deadline: '', isImportant: false });
-    setShowAddTask(false);
+    setNewProjectTask({ title: '', deadline: '', isImportant: false });
+    setShowAddProjectTask(false);
   };
 
   const handleAddTask = () => {
@@ -359,19 +371,15 @@ const GoalTracker = () => {
           ) : goalTasks.length > 0 && (
             <Card className="bg-white/5 mb-4 backdrop-blur-xl border border-white/10 text-center">
               <h2 className="text-xl font-bold text-white mb-4 text-start">Projects</h2>
-              <p className="text-gray-400 text-center py-8">
-                No projects yet.
-                <br />
-                <span className="text-indigo-400">Add Projects for a stronger you.</span>
-              </p>
-              <button
-                onClick={() => setShowAddProject(true)}
-                data-testid="add-project-btn"
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] hover:-translate-y-1 active:scale-95 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"
-              >
-                <Plus size={20} className="inline mr-2" />
-                Add Project
-              </button>
+              <EmptyState
+                icon={FolderKanban}
+                title="No projects linked to this goal"
+                description="Create a project when this goal needs a larger milestone or workstream."
+                actionLabel="Add Project"
+                onAction={() => setShowAddProject(true)}
+                testId="empty-goal-add-project-btn"
+                className="border-0 bg-transparent shadow-none"
+              />
             </Card>
           )}
 
@@ -407,31 +415,28 @@ const GoalTracker = () => {
           ) : goalProjects.length > 0 && (
             <Card className="bg-white/5 mb-4 backdrop-blur-xl border border-white/10 text-center">
               <h2 className="text-xl font-bold text-white mb-4 text-start">Tasks</h2>
-              <p className="text-gray-400 text-center py-8">
-                No tasks yet.
-                <br />
-                <span className="text-indigo-400">Add your first task!</span>
-              </p>
-              <button
-                onClick={() => setShowAddTask(true)}
-                data-testid="add-task-btn"
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] hover:-translate-y-1 active:scale-95 text-white px-4 py-2 rounded-lg transition-all cursor-pointer"
-              >
-                <Plus size={20} className="inline mr-2" />
-                Add Task
-              </button>
+              <EmptyState
+                icon={ListTodo}
+                title="No direct tasks yet"
+                description="Add a focused next action for this goal, or keep tasks inside its projects."
+                actionLabel="Add Task"
+                onAction={() => setShowAddTask(true)}
+                testId="empty-goal-add-task-btn"
+                className="border-0 bg-transparent shadow-none"
+              />
             </Card>
           )}
 
 
           {goalProjects.length === 0 && goalTasks.length === 0 && (
             <Card className="bg-white/5 backdrop-blur-xl border border-white/10 text-center">
-              <p className="text-gray-400 text-center py-8">
-                No projects or tasks yet.
-                <br />
-                <span className="text-indigo-400">Start building your execution system</span>
-              </p>
-              <div className='flex gap-3 justify-center'>
+              <EmptyState
+                icon={Target}
+                title="No execution steps yet"
+                description="Add a project or a direct task to turn this goal into visible progress."
+                className="border-0 bg-transparent py-0 shadow-none"
+              />
+              <div className='flex flex-col gap-3 justify-center sm:flex-row'>
                 <button
                   onClick={() => setShowAddProject(true)}
                   data-testid="add-project-btn"
@@ -666,29 +671,43 @@ const GoalTracker = () => {
             ))}
           </div>
         ) : (
-          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 text-center">
-            <div className="text-center py-16">
-              <Target size={64} className="mx-auto text-indigo-400 mb-4 animate-pulse" />
-              <p className="text-gray-400 text-lg mb-4">No goals yet. Start by adding your first goal!</p>
-              <GradientButton onClick={() => setShowAddGoal(true)} data-testid="add-first-goal-btn">
-                Add Your First Goal
-              </GradientButton>
-            </div>
-          </Card>
+          <EmptyState
+            icon={Target}
+            title="No goals yet"
+            description="Create your first goal, then connect projects and tasks to make it actionable."
+            actionLabel="Add Your First Goal"
+            onAction={() => setShowAddGoal(true)}
+            testId="add-first-goal-btn"
+          />
         )}
       </div>
 
       {/* Add Goal Modal */}
-      <Modal isOpen={showAddGoal} onClose={() => setShowAddGoal(false)} title="Create New Goal">
+      <Modal
+        isOpen={showAddGoal}
+        onClose={() => {
+          setShowAddGoal(false);
+          setGoalError('');
+        }}
+        title="Create New Goal"
+      >
         <form onSubmit={handleAddGoal} className="space-y-4">
           <InputField
             label="Goal Title"
             value={newGoal.title}
-            onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
+            onChange={(e) => {
+              setNewGoal({ ...newGoal, title: e.target.value });
+              if (goalError) setGoalError('');
+            }}
             placeholder="Enter goal title"
             required
             data-testid="goal-title-input"
           />
+          {goalError && (
+            <p className="text-sm text-red-400" role="alert" data-testid="goal-duplicate-error">
+              {goalError}
+            </p>
+          )}
 
           <div>
             <label className="block text-gray-300 text-sm font-medium mb-2">Category</label>

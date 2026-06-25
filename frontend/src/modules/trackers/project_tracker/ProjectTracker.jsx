@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, ArrowLeft, Target } from 'lucide-react';
+import { ArrowLeft, FolderKanban, ListTodo, Plus, Target } from 'lucide-react';
 import { useApp } from '../../../store/AppContext';
 import Card from '../../../components/Card';
 import ProjectCard from '../../../components/ProjectCard';
@@ -8,13 +8,13 @@ import InputField from '../../../components/InputField';
 import Modal from '../../../components/Modal';
 import TaskItem from '../../../components/TaskItem';
 import DonutChart from '../../../components/DonutChart';
-import { motion } from 'framer-motion';
+import EmptyState from '../../../components/EmptyState';
+import { motion as Motion } from 'framer-motion';
 
 const ProjectTracker = () => {
   const {
     projects,
     goals,
-    navigate,
     addProject,
     calculateProjectProgress,
     getTasksByProject,
@@ -54,13 +54,13 @@ const ProjectTracker = () => {
 
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-        <motion.div
+        <Motion.div
           className="absolute top-20 left-10 w-72 h-72 bg-green-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
           transition={{ duration: 10, repeat: Infinity }}
         />
 
-        <motion.div
+        <Motion.div
           className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500 rounded-full blur-3xl opacity-20"
           animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
           transition={{ duration: 12, repeat: Infinity }}
@@ -75,7 +75,7 @@ const ProjectTracker = () => {
             Back to Projects
           </button>
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+          <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div className="flex items-center gap-4">
@@ -107,7 +107,7 @@ const ProjectTracker = () => {
                 <p className="text-gray-400 mt-4">{selectedProject.description}</p>
               )}
             </Card>
-          </motion.div>
+          </Motion.div>
 
           <Card className="bg-white/5 backdrop-blur-xl border border-white/10">
             <div className="flex justify-between items-center mb-4">
@@ -124,7 +124,7 @@ const ProjectTracker = () => {
             {projectTasks.length > 0 ? (
               <div className="space-y-3">
                 {projectTasks.map((task, index) => (
-                  <motion.div
+                  <Motion.div
                     key={task.id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -135,11 +135,19 @@ const ProjectTracker = () => {
                       task={task}
                       onToggle={toggleTaskCompletion}
                     />
-                  </motion.div>
+                  </Motion.div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-center py-8">No tasks yet. Add your first task!</p>
+              <EmptyState
+                icon={ListTodo}
+                title="No tasks in this project yet"
+                description="Break this project into concrete next steps so progress can be tracked."
+                actionLabel="Add Task"
+                onAction={() => setShowAddTask(true)}
+                testId="empty-project-add-task-btn"
+                className="border-0 bg-transparent shadow-none"
+              />
             )}
           </Card>
         </div>
@@ -186,19 +194,19 @@ const ProjectTracker = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
-      <motion.div
+      <Motion.div
         className="absolute top-20 left-10 w-72 h-72 bg-green-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, 40, 0], y: [0, 20, 0] }}
         transition={{ duration: 10, repeat: Infinity }}
       />
 
-      <motion.div
+      <Motion.div
         className="absolute bottom-20 right-10 w-72 h-72 bg-emerald-500 rounded-full blur-3xl opacity-20"
         animate={{ x: [0, -40, 0], y: [0, -20, 0] }}
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-6xl mx-auto">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-between items-center mb-6"
@@ -214,14 +222,14 @@ const ProjectTracker = () => {
           >
             <Plus size={24} />
           </button>
-        </motion.div>
+        </Motion.div>
 
         {projects.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project, index) => {
               const linkedGoal = goals.find(g => g.id === project.goalId);
               return (
-                <motion.div
+                <Motion.div
                   key={project.id}
                   onClick={() => setSelectedProject(project)}
                   initial={{ opacity: 0, y: 20 }}
@@ -234,25 +242,19 @@ const ProjectTracker = () => {
                     progress={calculateProjectProgress(project.id)}
                     linkedGoal={linkedGoal?.title}
                   />
-                </motion.div>
+                </Motion.div>
               );
             })}
           </div>
         ) : (
-          <Card className="bg-white/5 backdrop-blur-xl border border-white/10 text-center">
-            <div className="text-center py-16">
-              <p className="text-gray-400 text-lg mb-4">
-                No projects yet.
-              </p>
-              <p className="text-indigo-400 text-sm mb-6">
-                Start building your execution system 🚀
-              </p>
-
-              <GradientButton onClick={() => setShowAddProject(true)}>
-                Add Your First Project
-              </GradientButton>
-            </div>
-          </Card>
+          <EmptyState
+            icon={FolderKanban}
+            title="No projects yet"
+            description="Create a project to group related tasks and connect them back to a goal."
+            actionLabel="Add Your First Project"
+            onAction={() => setShowAddProject(true)}
+            testId="empty-add-project-btn"
+          />
         )}
       </div>
 

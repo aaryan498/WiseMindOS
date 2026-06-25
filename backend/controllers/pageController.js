@@ -1,10 +1,37 @@
 import pageModel from "../models/pageModel.js";
 import notebookModel from "../models/notebookModel.js";
 
+const buildPageReorderUpdate = (_page, index) => {
+  const newOrder = index + 1;
+  return {
+    order: newOrder,
+    title: `Page ${newOrder}`,
+  };
+};
+
+export const reorderNotebookPages = async (notebookId, userId) => {
+  const remainingPages = await pageModel
+    .find({ notebookId, userId })
+    .sort({ order: 1 });
+
+  const bulkOps = remainingPages.map((page, index) => ({
+    updateOne: {
+      filter: { _id: page._id },
+      update: { $set: buildPageReorderUpdate(page, index) },
+    },
+  }));
+
+  if (bulkOps.length > 0) {
+    await pageModel.bulkWrite(bulkOps);
+  }
+
+  return remainingPages.length;
+};
+
 // ➤ Create Page (max 100 per notebook)
-export const createPage = async (req, res) => {
+export const createPage = async (req, res, next) => {
   try {
-    const userId = req.body.userId;
+    const userId = req.user.id;
     const { notebookId } = req.body;
 
     if (!notebookId) {
@@ -41,10 +68,10 @@ export const createPage = async (req, res) => {
 
 
 // ➤ Get pages of a notebook (with user check)
-export const getPages = async (req, res) => {
+export const getPages = async (req, res, next) => {
   try {
     const { notebookId } = req.body;
-    const userId = req.body.userId;
+    const userId = req.user.id;
 
     const pages = await pageModel
       .find({ notebookId, userId })
@@ -59,10 +86,18 @@ export const getPages = async (req, res) => {
 
 
 // ➤ Update Page Content (max 10KB + user check)
-export const updatePage = async (req, res) => {
+export const updatePage = async (req, res, next) => {
   try {
     const { pageId, content } = req.body;
-    const userId = req.body.userId;
+    const userId = req.user.id;
+
+    if (content === undefined || content === null) {
+      return res.json({ success: false, message: "Content is required" });
+    }
+
+    if (typeof content !== "string") {
+      return res.json({ success: false, message: "Content must be a string" });
+    }
 
     if (content.length > 10000) {
       return res.json({ success: false, message: "Max 10KB content allowed" });
@@ -90,10 +125,10 @@ export const updatePage = async (req, res) => {
 
 
 // ➤ Delete Page (with user check)
-export const deletePage = async (req, res) => {
+export const deletePage = async (req, res, next) => {
   try {
     const { pageId, notebookId } = req.body;
-    const userId = req.body.userId;
+    const userId = req.user.id;
 
     const page = await pageModel.findOneAndDelete({
       _id: pageId,
@@ -114,7 +149,13 @@ export const deletePage = async (req, res) => {
       await notebook.save();
     }
 
-    res.json({ success: true });
+    await reorderNotebookPages(page.notebookId, userId);
+
+    const pages = await pageModel
+      .find({ notebookId: page.notebookId, userId })
+      .sort({ order: 1 });
+
+    res.json({ success: true, pages });
 
   } catch (error) {
     res.json({ success: false, message: error.message });

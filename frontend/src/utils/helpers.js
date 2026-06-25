@@ -25,3 +25,21 @@ export const validateEmail = (email) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
 };
+
+export const DUPLICATE_GOAL_MESSAGE = 'A goal with this title already exists';
+
+export const normalizeGoalTitle = (title) => (title ?? '').trim().toLowerCase();
+
+export const isDuplicateGoalTitle = (title, existingGoals = []) => {
+  const normalized = normalizeGoalTitle(title);
+  if (!normalized) return false;
+  return existingGoals.some((goal) => normalizeGoalTitle(goal.title) === normalized);
+};
+
+/** Returns duplicate error message, or null if the title can be added. */
+export const getGoalDuplicateError = (title, existingGoals = []) => {
+  if (isDuplicateGoalTitle(title, existingGoals)) {
+    return DUPLICATE_GOAL_MESSAGE;
+  }
+  return null;
+};
