@@ -103,14 +103,14 @@ const socialLinks = [
 ];
 
 const Contact = () => {
-  const { token } = useApp();
+  const { isAuthenticated } = useApp();
   const [formData, setFormData] = useState(initialFormState);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
 
-  const ctaPath = token ? '/dashboard' : '/signup';
-  const ctaLabel = token ? 'Open Dashboard' : 'Start Tracking';
+  const ctaPath = isAuthenticated ? '/dashboard' : '/signup';
+  const ctaLabel = isAuthenticated ? 'Open Dashboard' : 'Start Tracking';
 
   const handleFieldChange = (field) => (event) => {
     const { value } = event.target;

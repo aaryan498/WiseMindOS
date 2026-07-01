@@ -16,7 +16,9 @@ export const useApp = () => {
 
 export const AppProvider = ({ children }) => {
 
-  const [token, setToken] = useState(() => localStorage.getItem('token') || '');
+  // The JWT itself now lives only in an httpOnly cookie the browser manages;
+  // this flag just tracks whether the user is currently signed in for UI/routing.
+  const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('wisemind_user') !== null);
   const navigate = useNavigate();
   const backendURL = import.meta.env.VITE_BACKEND_URL;
   const [loading, setLoading] = useState(false);
@@ -168,12 +170,12 @@ export const AppProvider = ({ children }) => {
     }
   }
 
-  // BACKEND INTEGRATION: Load initial data when token is available
+  // BACKEND INTEGRATION: Load initial data once the user is signed in
   useEffect(() => {
-    if (token && user) {
+    if (isAuthenticated && user) {
       loadInitialData();
     }
-  }, [token, user]);
+  }, [isAuthenticated, user]);
 
   const updateUser = async (updates) => {
     try {
@@ -953,7 +955,7 @@ export const AppProvider = ({ children }) => {
   const saveStatsTimer = useRef(null);
 
   useEffect(() => {
-    if (!token || !user || !dailyPlan) return;
+    if (!isAuthenticated || !user || !dailyPlan) return;
 
     if (saveStatsTimer.current) {
       clearTimeout(saveStatsTimer.current);
@@ -980,13 +982,13 @@ export const AppProvider = ({ children }) => {
       }
     };
 
-  }, [token, user, dailyPlan, calculateProductivityScore, calculateDisciplineScore]);
+  }, [isAuthenticated, user, dailyPlan, calculateProductivityScore, calculateDisciplineScore]);
 
   const value = {
-    token,
+    isAuthenticated,
     user,
     setUser,
-    setToken,
+    setIsAuthenticated,
     navigate,
     backendURL,
     loading,

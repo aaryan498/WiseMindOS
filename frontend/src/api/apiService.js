@@ -14,6 +14,10 @@ export const authAPI = {
         const response = await apiClient.post('/api/user/google', { credential });
         return response.data;
     },
+    logout: async () => {
+        const response = await apiClient.post('/api/user/logout');
+        return response.data;
+    },
     update: async (data) => {
         const response = await apiClient.post('/api/user/update', data);
         return response.data;

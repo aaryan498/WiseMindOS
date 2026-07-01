@@ -10,7 +10,7 @@ import { showToast } from '../utils/toastHelper';
 import { GoogleLogin } from '@react-oauth/google';
 
 const Login = () => {
-  const { token, setToken, user, setUser, navigate } = useApp()
+  const { isAuthenticated, setIsAuthenticated, user, setUser, navigate } = useApp()
   const [formData, setFormData] = useState({
     identifier: '',
     password: ''
@@ -50,12 +50,10 @@ const Login = () => {
       const response = await authAPI.login({ identifier, password });
 
       if (response.success) {
-        // Store token
-        console.log('Setting token:', response.token);
-        setToken(response.token);
-        localStorage.setItem('token', response.token);
+        // The server has set the JWT as an httpOnly cookie; just mark the
+        // session as authenticated and save the (non-sensitive) profile data.
+        setIsAuthenticated(true);
 
-        // Save user data
         const userData = response.user || {
           name: response.name || 'User',
           username: response.username,
@@ -63,7 +61,6 @@ const Login = () => {
           bio: response.bio,
           profile_picture: response.profile_picture
         };
-        console.log('Setting user:', userData);
         setUser(userData);
         localStorage.setItem('wisemind_user', JSON.stringify(userData));
 
@@ -90,11 +87,10 @@ const Login = () => {
   };
 
   useEffect(() => {
-    console.log('Login useEffect - token:', token, 'user:', user);
-    if (token && user) {
+    if (isAuthenticated && user) {
       navigate('/dashboard');
     }
-  }, [token, user, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black flex items-center justify-center px-4 py-12 relative overflow-hidden">
@@ -199,13 +195,13 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
               onSuccess={async (credentialResponse) => {
                 setError('');
                 try {
-                  // 1. Send the Google credential to your backend for verification and to get your custom JWT token
+                  // 1. Send the Google credential to your backend for verification; it
+                  // responds by setting the JWT as an httpOnly cookie
                   const response = await authAPI.googleLogin(credentialResponse.credential);
 
                   if (response.success) {
-                    // 2. Store the custom token in memory and localStorage 
-                    setToken(response.token);
-                    localStorage.setItem('token', response.token);
+                    // 2. Mark the session as authenticated
+                    setIsAuthenticated(true);
 
                     // 3. Save user data in context and localStorage
                     const userData = response.user || {

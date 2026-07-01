@@ -5,14 +5,14 @@ import BottomNav from '../components/BottomNav';
 import { useApp } from '../store/AppContext';
 
 const AppLayout = () => {
-  const { token } = useApp();
+  const { isAuthenticated } = useApp();
   const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
 
   // Initialize global hotkey event listeners
   useKeyboardShortcuts(() => setIsShortcutModalOpen((prev) => !prev));
 
   // Protect all routes inside this layout
-  if (!token) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 

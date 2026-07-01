@@ -11,7 +11,7 @@ import { showToast } from '../utils/toastHelper';
 
 
 const Signup = () => {
-  const { setToken, setUser, navigate } = useApp();
+  const { setIsAuthenticated, setUser, navigate } = useApp();
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -66,11 +66,10 @@ const Signup = () => {
       const response = await authAPI.register(payload);
 
       if (response.success) {
-        // Store token
-        setToken(response.token);
-        localStorage.setItem('token', response.token);
+        // The server has set the JWT as an httpOnly cookie; just mark the
+        // session as authenticated and save the (non-sensitive) profile data.
+        setIsAuthenticated(true);
 
-        // Save user data
         const userData = response.user || {
           name: payload.name,
           username: payload.username,

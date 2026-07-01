@@ -254,10 +254,10 @@ const renderShowcaseVisual = (visual) => {
 };
 
 const Features = () => {
-  const { token } = useApp();
+  const { isAuthenticated } = useApp();
 
-  const ctaPath = token ? '/dashboard' : '/signup';
-  const ctaLabel = token ? 'Open Dashboard' : 'Start Tracking';
+  const ctaPath = isAuthenticated ? '/dashboard' : '/signup';
+  const ctaLabel = isAuthenticated ? 'Open Dashboard' : 'Start Tracking';
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-gradient-to-br from-black via-gray-900 to-black text-white">
