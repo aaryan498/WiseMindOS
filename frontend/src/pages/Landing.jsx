@@ -59,8 +59,8 @@ const Landing = () => {
 
   /** Hover state for nav links – slide right + colour shift */
   const linkHover = {
-    rest: { x: 0, color: '#9ca3af' },           // gray-400
-    hover: { x: 8, color: '#818cf8' },           // indigo-400
+    rest: { x: 0, color: 'currentColor' },
+    hover: { x: 8, color: '#818cf8' },
   };
 
   /** The small dot/indicator beside each link */
@@ -76,12 +76,12 @@ const Landing = () => {
   };
 
   return (
-<div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-x-hidden">
+<div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-white dark:from-black dark:via-gray-900 dark:to-black text-gray-900 dark:text-white overflow-x-hidden transition-colors duration-300">
       {/* Hero Section */}
-      <div className='bg-gradient-to-br from-gray-900 via-black to-gray-900'>
+      <div className='bg-gradient-to-br from-white via-gray-100 to-white dark:from-gray-900 dark:via-black dark:to-gray-900 transition-colors duration-300'>
         <Motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
             <Motion.section animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="relative min-h-screen flex items-center justify-center px-4 py-20">
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-900"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-white via-gray-100 to-white dark:from-gray-900 dark:via-black dark:to-gray-900 transition-colors duration-300"></div>
             {/* Glow blobs */}
             <Motion.div
               className="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full blur-3xl opacity-20"
@@ -109,7 +109,7 @@ const Landing = () => {
 
                 {/* Title */}
                 <Motion.h1
-                  className="text-3xl sm:text-4xl md:text-7xl font-extrabold tracking-tight text-white mb-4 cursor-pointer break-words"
+                  className="text-3xl sm:text-4xl md:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-4 cursor-pointer break-words"
                   animate={{
                     textShadow: [
                       "0px 0px 0px rgba(99,102,241,0)",
@@ -132,7 +132,7 @@ const Landing = () => {
 
                 <div className="h-1 w-32 bg-gradient-to-r from-indigo-600 to-violet-600 mx-auto rounded-full"></div>
               </div>
-<p className="text-lg sm:text-xl md:text-2xl text-gray-300 mb-8 leading-relaxed px-2">
+<p className="text-lg sm:text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed px-2">
                 Your intelligent life tracking and simulation system.
                 <br />
                 Stay focused, achieve goals, and optimize your future.
@@ -147,8 +147,8 @@ const Landing = () => {
                 <Link to="/login">
                   <button
                     data-testid="login-btn"
-                    className="px-8 py-[10px] border-2 border-indigo-500 text-white rounded-xl font-semibold 
-                        hover:bg-indigo-500 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] 
+                    className="px-8 py-[10px] border-2 border-indigo-500 text-gray-900 dark:text-white rounded-xl font-semibold 
+                        hover:bg-indigo-500 hover:text-white hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] 
                         hover:-translate-y-1 active:scale-95 transition-all duration-300"
                   >
                     Login
@@ -180,11 +180,11 @@ const Landing = () => {
                 transition={{ delay: index * 0.1 }}
               >
 
-                <Card className="bg-white/5 backdrop-blur-lg border border-white/10 
+                <Card className="bg-gray-100/80 dark:bg-white/5 backdrop-blur-lg border border-gray-200 dark:border-white/10 
 hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
                   <div className="p-3 bg-indigo-500/20 rounded-lg w-fit mb-4 text-indigo-400">{feature.icon}</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">{feature.title}</h3>
-                  <p className="text-gray-400">{feature.description}</p>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
                 </Card>
               </Motion.div>
             ))}
@@ -207,9 +207,9 @@ hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold young-serif-regular text-gray-200 mb-2">How It Works</h2>
+            <h2 className="text-3xl md:text-4xl font-bold young-serif-regular text-gray-800 dark:text-gray-200 mb-2">How It Works</h2>
             <div className="h-1 w-30 bg-gradient-to-r from-indigo-600 to-violet-600 mx-auto rounded-full"></div>
-            <p className="text-gray-400 mt-2 text-base md:text-lg">Simple steps to transform your life</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-2 text-base md:text-lg">Simple steps to transform your life</p>
           </div>
 
           <div className="space-y-8">
@@ -227,15 +227,15 @@ hover:scale-105 hover:shadow-xl transition-all duration-300 cursor-pointer">
               >
 
                 <div className="flex items-start gap-6 p-2 rounded-3xl cursor-pointer 
-bg-white/5 backdrop-blur-lg border border-white/10 
+bg-gray-100/80 dark:bg-white/5 backdrop-blur-lg border border-gray-200 dark:border-white/10 
 hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shadow-[0_0_20px_rgba(99,102,241,0.5)]">
-                 <div className='p-4 flex flex-col sm:flex-row items-start gap-4 sm:gap-6'>
+                  <div className='p-4 flex flex-col sm:flex-row items-start gap-4 sm:gap-6'>
                     <div className="text-4xl font-bold bg-gradient-to-r from-indigo-500 to-purple-500 bg-clip-text text-transparent flex-shrink-0">
                       {item.step}
                     </div>
                     <div>
-                    <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2"> {item.title}</h3>
-                      <p className="text-gray-400">{item.desc}</p>
+                    <h3 className="text-xl sm:text-2xl font-semibold text-gray-900 dark:text-white mb-2"> {item.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-400">{item.desc}</p>
                     </div>
                   </div>
                 </div>
@@ -248,12 +248,12 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-r from-indigo-800 via-purple-800 to-indigo-900 shadow-[0_0_60px_rgba(99,102,241,0.4)]">
+      <section className="py-20 px-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 dark:from-indigo-800 dark:via-purple-800 dark:to-indigo-900 shadow-[0_0_60px_rgba(99,102,241,0.4)] transition-colors duration-300">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-4xl font-bold young-serif-regular text-white mb-6">
             Ready to Optimize Your Life?
           </h2>
-          <p className="text-xl text-gray-300 mb-8">
+          <p className="text-xl text-indigo-100 dark:text-gray-300 mb-8">
             Join thousands who are achieving their goals with WiseMindOS
           </p>
           <Link to="/signup">
@@ -279,11 +279,11 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
           {/* Heading */}
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold young-serif-regular text-white mb-2">
+            <h2 className="text-3xl md:text-4xl font-bold young-serif-regular text-gray-900 dark:text-white mb-2">
               Trusted by Achievers
             </h2>
             <div className="h-1 w-32 bg-gradient-to-r from-indigo-600 to-purple-600 mx-auto rounded-full"></div>
-            <p className="text-gray-400 mt-3 text-base md:text-lg">
+            <p className="text-gray-600 dark:text-gray-400 mt-3 text-base md:text-lg">
               Real impact on productivity and growth
             </p>
           </div>
@@ -306,7 +306,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
               >
 
                 <div className="
-                  bg-white/5 backdrop-blur-lg border border-white/10 
+                  bg-gray-100/80 dark:bg-white/5 backdrop-blur-lg border border-gray-200 dark:border-white/10 
                   rounded-2xl cursor-pointer p-6 text-center
                   hover:scale-105 hover:bg-white/10
                   transition-all duration-300
@@ -323,7 +323,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
                   </h3>
 
                   {/* Label */}
-                  <p className="text-gray-400 text-sm md:text-base">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm md:text-base">
                     {stat.label}
                   </p>
 
@@ -341,7 +341,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
       {/* ── Footer ─────────────────────────────────────────────────────────────── */}
       <Motion.footer
-        className="py-16 px-4 bg-gray-800/50 border-t border-gray-700 relative overflow-hidden"
+        className="py-16 px-4 bg-white dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 relative overflow-hidden transition-colors duration-300"
         variants={footerEntrance}
         initial="hidden"
         whileInView="visible"
@@ -367,7 +367,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
                 className="inline-block mb-4"
               >
                 <Link to="/">
-                  <h2 className="text-2xl young-serif-regular font-bold">
+                  <h2 className="text-2xl young-serif-regular font-bold text-gray-900 dark:text-white">
                     Wise
                     <span className="bg-gradient-to-r text-3xl baloo-2-400 from-indigo-500 to-purple-500 bg-clip-text text-transparent">
                       Mind
@@ -376,7 +376,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
                   </h2>
                 </Link>
               </Motion.div>
-              <p className="text-gray-400 text-sm leading-relaxed">
+              <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                 Your intelligent life tracking and simulation system.
                 Optimize your habits, goals, and future decisions.
               </p>
@@ -384,7 +384,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
             {/* ── Product Links ── */}
             <Motion.div variants={fadeUp}>
-              <h3 className="text-white font-semibold mb-4">Product</h3>
+              <h3 className="text-gray-900 dark:text-white font-semibold mb-4">Product</h3>
               <ul className="space-y-3 text-sm">
                 {[
                   { label: 'Features', to: '/features' },
@@ -418,7 +418,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
             {/* ── Company Links ── */}
             <Motion.div variants={fadeUp}>
-              <h3 className="text-white font-semibold mb-4">Company</h3>
+              <h3 className="text-gray-900 dark:text-white font-semibold mb-4">Company</h3>
               <ul className="space-y-3 text-sm">
                 {[
                   { label: 'About',   to: '/about'   },
@@ -452,7 +452,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
             {/* ── CTA / Get Started ── */}
             <Motion.div variants={fadeUp}>
-              <h3 className="text-white font-semibold mb-4">Get Started</h3>
+              <h3 className="text-gray-900 dark:text-white font-semibold mb-4">Get Started</h3>
 
               <Link to="/signup">
                 <Motion.div
@@ -475,7 +475,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
                 </Motion.div>
               </Link>
 
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
                 Join thousands building better habits.
               </p>
             </Motion.div>
@@ -484,7 +484,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
 
           {/* ── Bottom bar ── */}
           <Motion.div
-            className="mt-12 pt-6 border-t border-gray-700 text-center text-gray-400 text-sm"
+            className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700 text-center text-gray-500 dark:text-gray-400 text-sm transition-colors duration-300"
             variants={fadeUp}
             initial="hidden"
             whileInView="visible"
@@ -496,7 +496,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
               whileHover={{ color: '#818cf8' }}
               transition={{ duration: 0.2 }}
             >
-              <Link to="/" className="text-white font-semibold">
+              <Link to="/" className="text-gray-900 dark:text-white font-semibold">
                 WiseMindOS
               </Link>
             </Motion.span>
