@@ -2,7 +2,6 @@ import { exportWorkspaceData } from '../utils/exportData';
 import { Outlet, Navigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
 import { useApp } from '../store/AppContext';
-import CustomCursor from "../components/CustomCursor";
 
 const AppLayout = () => {
   const { token } = useApp();
@@ -17,6 +16,7 @@ const AppLayout = () => {
       <CustomCursor />
       
       {/* Main Content Area */}
+    <div className="min-h-screen bg-gray-900">
       <Outlet />
       
       {/* Export Data Glassmorphic Trigger Button */}

@@ -37,8 +37,18 @@ export const createNotebook = async (req, res, next) => {
     const userId = req.user.id;
     const { name } = req.body;
 
-    if (!name) {
+    if (!name || !name.trim()) {
       return res.json({ success: false, message: "Name required" });
+    }
+
+    const trimmedName = name.trim();
+    const existing = await notebookModel.findOne({
+      userId,
+      name: new RegExp('^' + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
+    });
+
+    if (existing) {
+      return res.json({ success: false, message: "A notebook with this name already exists" });
     }
 
     const count = await notebookModel.countDocuments({ userId });
@@ -48,7 +58,7 @@ export const createNotebook = async (req, res, next) => {
 
     const notebook = new notebookModel({
       userId,
-      name,
+      name: trimmedName,
       order: count + 1
     });
 
@@ -84,13 +94,24 @@ export const updateNotebook = async (req, res, next) => {
     const { notebookId, name } = req.body;
     const userId = req.user.id;
 
-    if (!notebookId || !name) {
+    if (!notebookId || !name || !name.trim()) {
       return res.json({ success: false, message: "NotebookId and name required" });
+    }
+
+    const trimmedName = name.trim();
+    const existing = await notebookModel.findOne({
+      userId,
+      _id: { $ne: notebookId },
+      name: new RegExp('^' + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
+    });
+
+    if (existing) {
+      return res.json({ success: false, message: "A notebook with this name already exists" });
     }
 
     const notebook = await notebookModel.findOneAndUpdate(
       { _id: notebookId, userId },
-      { name },
+      { name: trimmedName },
       { new: true }
     );
 
