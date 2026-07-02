@@ -28,8 +28,7 @@ const TestimonialCard = ({ testimonial, index }) => {
       whileInView="visible"
       viewport={{ once: true, amount: 0.3 }}
       transition={{ delay: index * 0.1 }}
-      whileHover="hover"
-      variants={hoverVariant}
+      whileHover={{ y: -8, transition: { duration: 0.3 } }}
       className="h-full"
     >
       <div className="

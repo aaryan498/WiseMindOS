@@ -27,6 +27,8 @@ import FocusRoom from './modules/focus_room/FocusRoom';
 import Library from './modules/library_room/Library';
 
 import { useApp } from './store/AppContext';
+import { useTheme } from './store/ThemeContext';
+import { Sun, Moon } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import ErrorBoundary from './components/ErrorBoundary';
 import ErrorPage from './pages/ErrorPage';
@@ -36,11 +38,21 @@ import NotFound from "./pages/NotFound";
 
 function App() {
   const { token } = useApp();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <ErrorBoundary fallback={<ErrorPage />}>
         <CustomCursor />
         <ToastContainer position="top-right" autoClose={3000} />
+        
+        {/* Floating Theme Toggle Switch */}
+        <button
+          onClick={toggleTheme}
+          className="fixed top-4 right-4 z-50 p-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white/80 dark:bg-black/40 backdrop-blur-md shadow-lg text-gray-800 dark:text-yellow-400 hover:scale-110 active:scale-95 transition-all cursor-pointer focus:outline-none"
+          aria-label="Toggle Theme"
+        >
+          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={token ? <Navigate to="/dashboard" replace /> : <Landing />} />

@@ -33,9 +33,10 @@ const BottomNav = () => {
         aria-label="Primary app navigation"
         className="
           fixed bottom-0 left-0 right-0 z-50
-          bg-black/40 backdrop-blur-xl
-          border-t border-white/10
-          shadow-[0_-10px_30px_rgba(0,0,0,0.5)]
+          bg-white/80 dark:bg-black/40 backdrop-blur-xl
+          border-t border-gray-200 dark:border-white/10
+          shadow-[0_-10px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_-10px_30px_rgba(0,0,0,0.5)]
+          transition-colors duration-300
         "
       >
         <div className="flex justify-around items-center h-16 relative before:absolute before:top-0 before:left-0 before:right-0 before:h-[1px] before:bg-gradient-to-r before:from-indigo-500 before:to-purple-500">
@@ -62,7 +63,7 @@ const BottomNav = () => {
                   className={`
                     flex flex-col items-center justify-center
                     px-3 py-1 rounded-xl transition-all duration-300
-                    ${isActive ? 'text-indigo-400' : 'text-gray-400'}
+                    ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-500 dark:text-gray-400'}
                   `}
                   whileTap={{ scale: 0.9 }}
                 >
