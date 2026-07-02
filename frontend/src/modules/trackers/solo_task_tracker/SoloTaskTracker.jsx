@@ -8,6 +8,7 @@ import InputField from '../../../components/InputField';
 import Modal from '../../../components/Modal';
 import EmptyState from '../../../components/EmptyState';
 import { motion as Motion } from 'framer-motion';
+import PageHeader from '../../../components/PageHeader/PageHeader';
 
 const SoloTaskTracker = () => {
   const {
@@ -70,23 +71,12 @@ const SoloTaskTracker = () => {
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-4xl mx-auto">
-        <Motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex justify-between items-center mb-6"
-        >
-          <div>
-            <h1 className="text-3xl font-bold young-serif-regular text-gray-200">Solo Task Tracker</h1>
-            <p className="text-gray-400">Track individual tasks and to-dos</p>
-          </div>
-          <button
-            onClick={() => setShowAddTask(true)}
-            data-testid="add-task-btn"
-            className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:shadow-[0_0_20px_rgba(59,130,246,0.6)] hover:-translate-y-1 active:scale-95 text-white p-3 rounded-xl transition-all cursor-pointer"
-          >
-            <Plus size={24} />
-          </button>
-        </Motion.div>
+        <PageHeader
+          title="Solo Task Tracker"
+          description="Track individual tasks and to-dos"
+          ctaLabel="+ Add Task"
+          ctaOnClick={() => setShowAddTask(true)}
+        />
 
         {/* Filters */}
         <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_30px_rgba(59,130,246,0.2)]">

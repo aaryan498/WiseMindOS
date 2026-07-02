@@ -14,6 +14,8 @@ import EmptyState from '../../../components/EmptyState';
 import { motion as Motion } from 'framer-motion';
 import { SkeletonBlock, SkeletonCard, TrackerGridSkeleton } from '../../../components/LoadingSkeleton';
 import { getGoalDuplicateError } from '../../../utils/helpers';
+import Breadcrumb from '../../../components/Navigation/Breadcrumb';
+import PageHeader from '../../../components/PageHeader/PageHeader';
 
 const GoalTracker = () => {
   const navigate = useNavigate();
@@ -121,6 +123,23 @@ const GoalTracker = () => {
     const progress = calculateProjectProgress(selectedProject.id);
     const linkedGoal = goals.find(g => g.id === selectedProject.goalId);
 
+    const breadcrumbItems = [
+      { label: 'Goals', path: '/trackers/goals' },
+      { label: linkedGoal ? linkedGoal.title : 'Goal Detail', path: 'goal' },
+      { label: selectedProject.title, path: 'project' }
+    ];
+
+    const handleBreadcrumbNavigate = (path) => {
+      if (path === '/') {
+        navigate('/dashboard');
+      } else if (path === '/trackers/goals') {
+        setSelectedGoal(null);
+        setSelectedProject(null);
+      } else if (path === 'goal') {
+        setSelectedProject(null);
+      }
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
         <Motion.div
@@ -135,14 +154,16 @@ const GoalTracker = () => {
           transition={{ duration: 12, repeat: Infinity }}
         />
         <div className="max-w-4xl mx-auto">
-          <button
-            onClick={() => setSelectedProject(null)}
-            className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-all hover:-translate-x-1 cursor-pointer"
-            data-testid="back-to-projects-btn"
-          >
-            <ArrowLeft size={20} />
-            Back to Projects
-          </button>
+          <Breadcrumb items={breadcrumbItems} onNavigate={handleBreadcrumbNavigate} />
+          
+          <PageHeader
+            title={selectedProject.title}
+            description={selectedProject.description || 'Project execution and linked tasks'}
+            ctaLabel="+ Add Task"
+            ctaOnClick={() => setShowAddProjectTask(true)}
+            secondaryLabel="Back to Goal"
+            secondaryOnClick={() => setSelectedProject(null)}
+          />
 
           <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
@@ -153,9 +174,9 @@ const GoalTracker = () => {
                   </div>
 
                   <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white">
-                      {selectedProject.title}
-                    </h1>
+                    <h2 className="text-xl md:text-2xl font-bold text-white">
+                      Project Statistics
+                    </h2>
 
                     <p className="text-sm text-emerald-400 mt-1">
                       Progress: {progress}%
@@ -172,9 +193,6 @@ const GoalTracker = () => {
                   <DonutChart value={progress} size={100} color="#10b981" />
                 </div>
               </div>
-              {selectedProject.description && (
-                <p className="text-gray-400 mt-4">{selectedProject.description}</p>
-              )}
             </Card>
           </Motion.div>
 
@@ -260,6 +278,19 @@ const GoalTracker = () => {
 
     if(selectedProject) return;
 
+    const breadcrumbItems = [
+      { label: 'Goals', path: '/trackers/goals' },
+      { label: selectedGoal.title, path: 'goal' }
+    ];
+
+    const handleBreadcrumbNavigate = (path) => {
+      if (path === '/') {
+        navigate('/dashboard');
+      } else if (path === '/trackers/goals') {
+        setSelectedGoal(null);
+      }
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
         <Motion.div
@@ -274,14 +305,16 @@ const GoalTracker = () => {
           transition={{ duration: 12, repeat: Infinity }}
         />
         <div className="max-w-4xl mx-auto">
-          <button
-            onClick={handleBackToList}
-            className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-all hover:-translate-x-1 cursor-pointer"
-            data-testid="back-to-goals-btn"
-          >
-            <ArrowLeft size={20} />
-            Back to Goals
-          </button>
+          <Breadcrumb items={breadcrumbItems} onNavigate={handleBreadcrumbNavigate} />
+          
+          <PageHeader
+            title={selectedGoal.title}
+            description={selectedGoal.description || 'Goal tracking overview and statistics'}
+            ctaLabel="+ Add Project"
+            ctaOnClick={() => setShowAddProject(true)}
+            secondaryLabel="+ Add Task"
+            secondaryOnClick={() => setShowAddTask(true)}
+          />
 
           <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(99,102,241,0.2)] hover:shadow-[0_0_50px_rgba(99,102,241,0.3)] transition-all">
@@ -300,9 +333,9 @@ const GoalTracker = () => {
                       </div>
 
                       <div>
-                        <h1 className="text-xl md:text-2xl font-bold text-white leading-tight">
-                          {selectedGoal.title}
-                        </h1>
+                        <h2 className="text-lg md:text-xl font-bold text-white leading-tight">
+                          Goal Progress
+                        </h2>
 
                         <p className="text-sm text-indigo-400">
                           {progress}% completed
@@ -563,23 +596,12 @@ const GoalTracker = () => {
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-6xl mx-auto">
-        <Motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex justify-between items-center mb-6"
-        >
-          <div>
-            <h1 className="text-3xl young-serif-regular font-bold text-gray-200">Goal Tracker</h1>
-            <p className="text-gray-400">Track your final, long-term, and mid-term goals</p>
-          </div>
-          <button
-            onClick={() => setShowAddGoal(true)}
-            data-testid="add-goal-btn"
-            className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] hover:-translate-y-1 active:scale-95 text-white p-3 rounded-xl transition-all cursor-pointer"
-          >
-            <Plus size={24} />
-          </button>
-        </Motion.div>
+        <PageHeader
+          title="Goal Tracker"
+          description="Track your final, long-term, and mid-term goals"
+          ctaLabel="+ Add Goal"
+          ctaOnClick={() => setShowAddGoal(true)}
+        />
 
         {/* Overall Progress */}
         {loading ? (

@@ -10,6 +10,8 @@ import TaskItem from '../../../components/TaskItem';
 import DonutChart from '../../../components/DonutChart';
 import EmptyState from '../../../components/EmptyState';
 import { motion as Motion } from 'framer-motion';
+import Breadcrumb from '../../../components/Navigation/Breadcrumb';
+import PageHeader from '../../../components/PageHeader/PageHeader';
 
 const ProjectTracker = () => {
   const {
@@ -19,7 +21,8 @@ const ProjectTracker = () => {
     calculateProjectProgress,
     getTasksByProject,
     toggleTaskCompletion,
-    addTask
+    addTask,
+    navigate
   } = useApp();
 
   const [selectedProject, setSelectedProject] = useState(null);
@@ -52,6 +55,19 @@ const ProjectTracker = () => {
     const progress = calculateProjectProgress(selectedProject.id);
     const linkedGoal = goals.find(g => g.id === selectedProject.goalId);
 
+    const breadcrumbItems = [
+      { label: 'Projects', path: '/trackers/projects' },
+      { label: selectedProject.title, path: 'project' }
+    ];
+
+    const handleBreadcrumbNavigate = (path) => {
+      if (path === '/') {
+        navigate('/dashboard');
+      } else if (path === '/trackers/projects') {
+        setSelectedProject(null);
+      }
+    };
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black pb-20 px-4 pt-6 relative overflow-hidden">
         <Motion.div
@@ -66,14 +82,16 @@ const ProjectTracker = () => {
           transition={{ duration: 12, repeat: Infinity }}
         />
         <div className="max-w-4xl mx-auto">
-          <button
-            onClick={() => setSelectedProject(null)}
-            className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-all hover:-translate-x-1 cursor-pointer"
-            data-testid="back-to-projects-btn"
-          >
-            <ArrowLeft size={20} />
-            Back to Projects
-          </button>
+          <Breadcrumb items={breadcrumbItems} onNavigate={handleBreadcrumbNavigate} />
+          
+          <PageHeader
+            title={selectedProject.title}
+            description={selectedProject.description || 'Project execution and linked tasks'}
+            ctaLabel="+ Add Task"
+            ctaOnClick={() => setShowAddTask(true)}
+            secondaryLabel="Back to Projects"
+            secondaryOnClick={() => setSelectedProject(null)}
+          />
 
           <Motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <Card className="mb-6 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_40px_rgba(16,185,129,0.2)]">
@@ -84,9 +102,9 @@ const ProjectTracker = () => {
                   </div>
 
                   <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white">
-                      {selectedProject.title}
-                    </h1>
+                    <h2 className="text-xl md:text-2xl font-bold text-white">
+                      Project Statistics
+                    </h2>
 
                     <p className="text-sm text-emerald-400 mt-1">
                       Progress: {progress}%
@@ -103,9 +121,6 @@ const ProjectTracker = () => {
                   <DonutChart value={progress} size={100} color="#10b981" />
                 </div>
               </div>
-              {selectedProject.description && (
-                <p className="text-gray-400 mt-4">{selectedProject.description}</p>
-              )}
             </Card>
           </Motion.div>
 
@@ -206,23 +221,12 @@ const ProjectTracker = () => {
         transition={{ duration: 12, repeat: Infinity }}
       />
       <div className="max-w-6xl mx-auto">
-        <Motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex justify-between items-center mb-6"
-        >
-          <div>
-            <h1 className="text-3xl young-serif-regular font-bold text-gray-200">Project Tracker</h1>
-            <p className="text-gray-400">Manage projects linked to your goals</p>
-          </div>
-          <button
-            onClick={() => setShowAddProject(true)}
-            data-testid="add-project-btn"
-            className="bg-gradient-to-r from-green-600 to-emerald-600 hover:shadow-[0_0_20px_rgba(16,185,129,0.6)] hover:-translate-y-1 active:scale-95 text-white p-3 rounded-xl transition-all cursor-pointer"
-          >
-            <Plus size={24} />
-          </button>
-        </Motion.div>
+        <PageHeader
+          title="Project Tracker"
+          description="Manage projects linked to your goals"
+          ctaLabel="+ Add Project"
+          ctaOnClick={() => setShowAddProject(true)}
+        />
 
         {projects.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

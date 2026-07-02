@@ -250,6 +250,28 @@ shadow-[0_0_40px_rgba(99,102,241,0.2)]
               </Link>
             </p>
           </div>
+
+          <div className="mt-4 text-center border-t border-white/5 pt-4">
+            <button
+              type="button"
+              onClick={() => {
+                const dummyToken = 'dummy-token';
+                const dummyUser = {
+                  name: 'Demo User',
+                  email: 'demo@wisemind.os',
+                  username: 'demouser'
+                };
+                setToken(dummyToken);
+                localStorage.setItem('token', dummyToken);
+                setUser(dummyUser);
+                localStorage.setItem('wisemind_user', JSON.stringify(dummyUser));
+                navigate('/dashboard');
+              }}
+              className="text-xs text-gray-500 hover:text-indigo-400 font-semibold cursor-pointer underline transition-colors"
+            >
+              Enter Offline Demo Mode (Bypass Login)
+            </button>
+          </div>
         </Card>
       </div>
     </div>
