@@ -68,8 +68,9 @@ const getGoals = async (req, res, next) => {
 // Update Goal
 const updateGoal = async (req, res, next) => {
     try {
-        const { goalId, title, type, description, deadline } = req.body;
+        const { title, type, description, deadline } = req.body;
         const userId = req.user.id;
+        const { goalId } = req.params;
 
         if (!goalId) {
             return res.json({ success: false, message: 'Goal ID is required' });
@@ -113,7 +114,7 @@ const updateGoal = async (req, res, next) => {
 // Delete Goal
 const deleteGoal = async (req, res, next) => {
     try {
-        const { goalId } = req.body;
+        const { goalId } = req.params;
         const userId = req.user.id;
 
         if (!goalId) {

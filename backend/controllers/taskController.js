@@ -45,8 +45,9 @@ const getTasks = async (req, res, next) => {
 // Update Task
 const updateTask = async (req, res, next) => {
     try {
-        const { taskId, title, goalId, projectId, isImportant, deadline, completed } = req.body;
+        const { title, goalId, projectId, isImportant, deadline, completed } = req.body;
         const userId = req.user.id;
+        const { taskId } = req.params;
 
         if (!taskId) {
             return res.json({ success: false, message: 'Task ID is required' });
@@ -75,7 +76,7 @@ const updateTask = async (req, res, next) => {
 // Toggle Task Completion (SSOT - Updates Task first, then DailyPlan)
 const toggleTaskCompletion = async (req, res, next) => {
     try {
-        const { taskId } = req.body;
+        const { taskId } = req.params;
         const userId = req.user.id;
 
         if (!taskId) {
@@ -116,7 +117,7 @@ const toggleTaskCompletion = async (req, res, next) => {
 // Delete Task
 const deleteTask = async (req, res, next) => {
     try {
-        const { taskId } = req.body;
+        const { taskId } = req.params;
         const userId = req.user.id;
 
         if (!taskId) {

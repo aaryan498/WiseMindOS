@@ -57,8 +57,9 @@ const getProjects = async (req, res, next) => {
 // Update Project
 const updateProject = async (req, res, next) => {
     try {
-        const { projectId, title, goalId, deadline, description } = req.body;
+        const { title, goalId, deadline, description } = req.body;
         const userId = req.user.id;
+        const { projectId } = req.params;
 
         if (!projectId) {
             return res.json({ success: false, message: 'Project ID is required' });
@@ -85,7 +86,7 @@ const updateProject = async (req, res, next) => {
 // Delete Project
 const deleteProject = async (req, res, next) => {
     try {
-        const { projectId } = req.body;
+        const { projectId } = req.params;
         const userId = req.user.id;
 
         if (!projectId) {

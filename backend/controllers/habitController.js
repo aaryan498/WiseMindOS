@@ -59,8 +59,9 @@ const getHabits = async (req, res, next) => {
 // Update Habit
 const updateHabit = async (req, res, next) => {
     try {
-        const { habitId, name, type, startTime, endTime, mode } = req.body;
-        const userId = req.body.userId;
+        const { name, type, startTime, endTime, mode } = req.body;
+        const userId = req.user.id;
+        const { habitId } = req.params;
 
         if (!habitId) {
             return res.json({ success: false, message: 'Habit ID is required' });
@@ -86,7 +87,7 @@ const updateHabit = async (req, res, next) => {
 
 const completeHabit = async (req, res, next) => {
     try {
-        const { habitId } = req.body;
+        const { habitId } = req.params;
         const userId = req.user.id;
 
         if (!habitId) {
@@ -185,7 +186,7 @@ const completeHabit = async (req, res, next) => {
 // Delete Habit
 const deleteHabit = async (req, res, next) => {
     try {
-        const { habitId } = req.body;
+        const { habitId } = req.params;
         const userId = req.user.id;
 
         if (!habitId) {
