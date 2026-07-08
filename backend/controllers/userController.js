@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import fs from 'fs'
 import { OAuth2Client } from 'google-auth-library';
+import { sanitizeField } from '../utils/sanitize.js';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -155,8 +156,7 @@ const registerUser = async (req, res, next) => {
 
     try {
 
-        const { name, email, password, username } = req.body;
-
+       const { name, email, password, username } = req.body;
         // Reject non-string inputs to prevent MongoDB operator injection
         if (
             typeof name !== 'string' ||
@@ -166,6 +166,10 @@ const registerUser = async (req, res, next) => {
         ) {
             return res.status(400).json({ success: false, message: 'Invalid input.' });
         }
+        const { value: cleanName, error: nameError } = sanitizeField(name, 'name', { required: true });
+        if (nameError) return res.status(400).json({ success: false, message: nameError });
+        const { value: cleanUsername, error: usernameError } = sanitizeField(username, 'username', { required: true });
+        if (usernameError) return res.status(400).json({ success: false, message: usernameError });
 
         // Checking if there is the user exists in database with the same email.
         const exists = await userModel.findOne({ email });
@@ -195,12 +199,11 @@ const registerUser = async (req, res, next) => {
 
         // Creating new User in database.
         const newUser = new userModel({
-            name,
-            username,
+            name: cleanName,
+            username: cleanUsername,
             email,
             password: hashedPassword
         })
-
         // Saving the new user in database.
         const user = await newUser.save()
 
@@ -245,15 +248,21 @@ const updateUser = async (req, res, next) => {
 
         // Update only allowed fields
         if (name && name !== user.name) {
-            user.name = name;
+            const { value: cleanName, error: nameError } = sanitizeField(name, 'name', { required: true });
+            if (nameError) return res.status(400).json({ success: false, message: nameError });
+            user.name = cleanName;
             isModified = true;
         }
         if (username && username !== user.username) {
-            user.username = username;
+            const { value: cleanUsername, error: usernameError } = sanitizeField(username, 'username', { required: true });
+            if (usernameError) return res.status(400).json({ success: false, message: usernameError });
+            user.username = cleanUsername;
             isModified = true;
         }
         if (bio !== undefined && bio !== user.bio) {
-            user.bio = bio;
+            const { value: cleanBio, error: bioError } = sanitizeField(bio, 'bio');
+            if (bioError) return res.status(400).json({ success: false, message: bioError });
+            user.bio = cleanBio;
             isModified = true;
         }
 

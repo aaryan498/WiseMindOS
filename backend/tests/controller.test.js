@@ -7,6 +7,7 @@ import { toggleTaskCompletion } from '../controllers/taskController.js';
 import { loginUser, registerUser } from '../controllers/userController.js';
 import authUser from '../middlewares/auth.js';
 import dailyPlanModel from '../models/dailyPlanModel.js';
+import { upload } from '../config/multer.js';
 import goalModel from '../models/goalModel.js';
 import notebookModel from '../models/notebookModel.js';
 import pageModel from '../models/pageModel.js';
@@ -183,6 +184,11 @@ test('authUser stores decoded user id and calls next for a valid token', async (
 
     assert.equal(nextCalled, true);
     assert.equal(req.body.userId, 'user-123');
+});
+
+test('multer upload config enforces 5 MB file size limit', () => {
+    assert.ok(upload.limits);
+    assert.equal(upload.limits.fileSize, 5 * 1024 * 1024);
 });
 
 test('loginUser rejects object-type identifier (NoSQL injection attempt)', async () => {

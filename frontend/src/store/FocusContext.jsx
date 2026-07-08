@@ -1,12 +1,24 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 
 const STORAGE_KEY = 'wisemind_focus_timer';
+const AUDIO_SETTINGS_KEY = 'wisemind_focus_audio_settings';
 
 const MODE_DURATIONS = {
   work: 25 * 60,
   shortBreak: 5 * 60,
   longBreak: 15 * 60,
 };
+
+const DEFAULT_AUDIO_SETTINGS = {
+  alertSound: 'digitalChime',
+  alertVolume: 0.7,
+};
+
+const ALERT_SOUND_OPTIONS = [
+  { value: 'digitalChime', label: 'Digital Chime' },
+  { value: 'softBell', label: 'Soft Bell' },
+  { value: 'focusPing', label: 'Focus Ping' },
+];
 
 const DEFAULT_STATE = {
   mode: 'work',
@@ -27,6 +39,64 @@ export const useFocus = () => {
 };
 
 const getDurationForMode = (mode) => MODE_DURATIONS[mode] ?? MODE_DURATIONS.work;
+
+const loadAudioSettings = () => {
+  try {
+    const saved = localStorage.getItem(AUDIO_SETTINGS_KEY);
+    if (!saved) return DEFAULT_AUDIO_SETTINGS;
+
+    const parsed = JSON.parse(saved);
+    return {
+      alertSound: parsed.alertSound ?? DEFAULT_AUDIO_SETTINGS.alertSound,
+      alertVolume:
+        typeof parsed.alertVolume === 'number'
+          ? Math.min(Math.max(parsed.alertVolume, 0), 1)
+          : DEFAULT_AUDIO_SETTINGS.alertVolume,
+    };
+  } catch {
+    return DEFAULT_AUDIO_SETTINGS;
+  }
+};
+
+const playGeneratedAlert = (soundType, volume = 0.7) => {
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+
+  const audioContext = new AudioContext();
+  const safeVolume = Math.min(Math.max(volume, 0), 1);
+
+  const playTone = (frequency, startTime, duration, type = 'sine') => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime + startTime);
+
+    gainNode.gain.setValueAtTime(0, audioContext.currentTime + startTime);
+    gainNode.gain.linearRampToValueAtTime(safeVolume * 0.22, audioContext.currentTime + startTime + 0.02);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + startTime + duration);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.start(audioContext.currentTime + startTime);
+    oscillator.stop(audioContext.currentTime + startTime + duration);
+  };
+
+  if (soundType === 'softBell') {
+    playTone(660, 0, 0.45, 'sine');
+    playTone(880, 0.12, 0.5, 'sine');
+  } else if (soundType === 'focusPing') {
+    playTone(520, 0, 0.18, 'triangle');
+    playTone(780, 0.22, 0.22, 'triangle');
+    playTone(1040, 0.46, 0.25, 'triangle');
+  } else {
+    playTone(740, 0, 0.25, 'sine');
+    playTone(980, 0.18, 0.28, 'sine');
+  }
+
+  setTimeout(() => audioContext.close(), 1200);
+};
 
 const loadPersistedState = () => {
   try {
@@ -105,9 +175,14 @@ export const FocusProvider = ({ children }) => {
   const [isActive, setIsActive] = useState(initial.isActive);
   const [timeLeftSeconds, setTimeLeftSeconds] = useState(initial.timeLeftSeconds);
   const [endTimestamp, setEndTimestamp] = useState(initial.endTimestamp);
+  const [alertSound, setAlertSound] = useState(() => loadAudioSettings().alertSound);
+  const [alertVolume, setAlertVolume] = useState(() => loadAudioSettings().alertVolume);
+  const [completionAlert, setCompletionAlert] = useState(null);
 
   const modeRef = useRef(mode);
   const pomodoroCountRef = useRef(pomodoroCount);
+  const alertSoundRef = useRef(alertSound);
+  const alertVolumeRef = useRef(alertVolume);
 
   useEffect(() => {
     modeRef.current = mode;
@@ -118,12 +193,40 @@ export const FocusProvider = ({ children }) => {
   }, [pomodoroCount]);
 
   useEffect(() => {
+    alertSoundRef.current = alertSound;
+  }, [alertSound]);
+
+  useEffect(() => {
+    alertVolumeRef.current = alertVolume;
+  }, [alertVolume]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      AUDIO_SETTINGS_KEY,
+      JSON.stringify({ alertSound, alertVolume })
+    );
+  }, [alertSound, alertVolume]);
+
+  useEffect(() => {
     persistState({ mode, pomodoroCount, isActive, timeLeftSeconds, endTimestamp });
   }, [mode, pomodoroCount, isActive, timeLeftSeconds, endTimestamp]);
+
+  const previewAlertSound = useCallback(() => {
+    playGeneratedAlert(alertSoundRef.current, alertVolumeRef.current);
+  }, []);
+
+  const dismissCompletionAlert = useCallback(() => {
+    setCompletionAlert(null);
+  }, []);
 
   const applyTimerComplete = useCallback(() => {
     const currentMode = modeRef.current;
     const currentCount = pomodoroCountRef.current;
+    const nextMode = currentMode === 'work'
+      ? (currentCount + 1) % 4 === 0
+        ? 'longBreak'
+        : 'shortBreak'
+      : 'work';
 
     setIsActive(false);
     setEndTimestamp(null);
@@ -143,6 +246,14 @@ export const FocusProvider = ({ children }) => {
       setMode('work');
       setTimeLeftSeconds(MODE_DURATIONS.work);
     }
+
+    playGeneratedAlert(alertSoundRef.current, alertVolumeRef.current);
+
+    setCompletionAlert({
+      completedMode: currentMode,
+      nextMode,
+      message: currentMode === 'work' ? 'Focus session complete. Time for a break!' : 'Break complete. Time to focus!',
+    });
 
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('Timer Complete!', {
@@ -202,12 +313,14 @@ export const FocusProvider = ({ children }) => {
   const resetTimer = useCallback(() => {
     setIsActive(false);
     setEndTimestamp(null);
+    setCompletionAlert(null);
     setTimeLeftSeconds(getDurationForMode(mode));
   }, [mode]);
 
   const switchMode = useCallback((newMode) => {
     setIsActive(false);
     setEndTimestamp(null);
+    setCompletionAlert(null);
     setMode(newMode);
     setTimeLeftSeconds(getDurationForMode(newMode));
   }, []);
@@ -221,6 +334,14 @@ export const FocusProvider = ({ children }) => {
     isActive,
     minutes,
     seconds,
+    alertSound,
+    alertVolume,
+    alertSoundOptions: ALERT_SOUND_OPTIONS,
+    completionAlert,
+    setAlertSound,
+    setAlertVolume,
+    previewAlertSound,
+    dismissCompletionAlert,
     toggleTimer,
     resetTimer,
     switchMode,

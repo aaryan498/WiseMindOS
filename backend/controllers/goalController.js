@@ -1,20 +1,20 @@
 import goalModel from '../models/goalModel.js';
 import projectModel from '../models/projectModel.js';
 import taskModel from '../models/taskModel.js';
+import { sanitizeField } from '../utils/sanitize.js';
 
 const normalizeGoalTitle = (title) => (title ?? '').trim().toLowerCase();
-
 // Create Goal
 const createGoal = async (req, res, next) => {
     try {
         const { title, type, description, deadline } = req.body;
         const userId = req.user.id;
 
-        if (!title || !title.trim()) {
-            return res.json({ success: false, message: 'Title is required' });
-        }
+       const { value: cleanTitle, error: titleError } = sanitizeField(title, 'title', { required: true });
+        if (titleError) return res.json({ success: false, message: titleError });
 
-        const trimmedTitle = title.trim();
+        const { value: cleanDescription } = sanitizeField(description, 'description');
+        const trimmedTitle = cleanTitle;
         const existingGoals = await goalModel.find({ userId });
         const isDuplicate = existingGoals.some(
             (goal) => normalizeGoalTitle(goal.title) === normalizeGoalTitle(trimmedTitle)
@@ -24,11 +24,11 @@ const createGoal = async (req, res, next) => {
             return res.json({ success: false, message: 'A goal with this title already exists' });
         }
 
-        const newGoal = new goalModel({
+       const newGoal = new goalModel({
             userId,
             title: trimmedTitle,
             type: type || 'personal',
-            description: description || '',
+            description: cleanDescription || '',
             deadline: deadline || null
         });
 
