@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import goalModel from '../models/goalModel.js';
 import projectModel from '../models/projectModel.js';
 import taskModel from '../models/taskModel.js';
@@ -46,17 +47,25 @@ const getGoals = async (req, res, next) => {
         const userId = req.user.id;
         const goals = await goalModel.find({ userId });
 
-        // Calculate progress dynamically for each goal
-        const goalsWithProgress = await Promise.all(goals.map(async (goal) => {
-            const goalTasks = await taskModel.find({ userId, goalId: goal._id });
-            const completedTasks = goalTasks.filter(task => task.completed).length;
-            const progress = goalTasks.length > 0 ? Math.round((completedTasks / goalTasks.length) * 100) : 0;
+        // Single aggregation to get task counts for all goals
+        const goalProgress = await taskModel.aggregate([
+            { $match: { userId: new mongoose.Types.ObjectId(userId), goalId: { $ne: null } } },
+            { $group: { _id: "$goalId", total: { $sum: 1 }, completed: { $sum: { $cond: ["$completed", 1, 0] } } } }
+        ]);
 
-            return {
-                ...goal.toObject(),
-                progress
+        const progressMap = {};
+        goalProgress.forEach(item => {
+            progressMap[item._id.toString()] = {
+                total: item.total,
+                completed: item.completed,
+                progress: item.total > 0 ? Math.round((item.completed / item.total) * 100) : 0
             };
-        }));
+        });
+
+        const goalsWithProgress = goals.map(goal => {
+            const data = progressMap[goal._id.toString()] || { total: 0, completed: 0, progress: 0 };
+            return { ...goal.toObject(), progress: data.progress };
+        });
 
         res.json({ success: true, goals: goalsWithProgress });
 

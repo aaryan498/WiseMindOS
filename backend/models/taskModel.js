@@ -12,6 +12,12 @@ const taskSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }, { minimize: false });
 
+taskSchema.index({ userId: 1 });
+taskSchema.index({ goalId: 1 });
+taskSchema.index({ projectId: 1 });
+taskSchema.index({ userId: 1, goalId: 1 });
+taskSchema.index({ userId: 1, projectId: 1 });
+
 const taskModel = mongoose.models.task || mongoose.model('task', taskSchema);
 
 export default taskModel;
