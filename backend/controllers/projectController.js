@@ -1,22 +1,23 @@
 import projectModel from '../models/projectModel.js';
 import taskModel from '../models/taskModel.js';
-
+import { sanitizeField } from '../utils/sanitize.js';
 // Create Project
 const createProject = async (req, res, next) => {
     try {
         const { title, goalId, deadline, description } = req.body;
         const userId = req.user.id;
 
-        if (!title) {
-            return res.json({ success: false, message: 'Title is required' });
-        }
+        const { value: cleanTitle, error: titleError } = sanitizeField(title, 'title', { required: true });
+        if (titleError) return res.json({ success: false, message: titleError });
+
+        const { value: cleanDescription } = sanitizeField(description, 'description');
 
         const newProject = new projectModel({
             userId,
-            title,
+            title: cleanTitle,
             goalId: goalId || null,
             deadline: deadline || null,
-            description: description || ''
+            description: cleanDescription || ''
         });
 
         await newProject.save();
@@ -69,11 +70,17 @@ const updateProject = async (req, res, next) => {
             return res.json({ success: false, message: 'Project not found' });
         }
 
-        if (title) project.title = title;
+       if (title) {
+            const { value: cleanTitle, error: titleError } = sanitizeField(title, 'title', { required: true });
+            if (titleError) return res.json({ success: false, message: titleError });
+            project.title = cleanTitle;
+        }
         if (goalId !== undefined) project.goalId = goalId;
         if (deadline !== undefined) project.deadline = deadline;
-        if (description !== undefined) project.description = description;
-
+        if (description !== undefined) {
+            const { value: cleanDescription } = sanitizeField(description, 'description');
+            project.description = cleanDescription;
+        }
         await project.save();
         res.json({ success: true, project, message: 'Project Updated Successfully' });
 

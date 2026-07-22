@@ -12,6 +12,13 @@ const taskSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }, { minimize: false });
 
+// taskController.js filters every read by userId, and by userId+goalId or
+// userId+projectId when scoping tasks to a specific goal or project.
+// Without these, each query falls back to a full collection scan.
+taskSchema.index({ userId: 1 });
+taskSchema.index({ userId: 1, goalId: 1 });
+taskSchema.index({ userId: 1, projectId: 1 });
+
 const taskModel = mongoose.models.task || mongoose.model('task', taskSchema);
 
 export default taskModel;

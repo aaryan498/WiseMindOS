@@ -60,7 +60,7 @@ const getHabits = async (req, res, next) => {
 const updateHabit = async (req, res, next) => {
     try {
         const { habitId, name, type, startTime, endTime, mode } = req.body;
-        const userId = req.body.userId;
+        const userId = req.user.id;
 
         if (!habitId) {
             return res.json({ success: false, message: 'Habit ID is required' });

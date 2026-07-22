@@ -1,4 +1,4 @@
-import { Play, Pause, RotateCcw, CheckCircle2, CalendarDays, LucideTrophy } from 'lucide-react';
+import { Play, Pause, RotateCcw, CheckCircle2, CalendarDays, LucideTrophy, Volume2, X } from 'lucide-react';
 import { useApp } from '../../store/AppContext';
 import { useFocus } from '../../store/FocusContext';
 import Card from '../../components/Card';
@@ -18,6 +18,14 @@ const FocusRoom = () => {
     toggleTimer,
     resetTimer,
     switchMode,
+    alertSound,
+    alertVolume,
+    alertSoundOptions,
+    completionAlert,
+    setAlertSound,
+    setAlertVolume,
+    previewAlertSound,
+    dismissCompletionAlert,
   } = useFocus();
 
   // Get today's planned tasks from dailyPlan
@@ -160,6 +168,84 @@ hover:scale-110 active:scale-95 cursor-pointer transition-all"
                   <RotateCcw size={24} />
                 </button>
               </div>
+                            {/* Audio Alert Settings */}
+              <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4 text-left">
+                <div className="flex items-center gap-2 mb-4">
+                  <Volume2 size={20} className="text-indigo-300" />
+                  <h3 className="text-white font-semibold">Audio Alert Settings</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                  <label className="flex flex-col gap-2 text-sm text-gray-300">
+                    Alert Sound
+                    <select
+                      value={alertSound}
+                      onChange={(event) => setAlertSound(event.target.value)}
+                      className="bg-gray-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      data-testid="alert-sound-select"
+                    >
+                      {alertSoundOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="flex flex-col gap-2 text-sm text-gray-300">
+                    Volume: {Math.round(alertVolume * 100)}%
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={alertVolume}
+                      onChange={(event) => setAlertVolume(Number(event.target.value))}
+                      className="accent-indigo-500"
+                      data-testid="alert-volume-slider"
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={previewAlertSound}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl transition-all hover:scale-105 active:scale-95"
+                    data-testid="alert-preview-button"
+                  >
+                    Preview Sound
+                  </button>
+                </div>
+
+                <p className="mt-3 text-xs text-gray-400">
+                  Choose a notification tone and volume that will play when a focus or break session ends.
+                </p>
+              </div>
+
+              {completionAlert && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className="mt-6 rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-left"
+                  role="status"
+                  aria-live="polite"
+                  data-testid="timer-completion-alert"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-emerald-300 font-semibold">Session Complete</p>
+                      <p className="text-white mt-1">{completionAlert.message}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={dismissCompletionAlert}
+                      className="text-gray-300 hover:text-white"
+                      aria-label="Dismiss completion alert"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
             </Card>
 
             {/* Notes Section */}
