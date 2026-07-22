@@ -177,6 +177,22 @@ export const pageAPI = {
 };
 
 
+// ============ RETROSPECTIVE APIs ============
+export const retrospectiveAPI = {
+    create: async (data) => {
+        const response = await apiClient.post('/api/retrospectives/create', data);
+        return response.data;
+    },
+    getAll: async () => {
+        const response = await apiClient.post('/api/retrospectives/list', {});
+        return response.data;
+    },
+    delete: async (retroId) => {
+        const response = await apiClient.post('/api/retrospectives/delete', { retroId });
+        return response.data;
+    }
+};
+
 // ============ STATS APIs ============
 export const statsAPI = {
     save: async (data) => {
