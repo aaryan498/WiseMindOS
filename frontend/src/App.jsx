@@ -25,12 +25,12 @@ import HabitTracker from './modules/trackers/habit_tracker/HabitTracker';
 import DailyTaskTracker from './modules/trackers/daily_task_tracker/DailyTaskTracker';
 import FocusRoom from './modules/focus_room/FocusRoom';
 import Library from './modules/library_room/Library';
+import WeeklyReview from './pages/WeeklyReview';
 
 import { useApp } from './store/AppContext';
 import { ToastContainer } from 'react-toastify';
 import ErrorBoundary from './components/ErrorBoundary';
 import ErrorPage from './pages/ErrorPage';
-import CustomCursor from './components/CustomCursor';
 import ScrollToTop from "./components/ScrollToTop";
 import NotFound from "./pages/NotFound";
 
@@ -39,7 +39,6 @@ function App() {
 
   return (
     <ErrorBoundary fallback={<ErrorPage />}>
-        <CustomCursor />
         <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           {/* Public Routes */}
@@ -68,6 +67,7 @@ function App() {
             <Route path="/future-twin" element={<FutureTwin />} />
             <Route path="/future" element={<FutureTwin />} />
             <Route path="/library" element={<Library />} />
+            <Route path="/weekly-review" element={<WeeklyReview />} />
           </Route>
 
           {/* Fallback */}
