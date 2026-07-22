@@ -11,6 +11,7 @@ import dailyPlanRouter from './routes/dailyPlanRoute.js';
 import notebookRouter from './routes/notebookRoute.js';
 import pageRouter from './routes/pageRoute.js';
 import weeklyStatRouter from './routes/weeklyStatRoute.js';
+import opportunityRouter from './routes/opportunityRoute.js';
 import errorHandler from './middlewares/errorHandler.js';
 
 const app = express();
@@ -31,6 +32,7 @@ app.use('/api/daily-plan', dailyPlanRouter);
 app.use('/api/notebooks', notebookRouter);
 app.use('/api/pages', pageRouter);
 app.use('/api/stats', weeklyStatRouter);
+app.use('/api/opportunities', opportunityRouter);
 
 
 
