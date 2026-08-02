@@ -57,7 +57,7 @@ const downloadWeeklyAnalyticsCsv = (weeklyData) => {
 const isToday = (date) => {
   if (!date) return false;
   const d = new Date(date);
-  return !isNaN(d.getTime()) && d.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
+  return !Number.isNaN(d.getTime()) && d.toISOString().split('T')[0] === new Date().toISOString().split('T')[0];
 };
 
 const Dashboard = () => {
