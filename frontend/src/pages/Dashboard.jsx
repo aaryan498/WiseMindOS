@@ -27,7 +27,7 @@ const escapeCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`
 const downloadWeeklyAnalyticsCsv = (weeklyData) => {
   const csvRows = [
     ['Date', 'Day', 'Productivity Score', 'Discipline Score'],
-    ...weeklyData.map((entry) => [
+    ...(weeklyData ?? []).map((entry) => [
       entry.date,
       entry.name,
       entry.productivity,
