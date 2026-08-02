@@ -159,7 +159,7 @@ const About = () => {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {team.map((member, idx) => (
+            {(team ?? []).map((member, idx) => (
               <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }} className="group h-full">
                 <motion.div className="h-full rounded-2xl" animate={{ boxShadow: ['0px 0px 0px rgba(99,102,241,0)', '0px 0px 18px 2px rgba(99,102,241,0.2)', '0px 0px 0px rgba(99,102,241,0)'] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: idx * 0.5 }}>
                   <Card className="bg-white/5 backdrop-blur-lg border border-white/10 text-center relative overflow-hidden h-full hover:bg-white/10 transition-colors duration-500">
