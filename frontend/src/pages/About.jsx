@@ -165,7 +165,7 @@ const About = () => {
                   <Card className="bg-white/5 backdrop-blur-lg border border-white/10 text-center relative overflow-hidden h-full hover:bg-white/10 transition-colors duration-500">
                     <div className="w-24 h-24 mx-auto bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full mb-6 p-[2px]">
                        <div className="w-full h-full bg-gray-900 rounded-full flex items-center justify-center text-3xl font-bold text-white">
-                        {member.name.charAt(0)}
+                        {member.name[0]}
                        </div>
                     </div>
                     <h3 className="text-xl font-bold text-white mb-1">{member.name}</h3>
