@@ -36,7 +36,7 @@ const downloadWeeklyAnalyticsCsv = (weeklyData) => {
   ];
 
   const csvContent = csvRows
-    .map((row) => row.map(escapeCsvValue).join(','))
+    .map((row) => (row ?? []).map(escapeCsvValue).join(','))
     .join('\r\n');
 
   const fileLabel = weeklyData.length
