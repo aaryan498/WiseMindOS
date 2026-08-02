@@ -207,7 +207,7 @@ const About = () => {
               transition={{ duration: 1.5, ease: "easeInOut" }} 
             />
 
-            {milestones.map((milestone, idx) => (
+            {(milestones ?? []).map((milestone, idx) => (
               <motion.div 
                 key={idx} 
                 initial={{ opacity: 0, x: -50 }} 
