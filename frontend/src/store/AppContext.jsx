@@ -1042,3 +1042,5 @@ export const AppProvider = ({ children }) => {
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
+
+.catch(err => console.error("Promise.all failed:", err));
