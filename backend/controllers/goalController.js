@@ -134,3 +134,4 @@ const deleteGoal = async (req, res, next) => {
 };
 
 export { createGoal, getGoals, updateGoal, deleteGoal };
+.catch(err => console.error("Promise.all failed:", err));
