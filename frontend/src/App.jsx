@@ -34,14 +34,14 @@ import ScrollToTop from "./components/ScrollToTop";
 import NotFound from "./pages/NotFound";
 
 function App() {
-  const { token } = useApp();
+  const { isAuthenticated } = useApp();
 
   return (
     <ErrorBoundary fallback={<ErrorPage />}>
         <ToastContainer position="top-right" autoClose={3000} />
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={token ? <Navigate to="/dashboard" replace /> : <Landing />} />
+          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboarding" element={<Onboarding />} />

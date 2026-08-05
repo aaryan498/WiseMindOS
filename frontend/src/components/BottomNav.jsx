@@ -3,19 +3,24 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, ListChecks, Focus, Sparkles, Library, LogOut } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { useApp } from '../store/AppContext';
+import { authAPI } from '../api/apiService';
 import Modal from './Modal';
 
 const BottomNav = () => {
   const location = useLocation();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const { setToken, navigate } = useApp();
+  const { setIsAuthenticated, navigate } = useApp();
 
-  const logout = () => {
-    navigate('/login');
-    localStorage.removeItem('token');
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout request failed:', error);
+    }
     localStorage.removeItem('wisemind_user');
-    setToken('');
+    setIsAuthenticated(false);
+    navigate('/login');
   };
 
   const navItems = [

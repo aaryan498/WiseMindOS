@@ -13,6 +13,19 @@ const createToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days, matches JWT expiry
+
+// Sets the JWT as an httpOnly cookie so it is inaccessible to page JavaScript,
+// preventing an XSS payload in user-generated content from stealing the session.
+const setTokenCookie = (res, token) => {
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: COOKIE_MAX_AGE
+    });
+};
+
 
 
 // Route for user Login 
@@ -42,7 +55,8 @@ const loginUser = async (req, res, next) => {
 
         if (isMatch) {
             const token = createToken(user._id)
-            return res.json({ success: true, message: "Login Successful", token, name: user.name, email: user.email, username: user.username, bio: user.bio, profile_picture: user.profile_picture })
+            setTokenCookie(res, token)
+            return res.json({ success: true, message: "Login Successful", name: user.name, email: user.email, username: user.username, bio: user.bio, profile_picture: user.profile_picture })
         }
         else {
             return res.json({ success: false, message: "Invalid Credentials" })
@@ -134,12 +148,12 @@ const googleLogin = async (req, res, next) => {
 
         // create a JWT token for the user
         const token = createToken(user._id);
+        setTokenCookie(res, token);
 
-        // Send the token and user info back to the client
+        // Send the user info back to the client; the token lives only in the httpOnly cookie
         return res.json({
             success: true,
             message: "Login Successful",
-            token,
             name: user.name,
             email: user.email,
             username: user.username,
@@ -208,8 +222,9 @@ const registerUser = async (req, res, next) => {
         const user = await newUser.save()
 
         const token = createToken(user._id)
+        setTokenCookie(res, token)
 
-        res.json({ success: true, token, bio: user.bio,  message: 'Account Created Successfully!' })
+        res.json({ success: true, bio: user.bio,  message: 'Account Created Successfully!' })
 
 
     } catch (error) {
@@ -381,4 +396,18 @@ const updateUserProfilePic = async (req, res, next) => {
 
 
 
-export { loginUser, googleLogin, registerUser, updateUser, updateUserProfilePic }
+// Route for User logout - clears the httpOnly auth cookie server-side
+const logoutUser = async (req, res, next) => {
+    try {
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Strict'
+        });
+        res.json({ success: true, message: 'Logged out successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { loginUser, googleLogin, registerUser, updateUser, updateUserProfilePic, logoutUser }
