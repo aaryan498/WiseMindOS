@@ -7,7 +7,16 @@ const errorHandler = (err, req, res, next) => {
     if (res.headersSent) {
         return next(err);
     }
-    
+
+    // Malformed ObjectIds throw a Mongoose CastError whose default message
+    // exposes internal field/model names; respond generically instead.
+    if (err.name === 'CastError') {
+        return res.status(400).json({
+            success: false,
+            message: 'Invalid ID format'
+        });
+    }
+
     const statusCode = err.statusCode || 500;
     res.status(statusCode).json({
         success: false,
