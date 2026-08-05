@@ -100,7 +100,7 @@ const DailyTaskTracker = () => {
       habitId: habit.id,
       title: habit.name,
       startTime: habit.startTime,
-      endTime: endTime,
+      endTime,
       completed: false,
       isImportant: false
     });
