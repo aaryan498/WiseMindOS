@@ -18,7 +18,23 @@ const port = process.env.PORT || 4000;
 connectDB();
 
 app.use(express.json());
-app.use(cors());
+
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map((url) => url.trim())
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, false);
+      }
+    },
+    credentials: true,
+  })
+);
 
 
 // API Endpoints
