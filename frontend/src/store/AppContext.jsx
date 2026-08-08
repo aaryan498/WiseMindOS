@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { goalAPI, projectAPI, taskAPI, habitAPI, dailyPlanAPI, statsAPI, notebookAPI, pageAPI, authAPI } from '../api/apiService';
+import { goalAPI, projectAPI, taskAPI, habitAPI, dailyPlanAPI, statsAPI, notebookAPI, pageAPI, authAPI, retrospectiveAPI } from '../api/apiService';
 import { showToast } from '../utils/toastHelper';
 import { DUPLICATE_GOAL_MESSAGE, isDuplicateGoalTitle } from '../utils/helpers';
 

@@ -1,5 +1,5 @@
 import { motion as Motion } from 'framer-motion';
-import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarDays, Camera, CheckCircle, Download, Flame, LucideTrophy, Pencil, Search, Star, Target, Timer, TrendingUp, UserPen, UserPlus2, Zap } from 'lucide-react';
+import { Activity, AlertTriangle, ArrowRight, BarChart3, CalendarDays, Camera, CheckCircle, ClipboardList, Download, Flame, LucideTrophy, Pencil, Search, Star, Target, Timer, TrendingUp, UserPen, UserPlus2, Zap } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Bar, BarChart, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts';
@@ -494,6 +494,38 @@ const Dashboard = () => {
             </div>
           </Card>
 
+        </Motion.div>
+
+
+        {/* Weekly Review CTA Banner */}
+        <Motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+          className="mb-6"
+        >
+          <Link
+            to="/weekly-review"
+            className="group flex items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-indigo-600/20 via-purple-600/15 to-pink-600/10 border border-indigo-500/30 hover:border-indigo-400/60 hover:from-indigo-600/30 hover:via-purple-600/25 hover:to-pink-600/20 shadow-[0_0_30px_rgba(99,102,241,0.12)] hover:shadow-[0_0_50px_rgba(99,102,241,0.25)] transition-all duration-400 ease-out"
+          >
+            <div className="flex items-center gap-4">
+              <Motion.div
+                animate={{ rotate: [0, -8, 8, 0] }}
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 4 }}
+                className="p-3 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 group-hover:bg-indigo-500/25 transition-colors"
+              >
+                <ClipboardList size={22} />
+              </Motion.div>
+              <div>
+                <p className="text-white font-bold text-sm sm:text-base">Weekly Retrospective</p>
+                <p className="text-gray-400 text-xs sm:text-sm">Review your week, journal your thoughts &amp; archive insights</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 text-indigo-400 group-hover:translate-x-1.5 transition-transform duration-300 shrink-0">
+              <span className="text-xs font-semibold hidden sm:block">Start Review</span>
+              <ArrowRight size={18} />
+            </div>
+          </Link>
         </Motion.div>
 
 
