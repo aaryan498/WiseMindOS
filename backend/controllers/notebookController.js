@@ -40,31 +40,32 @@ export const createNotebook = async (req, res, next) => {
     if (!name || !name.trim()) {
       return res.status(400).json({ success: false, message: "Name required" });
 
-    const trimmedName = name.trim();
-    const existing = await notebookModel.findOne({
-      userId,
-      name: new RegExp('^' + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
-    });
+      const trimmedName = name.trim();
+      const existing = await notebookModel.findOne({
+        userId,
+        name: new RegExp('^' + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
+      });
 
-    if (existing) {
-      return res.json({ success: false, message: "A notebook with this name already exists" });
+      if (existing) {
+        return res.json({ success: false, message: "A notebook with this name already exists" });
+      }
+
+      const count = await notebookModel.countDocuments({ userId });
+      if (count >= 40) {
+        return res.status(400).json({ success: false, message: "Max 40 notebooks allowed" });
+      }
+
+      const notebook = new notebookModel({
+        userId,
+        name: trimmedName,
+        order: count + 1
+      });
+
+      await notebook.save();
+
+      res.json({ success: true, notebook });
+
     }
-
-    const count = await notebookModel.countDocuments({ userId });
-    if (count >= 40) {
-      return res.status(400).json({ success: false, message: "Max 40 notebooks allowed" });
-    }
-
-    const notebook = new notebookModel({
-      userId,
-      name: trimmedName,
-      order: count + 1
-    });
-
-    await notebook.save();
-
-    res.json({ success: true, notebook });
-
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -108,8 +109,8 @@ export const updateNotebook = async (req, res, next) => {
       _id: { $ne: notebookId },
       name: new RegExp(
         '^' +
-          trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
-          '$',
+        trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+        '$',
         'i'
       )
     });
