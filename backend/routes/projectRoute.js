@@ -4,9 +4,9 @@ import authUser from '../middlewares/auth.js';
 
 const projectRouter = express.Router();
 
-projectRouter.post('/create', authUser, createProject);
-projectRouter.post('/list', authUser, getProjects);
-projectRouter.post('/update', authUser, updateProject);
-projectRouter.post('/delete', authUser, deleteProject);
+projectRouter.get('/', authUser, getProjects);
+projectRouter.post('/', authUser, createProject);
+projectRouter.patch('/:projectId', authUser, updateProject);
+projectRouter.delete('/:projectId', authUser, deleteProject);
 
 export default projectRouter;

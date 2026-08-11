@@ -15,11 +15,11 @@ export const authAPI = {
         return response.data;
     },
     update: async (data) => {
-        const response = await apiClient.post('/api/user/update', data);
+        const response = await apiClient.patch('/api/user/profile', data);
         return response.data;
     },
     updateProfilePic: async (data) => {
-        const response = await apiClient.post('/api/user/update-profile-pic', data);
+        const response = await apiClient.patch('/api/user/profile-picture', data);
         return response.data;
     }
 };
@@ -27,19 +27,20 @@ export const authAPI = {
 // ============ GOAL APIs ============
 export const goalAPI = {
     create: async (data) => {
-        const response = await apiClient.post('/api/goals/create', data);
+        const response = await apiClient.post('/api/goals', data);
         return response.data;
     },
     getAll: async () => {
-        const response = await apiClient.post('/api/goals/list', {});
+        const response = await apiClient.get('/api/goals');
         return response.data;
     },
     update: async (data) => {
-        const response = await apiClient.post('/api/goals/update', data);
+        const { goalId, ...updates } = data;
+        const response = await apiClient.patch(`/api/goals/${goalId}`, updates);
         return response.data;
     },
     delete: async (goalId) => {
-        const response = await apiClient.post('/api/goals/delete', { goalId });
+        const response = await apiClient.delete(`/api/goals/${goalId}`);
         return response.data;
     }
 };
@@ -47,19 +48,20 @@ export const goalAPI = {
 // ============ PROJECT APIs ============
 export const projectAPI = {
     create: async (data) => {
-        const response = await apiClient.post('/api/projects/create', data);
+        const response = await apiClient.post('/api/projects', data);
         return response.data;
     },
     getAll: async () => {
-        const response = await apiClient.post('/api/projects/list', {});
+        const response = await apiClient.get('/api/projects');
         return response.data;
     },
     update: async (data) => {
-        const response = await apiClient.post('/api/projects/update', data);
+        const { projectId, ...updates } = data;
+        const response = await apiClient.patch(`/api/projects/${projectId}`, updates);
         return response.data;
     },
     delete: async (projectId) => {
-        const response = await apiClient.post('/api/projects/delete', { projectId });
+        const response = await apiClient.delete(`/api/projects/${projectId}`);
         return response.data;
     }
 };
@@ -67,23 +69,24 @@ export const projectAPI = {
 // ============ TASK APIs ============
 export const taskAPI = {
     create: async (data) => {
-        const response = await apiClient.post('/api/tasks/create', data);
+        const response = await apiClient.post('/api/tasks', data);
         return response.data;
     },
     getAll: async () => {
-        const response = await apiClient.post('/api/tasks/list', {});
+        const response = await apiClient.get('/api/tasks');
         return response.data;
     },
     update: async (data) => {
-        const response = await apiClient.post('/api/tasks/update', data);
+        const { taskId, ...updates } = data;
+        const response = await apiClient.patch(`/api/tasks/${taskId}`, updates);
         return response.data;
     },
     toggle: async (taskId) => {
-        const response = await apiClient.post('/api/tasks/toggle', { taskId });
+        const response = await apiClient.patch(`/api/tasks/${taskId}/toggle`);
         return response.data;
     },
     delete: async (taskId) => {
-        const response = await apiClient.post('/api/tasks/delete', { taskId });
+        const response = await apiClient.delete(`/api/tasks/${taskId}`);
         return response.data;
     }
 };
@@ -91,23 +94,24 @@ export const taskAPI = {
 // ============ HABIT APIs ============
 export const habitAPI = {
     create: async (data) => {
-        const response = await apiClient.post('/api/habits/create', data);
+        const response = await apiClient.post('/api/habits', data);
         return response.data;
     },
     getAll: async () => {
-        const response = await apiClient.post('/api/habits/list', {});
+        const response = await apiClient.get('/api/habits');
         return response.data;
     },
     update: async (data) => {
-        const response = await apiClient.post('/api/habits/update', data);
+        const { habitId, ...updates } = data;
+        const response = await apiClient.patch(`/api/habits/${habitId}`, updates);
         return response.data;
     },
     complete: async (habitId) => {
-        const response = await apiClient.post('/api/habits/complete', { habitId });
+        const response = await apiClient.patch(`/api/habits/${habitId}/complete`);
         return response.data;
     },
     delete: async (habitId) => {
-        const response = await apiClient.post('/api/habits/delete', { habitId });
+        const response = await apiClient.delete(`/api/habits/${habitId}`);
         return response.data;
     }
 };
@@ -115,23 +119,25 @@ export const habitAPI = {
 // ============ DAILY PLAN APIs ============
 export const dailyPlanAPI = {
     getToday: async () => {
-        const response = await apiClient.post('/api/daily-plan/today', {});
+        const response = await apiClient.get('/api/daily-plan/today');
         return response.data;
     },
     add: async (data) => {
-        const response = await apiClient.post('/api/daily-plan/add', data);
+        const response = await apiClient.post('/api/daily-plan/tasks', data);
         return response.data;
     },
     remove: async (plannedTaskId) => {
-        const response = await apiClient.post('/api/daily-plan/remove', { plannedTaskId });
+        const response = await apiClient.delete(`/api/daily-plan/tasks/${plannedTaskId}`);
         return response.data;
     },
     toggle: async (plannedTaskId) => {
-        const response = await apiClient.post('/api/daily-plan/toggle', { plannedTaskId });
+        const response = await apiClient.patch(
+            `/api/daily-plan/tasks/${plannedTaskId}/toggle`
+        );
         return response.data;
     },
     clear: async () => {
-        const response = await apiClient.post('/api/daily-plan/clear', {});
+        const response = await apiClient.delete('/api/daily-plan');
         return response.data;
     }
 };
@@ -139,19 +145,21 @@ export const dailyPlanAPI = {
 // ============ NOTEBOOK APIs ============
 export const notebookAPI = {
     create: async (data) => {
-        const response = await apiClient.post('/api/notebooks/create', data);
+        const response = await apiClient.post('/api/notebooks', data);
         return response.data;
     },
     getAll: async () => {
-        const response = await apiClient.post('/api/notebooks/list', {});
+        const response = await apiClient.get('/api/notebooks');
         return response.data;
     },
     update: async (notebookId, name) => {
-        const response = await apiClient.post('/api/notebooks/update', { notebookId, name });
+        const response = await apiClient.patch(`/api/notebooks/${notebookId}`, {
+            name
+        });
         return response.data;
     },
     delete: async (notebookId) => {
-        const response = await apiClient.post('/api/notebooks/delete', { notebookId });
+        const response = await apiClient.delete(`/api/notebooks/${notebookId}`);
         return response.data;
     }
 };
@@ -159,33 +167,35 @@ export const notebookAPI = {
 // ============ PAGE APIs ============
 export const pageAPI = {
     create: async (data) => {
-        const response = await apiClient.post('/api/pages/create', data);
+        const response = await apiClient.post('/api/pages', data);
         return response.data;
     },
     getPagesByNotebook: async (notebookId) => {
-        const response = await apiClient.post('/api/pages/list', { notebookId });
+        const response = await apiClient.get('/api/pages', {
+            params: { notebookId }
+        });
         return response.data;
     },
     update: async (data) => {
-        const response = await apiClient.post('/api/pages/update', data);
+        const { pageId, ...updates } = data;
+        const response = await apiClient.patch(`/api/pages/${pageId}`, updates);
         return response.data;
     },
-    delete: async (pageId, notebookId) => {
-        const response = await apiClient.post('/api/pages/delete', { pageId, notebookId });
+    delete: async (pageId) => {
+        const response = await apiClient.delete(`/api/pages/${pageId}`);
         return response.data;
     }
 };
 
-
 // ============ STATS APIs ============
 export const statsAPI = {
     save: async (data) => {
-        const response = await apiClient.post('/api/stats/save', data);
+        const response = await apiClient.post('/api/stats', data);
         return response.data;
     },
 
     getWeekly: async () => {
-        const response = await apiClient.post('/api/stats/weekly', {});
+        const response = await apiClient.get('/api/stats/weekly');
         return response.data;
     }
 };
