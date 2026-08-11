@@ -75,13 +75,43 @@ export const createNotebook = async (req, res, next) => {
 // âž¤ Get all notebooks of user
 export const getNotebooks = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.body.userId;
+    const page = Number(req.body?.page || req.query?.page) || 1;
+    let limit = Number(req.body?.limit || req.query?.limit) || 20;
 
+    // Enforce maximum page size limits
+    const maxLimit = 100;
+    if (limit > maxLimit) limit = maxLimit;
+    if (limit < 1) limit = 20;
+
+    const skip = (page - 1) * limit;
+
+    // Sorting support (default sorting by order asc)
+    const sortBy = req.body?.sortBy || req.query?.sortBy || 'order';
+    const sortOrder = req.body?.sortOrder || req.query?.sortOrder || 'asc';
+    const sortOptions = {};
+    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    const total = await notebookModel.countDocuments({ userId });
     const notebooks = await notebookModel
       .find({ userId })
-      .sort({ order: 1 });
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limit);
 
-    res.json({ success: true, notebooks });
+    const totalPages = Math.ceil(total / limit);
+
+    res.json({
+      success: true,
+      data: notebooks,
+      notebooks, // Backward compatibility
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages
+      }
+    });
 
   } catch (error) {
     res.json({ success: false, message: error.message });

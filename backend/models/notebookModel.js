@@ -4,7 +4,8 @@ const notebookSchema = new mongoose.Schema({
     userId: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'user', 
-        required: true 
+        required: true,
+        index: true
     },
 
     name: { type: String, required: true },
@@ -12,10 +13,11 @@ const notebookSchema = new mongoose.Schema({
     // To maintain order like your frontend
     order: { type: Number, default: 0 },
 
-    pageCount: { type: Number, default: 0 },
+    pageCount: { type: Number, default: 0 }
+}, { minimize: false, timestamps: true });
 
-    createdAt: { type: Date, default: Date.now }
-}, { minimize: false });
+notebookSchema.index({ createdAt: -1 });
+notebookSchema.index({ updatedAt: -1 });
 
 const notebookModel = mongoose.models.notebook || mongoose.model('notebook', notebookSchema);
 

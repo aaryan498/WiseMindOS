@@ -43,8 +43,28 @@ const createGoal = async (req, res, next) => {
 // Get All Goals
 const getGoals = async (req, res, next) => {
     try {
-        const userId = req.user.id;
-        const goals = await goalModel.find({ userId });
+        const userId = req.body.userId;
+        const page = Number(req.body?.page || req.query?.page) || 1;
+        let limit = Number(req.body?.limit || req.query?.limit) || 20;
+
+        // Enforce maximum page size limits
+        const maxLimit = 100;
+        if (limit > maxLimit) limit = maxLimit;
+        if (limit < 1) limit = 20;
+
+        const skip = (page - 1) * limit;
+
+        // Sorting support (default sorting by createdAt desc)
+        const sortBy = req.body?.sortBy || req.query?.sortBy || 'createdAt';
+        const sortOrder = req.body?.sortOrder || req.query?.sortOrder || 'desc';
+        const sortOptions = {};
+        sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+        const total = await goalModel.countDocuments({ userId });
+        const goals = await goalModel.find({ userId })
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit);
 
         // Calculate progress dynamically for each goal
         const goalsWithProgress = await Promise.all(goals.map(async (goal) => {
@@ -58,7 +78,19 @@ const getGoals = async (req, res, next) => {
             };
         }));
 
-        res.json({ success: true, goals: goalsWithProgress });
+        const totalPages = Math.ceil(total / limit);
+
+        res.json({
+            success: true,
+            data: goalsWithProgress,
+            goals: goalsWithProgress, // Backward compatibility
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages
+            }
+        });
 
     } catch (error) {
         next(error);
