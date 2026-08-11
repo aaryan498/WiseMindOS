@@ -12,6 +12,7 @@ import GoalCard from '../components/GoalCard';
 import GradientButton from '../components/GradientButton';
 import HabitCard from '../components/HabitCard';
 import InputField from '../components/InputField';
+import { exportWorkspaceData } from '../utils/exportData';
 import { AnalyticsSkeleton, DashboardStatsSkeleton, SkeletonBlock, SkeletonCard, TrackerGridSkeleton } from '../components/LoadingSkeleton';
 import Modal from '../components/Modal';
 import ProjectCard from '../components/ProjectCard';
@@ -73,6 +74,7 @@ const Dashboard = () => {
     tasks,
     habits,
     dailyPlan,
+    notebooks,
     updateUser,
     updateUserProfilePic,
     calculateGoalProgress,
@@ -268,6 +270,9 @@ const Dashboard = () => {
     downloadWeeklyAnalyticsCsv(weeklyData);
   };
 
+  const handleExportData = () => {
+    exportWorkspaceData({ goals, tasks, projects, habits, dailyPlan, notebooks, user });
+  };
   const handleEditProfile = async (e) => {
     e.preventDefault();
 
@@ -476,6 +481,14 @@ const Dashboard = () => {
                 >
                   <UserPlus2 size={20} />
                   <span>Connect</span>
+                </GradientButton>
+                <GradientButton
+                  onClick={handleExportData}
+                  className="w-full max-w-xs sm:max-w-none md:min-w-[9.5rem] px-6 py-3 flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_35px_rgba(99,102,241,0.6)] hover:scale-[1.05] transform-gpu transition-all duration-300 ease-in-out border border-indigo-400/20 mt-2"
+                  data-testid="export-data-btn"
+                >
+                  <Download size={20} />
+                  <span>Export Data</span>
                 </GradientButton>
               </div>
             </div>

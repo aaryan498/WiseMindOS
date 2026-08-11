@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test, { afterEach } from 'node:test';
 import jwt from 'jsonwebtoken';
 
-import { createGoal, getGoals } from '../controllers/goalController.js';
+import { createGoal, getGoals, updateGoal } from '../controllers/goalController.js';
 import { toggleTaskCompletion } from '../controllers/taskController.js';
 import { loginUser, registerUser } from '../controllers/userController.js';
 import authUser from '../middlewares/auth.js';
@@ -46,7 +46,7 @@ afterEach(() => {
 test('createGoal returns a validation response when title is missing', async () => {
     const res = mockResponse();
 
-    await createGoal({ body: { userId: 'user-1' } }, res);
+    await createGoal({ body: {}, user: { id: 'user-1' } }, res, () => {});
 
     assert.deepEqual(res.body, {
         success: false,
@@ -62,10 +62,10 @@ test('createGoal rejects duplicate titles for the same user', async () => {
 
     await createGoal({
         body: {
-            userId: 'user-1',
             title: '  software developer '
-        }
-    }, res);
+        },
+        user: { id: 'user-1' }
+    }, res, () => {});
 
     assert.deepEqual(res.body, {
         success: false,
@@ -84,10 +84,10 @@ test('createGoal persists default values for a valid goal', async () => {
 
     await createGoal({
         body: {
-            userId: '507f1f77bcf86cd799439011',
             title: 'Ship open-source work'
-        }
-    }, res);
+        },
+        user: { id: '507f1f77bcf86cd799439011' }
+    }, res, () => {});
 
     assert.equal(res.body.success, true);
     assert.equal(res.body.message, 'Goal Created Successfully !');
@@ -111,10 +111,93 @@ test('getGoals calculates progress from completed goal tasks', async () => {
         { completed: true }
     ]);
 
-    await getGoals({ body: { userId: 'user-1' } }, res);
+    await getGoals({ body: {}, user: { id: 'user-1' } }, res, () => {});
 
     assert.equal(res.body.success, true);
     assert.equal(res.body.goals[0].progress, 67);
+});
+
+test('updateGoal returns a validation response when goalId is missing', async () => {
+    const res = mockResponse();
+
+    await updateGoal({ body: {}, user: { id: 'user-1' } }, res, () => {});
+
+    assert.deepEqual(res.body, {
+        success: false,
+        message: 'Goal ID is required'
+    });
+});
+
+test('updateGoal returns a validation response when goal is not found', async () => {
+    const res = mockResponse();
+    replaceProperty(goalModel, 'findOne', async () => null);
+
+    await updateGoal({
+        body: { goalId: 'goal-99' },
+        user: { id: 'user-1' }
+    }, res, () => {});
+
+    assert.deepEqual(res.body, {
+        success: false,
+        message: 'Goal not found'
+    });
+});
+
+test('updateGoal rejects duplicate titles for the same user', async () => {
+    const res = mockResponse();
+    const existingGoal = {
+        _id: 'goal-1',
+        title: 'Original Title',
+        save: async () => {}
+    };
+    replaceProperty(goalModel, 'findOne', async () => existingGoal);
+    replaceProperty(goalModel, 'find', async () => [
+        { _id: 'goal-2', title: 'duplicate title' }
+    ]);
+
+    await updateGoal({
+        body: {
+            goalId: 'goal-1',
+            title: '  duplicate title '
+        },
+        user: { id: 'user-1' }
+    }, res, () => {});
+
+    assert.deepEqual(res.body, {
+        success: false,
+        message: 'A goal with this title already exists'
+    });
+});
+
+test('updateGoal updates goal fields successfully', async () => {
+    const res = mockResponse();
+    const existingGoal = {
+        _id: 'goal-1',
+        title: 'Original Title',
+        type: 'personal',
+        saveCalled: false,
+        async save() {
+            this.saveCalled = true;
+            return this;
+        }
+    };
+    replaceProperty(goalModel, 'findOne', async () => existingGoal);
+    replaceProperty(goalModel, 'find', async () => []);
+
+    await updateGoal({
+        body: {
+            goalId: 'goal-1',
+            title: 'Updated Title',
+            type: 'professional'
+        },
+        user: { id: 'user-1' }
+    }, res, () => {});
+
+    assert.equal(res.body.success, true);
+    assert.equal(res.body.message, 'Goal updated Successfully');
+    assert.equal(existingGoal.title, 'Updated Title');
+    assert.equal(existingGoal.type, 'professional');
+    assert.equal(existingGoal.saveCalled, true);
 });
 
 test('toggleTaskCompletion updates task source of truth and daily plan mirror', async () => {
@@ -140,10 +223,10 @@ test('toggleTaskCompletion updates task source of truth and daily plan mirror', 
 
     await toggleTaskCompletion({
         body: {
-            userId: 'user-1',
             taskId: 'task-1'
-        }
-    }, res);
+        },
+        user: { id: 'user-1' }
+    }, res, () => {});
 
     assert.equal(res.body.success, true);
     assert.equal(task.completed, true);
@@ -183,7 +266,7 @@ test('authUser stores decoded user id and calls next for a valid token', async (
     }
 
     assert.equal(nextCalled, true);
-    assert.equal(req.body.userId, 'user-123');
+    assert.equal(req.user.id, 'user-123');
 });
 
 test('multer upload config enforces 5 MB file size limit', () => {
