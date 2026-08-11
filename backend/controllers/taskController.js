@@ -8,7 +8,7 @@ const createTask = async (req, res, next) => {
         const userId = req.user.id;
 
         if (!title) {
-            return res.json({ success: false, message: 'Title is required' });
+            return res.status(400).json({ success: false, message: 'Title is required' });
         }
 
         const newTask = new taskModel({
@@ -50,12 +50,12 @@ const updateTask = async (req, res, next) => {
         const { taskId } = req.params;
 
         if (!taskId) {
-            return res.json({ success: false, message: 'Task ID is required' });
+            return res.status(400).json({ success: false, message: 'Task ID is required' });
         }
 
         const task = await taskModel.findOne({ _id: taskId, userId });
         if (!task) {
-            return res.json({ success: false, message: 'Task not found' });
+            return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
         if (title) task.title = title;
@@ -80,13 +80,13 @@ const toggleTaskCompletion = async (req, res, next) => {
         const userId = req.user.id;
 
         if (!taskId) {
-            return res.json({ success: false, message: 'Task ID is required' });
+            return res.status(400).json({ success: false, message: 'Task ID is required' });
         }
 
         // SOURCE OF TRUTH: Update Task first
         const task = await taskModel.findOne({ _id: taskId, userId });
         if (!task) {
-            return res.json({ success: false, message: 'Task not found' });
+            return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
         task.completed = !task.completed;
@@ -121,12 +121,12 @@ const deleteTask = async (req, res, next) => {
         const userId = req.user.id;
 
         if (!taskId) {
-            return res.json({ success: false, message: 'Task ID is required' });
+            return res.status(400).json({ success: false, message: 'Task ID is required' });
         }
 
         const task = await taskModel.findOneAndDelete({ _id: taskId, userId });
         if (!task) {
-            return res.json({ success: false, message: 'Task not found' });
+            return res.status(404).json({ success: false, message: 'Task not found' });
         }
 
         // Remove from DailyPlan if exists

@@ -35,16 +35,16 @@ export const createPage = async (req, res, next) => {
     const { notebookId } = req.body;
 
     if (!notebookId) {
-      return res.json({ success: false, message: "NotebookId required" });
+      return res.status(400).json({ success: false, message: "NotebookId required" });
     }
 
     const notebook = await notebookModel.findOne({ _id: notebookId, userId });
     if (!notebook) {
-      return res.json({ success: false, message: "Notebook not found" });
+      return res.status(404).json({ success: false, message: "Notebook not found" });
     }
 
     if (notebook.pageCount >= 100) {
-      return res.json({ success: false, message: "Max 100 pages allowed" });
+      return res.status(400).json({ success: false, message: "Max 100 pages allowed" });
     }
 
     const page = new pageModel({
@@ -62,7 +62,7 @@ export const createPage = async (req, res, next) => {
     res.json({ success: true, page });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -99,21 +99,21 @@ export const updatePage = async (req, res, next) => {
     const userId = req.user.id;
 
     if (content === undefined || content === null) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "Content is required"
       });
     }
 
     if (typeof content !== "string") {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "Content must be a string"
       });
     }
 
     if (content.length > 10000) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "Max 10KB content allowed"
       });
@@ -129,7 +129,7 @@ export const updatePage = async (req, res, next) => {
     );
 
     if (!page) {
-      return res.json({
+      return res.status(404).json({
         success: false,
         message: "Page not found"
       });
@@ -154,7 +154,7 @@ export const deletePage = async (req, res, next) => {
     });
 
     if (!page) {
-      return res.json({
+      return res.status(404).json({
         success: false,
         message: "Page not found"
       });

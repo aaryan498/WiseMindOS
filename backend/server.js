@@ -18,6 +18,12 @@ const port = process.env.PORT || 4000;
 connectDB();
 
 app.use(express.json());
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({ success: false, message: 'Malformed JSON in request body' });
+    }
+    next(err);
+});
 app.use(cors());
 
 
@@ -39,6 +45,15 @@ app.get('/', (req, res)=>{
 })
 
 app.use(errorHandler);
+
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
 
 app.listen(port, ()=>{
     console.log(`Server running : http://localhost:${port}`);

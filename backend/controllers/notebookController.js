@@ -38,8 +38,7 @@ export const createNotebook = async (req, res, next) => {
     const { name } = req.body;
 
     if (!name || !name.trim()) {
-      return res.json({ success: false, message: "Name required" });
-    }
+      return res.status(400).json({ success: false, message: "Name required" });
 
     const trimmedName = name.trim();
     const existing = await notebookModel.findOne({
@@ -53,7 +52,7 @@ export const createNotebook = async (req, res, next) => {
 
     const count = await notebookModel.countDocuments({ userId });
     if (count >= 40) {
-      return res.json({ success: false, message: "Max 40 notebooks allowed" });
+      return res.status(400).json({ success: false, message: "Max 40 notebooks allowed" });
     }
 
     const notebook = new notebookModel({
@@ -67,7 +66,7 @@ export const createNotebook = async (req, res, next) => {
     res.json({ success: true, notebook });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -84,7 +83,7 @@ export const getNotebooks = async (req, res, next) => {
     res.json({ success: true, notebooks });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -96,7 +95,7 @@ export const updateNotebook = async (req, res, next) => {
     const userId = req.user.id;
 
     if (!notebookId || !name || !name.trim()) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "NotebookId and name required"
       });
@@ -129,7 +128,7 @@ export const updateNotebook = async (req, res, next) => {
     );
 
     if (!notebook) {
-      return res.json({
+      return res.status(404).json({
         success: false,
         message: "Notebook not found"
       });
@@ -154,7 +153,7 @@ export const deleteNotebook = async (req, res, next) => {
     });
 
     if (!notebook) {
-      return res.json({
+      return res.status(404).json({
         success: false,
         message: "Notebook not found"
       });

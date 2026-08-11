@@ -10,6 +10,9 @@ const createGoal = async (req, res, next) => {
         const { title, type, description, deadline } = req.body;
         const userId = req.user.id;
 
+        if (!title || !title.trim()) {
+            return res.status(400).json({ success: false, message: 'Title is required' });
+        }
        const { value: cleanTitle, error: titleError } = sanitizeField(title, 'title', { required: true });
         if (titleError) return res.json({ success: false, message: titleError });
 
@@ -21,7 +24,7 @@ const createGoal = async (req, res, next) => {
         );
 
         if (isDuplicate) {
-            return res.json({ success: false, message: 'A goal with this title already exists' });
+            return res.status(409).json({ success: false, message: 'A goal with this title already exists' });
         }
 
        const newGoal = new goalModel({
@@ -73,12 +76,12 @@ const updateGoal = async (req, res, next) => {
         const { goalId } = req.params;
 
         if (!goalId) {
-            return res.json({ success: false, message: 'Goal ID is required' });
+            return res.status(400).json({ success: false, message: 'Goal ID is required' });
         }
 
         const goal = await goalModel.findOne({ _id: goalId, userId });
         if (!goal) {
-            return res.json({ success: false, message: 'Goal not found' });
+            return res.status(404).json({ success: false, message: 'Goal not found' });
         }
 
         if (title) {
@@ -114,12 +117,12 @@ const deleteGoal = async (req, res, next) => {
         const userId = req.user.id;
 
         if (!goalId) {
-            return res.json({ success: false, message: 'Goal ID is required' });
+            return res.status(400).json({ success: false, message: 'Goal ID is required' });
         }
 
         const goal = await goalModel.findOneAndDelete({ _id: goalId, userId });
         if (!goal) {
-            return res.json({ success: false, message: 'Goal not found' });
+            return res.status(404).json({ success: false, message: 'Goal not found' });
         }
 
         await Promise.all([

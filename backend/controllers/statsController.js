@@ -7,7 +7,7 @@ const saveDailyStats = async (req, res, next) => {
     const userId = req.user.id;
 
     if (productivity === undefined || discipline === undefined) {
-      return res.json({ success: false, message: 'Scores are required' });
+      return res.status(400).json({ success: false, message: 'Scores are required' });
     }
 
     const today = new Date();

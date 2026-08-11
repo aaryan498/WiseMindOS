@@ -7,8 +7,11 @@ const createProject = async (req, res, next) => {
         const { title, goalId, deadline, description } = req.body;
         const userId = req.user.id;
 
+        if (!title) {
+            return res.status(400).json({ success: false, message: 'Title is required' });
+        }
         const { value: cleanTitle, error: titleError } = sanitizeField(title, 'title', { required: true });
-        if (titleError) return res.json({ success: false, message: titleError });
+        if (titleError) return res.status(400).json({ success: false, message: titleError });
 
         const { value: cleanDescription } = sanitizeField(description, 'description');
 
@@ -63,12 +66,12 @@ const updateProject = async (req, res, next) => {
         const { projectId } = req.params;
 
         if (!projectId) {
-            return res.json({ success: false, message: 'Project ID is required' });
+            return res.status(400).json({ success: false, message: 'Project ID is required' });
         }
 
         const project = await projectModel.findOne({ _id: projectId, userId });
         if (!project) {
-            return res.json({ success: false, message: 'Project not found' });
+            return res.status(404).json({ success: false, message: 'Project not found' });
         }
 
        if (title) {
@@ -97,12 +100,12 @@ const deleteProject = async (req, res, next) => {
         const userId = req.user.id;
 
         if (!projectId) {
-            return res.json({ success: false, message: 'Project ID is required' });
+            return res.status(400).json({ success: false, message: 'Project ID is required' });
         }
 
         const project = await projectModel.findOneAndDelete({ _id: projectId, userId });
         if (!project) {
-            return res.json({ success: false, message: 'Project not found' });
+            return res.status(404).json({ success: false, message: 'Project not found' });
         }
 
         await taskModel.updateMany({ userId, projectId }, { $set: { projectId: null } });
