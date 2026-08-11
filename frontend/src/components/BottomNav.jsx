@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ListChecks, Focus, Sparkles, Library, LogOut } from 'lucide-react';
+import { Home, ListChecks, Focus, Sparkles, Library, LogOut, Sun, Moon } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { useApp } from '../store/AppContext';
+import { useTheme } from '../store/ThemeContext';
 import Modal from './Modal';
 
 const BottomNav = () => {
@@ -10,6 +11,7 @@ const BottomNav = () => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const { setToken, navigate } = useApp();
+  const { theme, toggleTheme } = useTheme();
 
   const logout = () => {
     navigate('/login');
@@ -34,6 +36,8 @@ const BottomNav = () => {
         className="
           fixed bottom-0 left-0 right-0 z-50
           bg-black/40 backdrop-blur-xl
+          dark:bg-black/40 dark:text-white
+          bg-white/70 text-gray-900
           border-t border-white/10
           shadow-[0_-10px_30px_rgba(0,0,0,0.5)]
         "
@@ -88,6 +92,25 @@ const BottomNav = () => {
               </Link>
             );
           })}
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="flex-1 h-full flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 focus-visible:ring-inset"
+          >
+            <Motion.div
+              className="flex flex-col items-center justify-center px-3 py-1 rounded-xl transition-all duration-300 text-gray-400"
+              whileTap={{ scale: 0.9 }}
+            >
+              {theme === 'dark' ? (
+                <Sun aria-hidden="true" size={22} />
+              ) : (
+                <Moon aria-hidden="true" size={22} />
+              )}
+              <span className="text-[10px] mt-1">Theme</span>
+            </Motion.div>
+          </button>
         </div>
       </nav>
 
