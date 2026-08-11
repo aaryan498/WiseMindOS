@@ -9,6 +9,9 @@ const goalSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }, { minimize: false });
 
+// goalController.js filters every read by userId.
+goalSchema.index({ userId: 1 });
+
 const goalModel = mongoose.models.goal || mongoose.model('goal', goalSchema);
 
 export default goalModel;

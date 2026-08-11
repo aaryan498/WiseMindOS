@@ -100,8 +100,13 @@ Create a `.env` file inside backend directory:
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
+JWT_SECRET=change-me-to-a-random-secret
 CLIENT_URL=http://localhost:5173
+```
+
+## How to Generate a Strong Secret
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 Run backend:

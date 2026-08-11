@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
 import { format, getHours } from 'date-fns';
-import { Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Clock } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
 const TIME_FORMAT_STORAGE_KEY = 'wisemindos-clock-time-format';
 
@@ -59,10 +59,6 @@ const ClockWidget = () => {
 
   const dateTimeLabel = `${format(currentTime, 'EEEE, MMMM dd, yyyy')} • ${timeZone}${offset ? ` (${offset})` : ''}`;
 
-  const toggleTimeFormat = () => {
-    setTimeFormat((prevFormat) => (prevFormat === '24h' ? '12h' : '24h'));
-  };
-
   const getGreeting = () => {
     const hour = getHours(currentTime);
     if (hour < 12) return 'Good Morning, time for deep work';
@@ -88,6 +84,7 @@ const ClockWidget = () => {
           <span className="leading-relaxed break-words">{dateTimeLabel}</span>
         </p>
 
+        {/* FIXED: Removed Toggle button, kept only 12H and 24H */}
         <div className="mt-4 flex items-center gap-3 rounded-full border border-white/10 bg-white/5 p-1 shadow-inner backdrop-blur-md">
           {['12h', '24h'].map((formatOption) => {
             const isActive = timeFormat === formatOption;
@@ -98,6 +95,7 @@ const ClockWidget = () => {
                 type="button"
                 onClick={() => setTimeFormat(formatOption)}
                 aria-pressed={isActive}
+                aria-label={`Switch to ${formatOption === '12h' ? '12-hour' : '24-hour'} time format`}
                 className={`rounded-full px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] transition-all duration-300 ${
                   isActive
                     ? 'bg-indigo-500 text-white shadow-[0_0_18px_rgba(99,102,241,0.55)]'
@@ -108,14 +106,7 @@ const ClockWidget = () => {
               </button>
             );
           })}
-          <button
-            type="button"
-            onClick={toggleTimeFormat}
-            className="rounded-full px-3 py-1.5 text-xs font-semibold text-indigo-200 hover:text-white hover:bg-indigo-500/20 transition-all duration-300"
-            aria-label={`Switch to ${isTwelveHourFormat ? '24-hour' : '12-hour'} time format`}
-          >
-            Toggle
-          </button>
+          {/* ✅ REMOVED: Toggle button completely */}
         </div>
       </div>
 

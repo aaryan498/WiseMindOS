@@ -137,7 +137,7 @@ const addToDailyPlan = async (req, res, next) => {
 // Remove from Daily Plan
 const removeFromDailyPlan = async (req, res, next) => {
     try {
-        const { plannedTaskId } = req.body;
+        const { plannedTaskId } = req.params;
         const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
 
@@ -170,7 +170,7 @@ const removeFromDailyPlan = async (req, res, next) => {
 // Toggle Daily Plan Task Completion (CRITICAL - Updates source first, then reflects)
 const toggleDailyPlanTask = async (req, res, next) => {
     try {
-        const { plannedTaskId } = req.body;
+        const { plannedTaskId } = req.params;
         const userId = req.user.id;
         const today = new Date().toISOString().split('T')[0];
 

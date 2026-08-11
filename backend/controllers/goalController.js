@@ -1,9 +1,9 @@
 import goalModel from '../models/goalModel.js';
 import projectModel from '../models/projectModel.js';
 import taskModel from '../models/taskModel.js';
+import { sanitizeField } from '../utils/sanitize.js';
 
 const normalizeGoalTitle = (title) => (title ?? '').trim().toLowerCase();
-
 // Create Goal
 const createGoal = async (req, res, next) => {
     try {
@@ -13,8 +13,11 @@ const createGoal = async (req, res, next) => {
         if (!title || !title.trim()) {
             return res.status(400).json({ success: false, message: 'Title is required' });
         }
+       const { value: cleanTitle, error: titleError } = sanitizeField(title, 'title', { required: true });
+        if (titleError) return res.json({ success: false, message: titleError });
 
-        const trimmedTitle = title.trim();
+        const { value: cleanDescription } = sanitizeField(description, 'description');
+        const trimmedTitle = cleanTitle;
         const existingGoals = await goalModel.find({ userId });
         const isDuplicate = existingGoals.some(
             (goal) => normalizeGoalTitle(goal.title) === normalizeGoalTitle(trimmedTitle)
@@ -24,11 +27,11 @@ const createGoal = async (req, res, next) => {
             return res.status(409).json({ success: false, message: 'A goal with this title already exists' });
         }
 
-        const newGoal = new goalModel({
+       const newGoal = new goalModel({
             userId,
             title: trimmedTitle,
             type: type || 'personal',
-            description: description || '',
+            description: cleanDescription || '',
             deadline: deadline || null
         });
 
@@ -68,8 +71,9 @@ const getGoals = async (req, res, next) => {
 // Update Goal
 const updateGoal = async (req, res, next) => {
     try {
-        const { goalId, title, type, description, deadline } = req.body;
+        const { title, type, description, deadline } = req.body;
         const userId = req.user.id;
+        const { goalId } = req.params;
 
         if (!goalId) {
             return res.status(400).json({ success: false, message: 'Goal ID is required' });
@@ -80,7 +84,20 @@ const updateGoal = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Goal not found' });
         }
 
-        if (title) goal.title = title;
+        if (title) {
+            const trimmedTitle = title.trim();
+            if (!trimmedTitle) {
+                return res.json({ success: false, message: 'Title is required' });
+            }
+            const existingGoals = await goalModel.find({ userId, _id: { $ne: goalId } });
+            const isDuplicate = existingGoals.some(
+                (g) => normalizeGoalTitle(g.title) === normalizeGoalTitle(trimmedTitle)
+            );
+            if (isDuplicate) {
+                return res.json({ success: false, message: 'A goal with this title already exists' });
+            }
+            goal.title = trimmedTitle;
+        }
         if (type) goal.type = type;
         if (description !== undefined) goal.description = description;
         if (deadline !== undefined) goal.deadline = deadline;
@@ -96,7 +113,7 @@ const updateGoal = async (req, res, next) => {
 // Delete Goal
 const deleteGoal = async (req, res, next) => {
     try {
-        const { goalId } = req.body;
+        const { goalId } = req.params;
         const userId = req.user.id;
 
         if (!goalId) {

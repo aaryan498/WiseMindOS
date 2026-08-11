@@ -31,14 +31,23 @@ export const reorderNotebooks = async (userId) => {
   return remainingNotebooks.length;
 };
 
-// ➤ Create Notebook (max 40)
+// âž¤ Create Notebook (max 40)
 export const createNotebook = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { name } = req.body;
 
-    if (!name) {
+    if (!name || !name.trim()) {
       return res.status(400).json({ success: false, message: "Name required" });
+
+    const trimmedName = name.trim();
+    const existing = await notebookModel.findOne({
+      userId,
+      name: new RegExp('^' + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
+    });
+
+    if (existing) {
+      return res.json({ success: false, message: "A notebook with this name already exists" });
     }
 
     const count = await notebookModel.countDocuments({ userId });
@@ -48,7 +57,7 @@ export const createNotebook = async (req, res, next) => {
 
     const notebook = new notebookModel({
       userId,
-      name,
+      name: trimmedName,
       order: count + 1
     });
 
@@ -62,7 +71,7 @@ export const createNotebook = async (req, res, next) => {
 };
 
 
-// ➤ Get all notebooks of user
+// âž¤ Get all notebooks of user
 export const getNotebooks = async (req, res, next) => {
   try {
     const userId = req.user.id;
@@ -78,38 +87,64 @@ export const getNotebooks = async (req, res, next) => {
   }
 };
 
-// ➤ Update Notebook Name
+// âž¤ Update Notebook Name
 export const updateNotebook = async (req, res, next) => {
   try {
-    const { notebookId, name } = req.body;
+    const { notebookId } = req.params;
+    const { name } = req.body;
     const userId = req.user.id;
 
-    if (!notebookId || !name) {
-      return res.status(400).json({ success: false, message: "NotebookId and name required" });
+    if (!notebookId || !name || !name.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "NotebookId and name required"
+      });
+    }
+
+    const trimmedName = name.trim();
+
+    const existing = await notebookModel.findOne({
+      userId,
+      _id: { $ne: notebookId },
+      name: new RegExp(
+        '^' +
+          trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+          '$',
+        'i'
+      )
+    });
+
+    if (existing) {
+      return res.json({
+        success: false,
+        message: "A notebook with this name already exists"
+      });
     }
 
     const notebook = await notebookModel.findOneAndUpdate(
       { _id: notebookId, userId },
-      { name },
+      { name: trimmedName },
       { new: true }
     );
 
     if (!notebook) {
-      return res.status(404).json({ success: false, message: "Notebook not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Notebook not found"
+      });
     }
 
     res.json({ success: true, notebook });
-
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
 
-// ➤ Delete Notebook (with user check + cascade delete)
+// âž¤ Delete Notebook (with user check + cascade delete)
 export const deleteNotebook = async (req, res, next) => {
   try {
-    const { notebookId } = req.body;
+    const { notebookId } = req.params;
     const userId = req.user.id;
 
     const notebook = await notebookModel.findOneAndDelete({
@@ -118,10 +153,12 @@ export const deleteNotebook = async (req, res, next) => {
     });
 
     if (!notebook) {
-      return res.status(404).json({ success: false, message: "Notebook not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Notebook not found"
+      });
     }
 
-    // delete all pages of this notebook (scoped to authenticated user)
     await pageModel.deleteMany({ notebookId, userId });
 
     await reorderNotebooks(userId);
@@ -131,8 +168,7 @@ export const deleteNotebook = async (req, res, next) => {
       .sort({ order: 1 });
 
     res.json({ success: true, notebooks });
-
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };

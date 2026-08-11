@@ -129,6 +129,9 @@ The ecosystem is scaling toward an intelligent productivity framework powered by
 ---
 # Project Architecture
 
+> [!TIP]
+> For a detailed, visual, and comprehensive breakdown of the application structure, data sync logic, and design patterns, check out the [ARCHITECTURE.md](ARCHITECTURE.md) document.
+
 ```text
 WiseMindOS/
 │
@@ -169,6 +172,7 @@ WiseMindOS/
 │   └── vite.config.js
 │
 │
+├── ARCHITECTURE.md
 ├── CONTRIBUTING.md
 ├── CODE_OF_CONDUCT.md
 ├── LICENSE
@@ -298,6 +302,11 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret
 IMAGEKIT_PUBLIC_KEY=placeholder_public_key
 IMAGEKIT_PRIVATE_KEY=placeholder_private_key
 IMAGEKIT_URL_ENDPOINT=placeholder_url_endpoint
+```
+
+## How to Generate a Strong Secret
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ## 5. Install Backend Dependencies

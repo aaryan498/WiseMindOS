@@ -70,17 +70,23 @@ export const createPage = async (req, res, next) => {
 // ➤ Get pages of a notebook (with user check)
 export const getPages = async (req, res, next) => {
   try {
-    const { notebookId } = req.body;
+    const { notebookId } = req.query;
     const userId = req.user.id;
+
+    if (!notebookId) {
+      return res.json({
+        success: false,
+        message: "NotebookId required"
+      });
+    }
 
     const pages = await pageModel
       .find({ notebookId, userId })
       .sort({ order: 1 });
 
     res.json({ success: true, pages });
-
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -88,19 +94,29 @@ export const getPages = async (req, res, next) => {
 // ➤ Update Page Content (max 10KB + user check)
 export const updatePage = async (req, res, next) => {
   try {
-    const { pageId, content } = req.body;
+    const { pageId } = req.params;
+    const { content } = req.body;
     const userId = req.user.id;
 
     if (content === undefined || content === null) {
-      return res.status(400).json({ success: false, message: "Content is required" });
+      return res.status(400).json({
+        success: false,
+        message: "Content is required"
+      });
     }
 
     if (typeof content !== "string") {
-      return res.status(400).json({ success: false, message: "Content must be a string" });
+      return res.status(400).json({
+        success: false,
+        message: "Content must be a string"
+      });
     }
 
     if (content.length > 10000) {
-      return res.status(400).json({ success: false, message: "Max 10KB content allowed" });
+      return res.status(400).json({
+        success: false,
+        message: "Max 10KB content allowed"
+      });
     }
 
     const page = await pageModel.findOneAndUpdate(
@@ -113,13 +129,15 @@ export const updatePage = async (req, res, next) => {
     );
 
     if (!page) {
-      return res.status(404).json({ success: false, message: "Page not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Page not found"
+      });
     }
 
     res.json({ success: true, page });
-
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -127,7 +145,7 @@ export const updatePage = async (req, res, next) => {
 // ➤ Delete Page (with user check)
 export const deletePage = async (req, res, next) => {
   try {
-    const { pageId, notebookId } = req.body;
+    const { pageId } = req.params;
     const userId = req.user.id;
 
     const page = await pageModel.findOneAndDelete({
@@ -136,11 +154,14 @@ export const deletePage = async (req, res, next) => {
     });
 
     if (!page) {
-      return res.status(404).json({ success: false, message: "Page not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Page not found"
+      });
     }
 
     const notebook = await notebookModel.findOne({
-      _id: notebookId,
+      _id: page.notebookId,
       userId
     });
 
@@ -152,12 +173,14 @@ export const deletePage = async (req, res, next) => {
     await reorderNotebookPages(page.notebookId, userId);
 
     const pages = await pageModel
-      .find({ notebookId: page.notebookId, userId })
+      .find({
+        notebookId: page.notebookId,
+        userId
+      })
       .sort({ order: 1 });
 
     res.json({ success: true, pages });
-
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };

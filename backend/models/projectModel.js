@@ -10,6 +10,9 @@ const projectSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 }, { minimize: false });
 
+// projectController.js filters every read by userId.
+projectSchema.index({ userId: 1 });
+
 const projectModel = mongoose.models.project || mongoose.model('project', projectSchema);
 
 export default projectModel;

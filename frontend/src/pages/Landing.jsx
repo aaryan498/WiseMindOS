@@ -1,11 +1,13 @@
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion as Motion } from "framer-motion";
 import { Target, TrendingUp, Sparkles, Brain, CheckCircle, Zap } from 'lucide-react';
 import GradientButton from '../components/GradientButton';
 import Card from '../components/Card';
+import TestimonialSection from '../components/TestimonialSection';
 import { ArrowRight } from 'lucide-react';
 import logo from '../assets/logo.jpeg';
-
+import Navbar from "../components/Navbar";
 const Landing = () => {
   const features = [
     {
@@ -75,7 +77,10 @@ const Landing = () => {
   };
 
   return (
+      <>
+        <Navbar />
 <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white overflow-x-hidden">
+
       {/* Hero Section */}
       <div className='bg-gradient-to-br from-gray-900 via-black to-gray-900'>
         <Motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2 }}>
@@ -335,6 +340,9 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <TestimonialSection />
+
       {/* ── Footer ─────────────────────────────────────────────────────────────── */}
       <Motion.footer
         className="py-16 px-4 bg-gray-800/50 border-t border-gray-700 relative overflow-hidden"
@@ -501,6 +509,7 @@ hover:scale-[1.02] hover:bg-white/10 transition-all duration-300 hover:drop-shad
         </div>
       </Motion.footer>
     </div>
+    </>
   );
 };
 

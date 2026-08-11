@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test, { afterEach } from 'node:test';
 
-import { deleteNotebook, reorderNotebooks } from '../controllers/notebookController.js';
+import { deleteNotebook, reorderNotebooks, createNotebook, updateNotebook } from '../controllers/notebookController.js';
 import notebookModel from '../models/notebookModel.js';
 import pageModel from '../models/pageModel.js';
 
@@ -29,12 +29,18 @@ function mockFindNotebooks(notebooks) {
 }
 
 function expectedBulkOps(notebooks) {
-    return notebooks.map((notebook, index) => ({
-        updateOne: {
-            filter: { _id: notebook._id },
-            update: { $set: { order: index + 1 } },
-        },
-    }));
+    return notebooks
+        .map((notebook, index) => {
+            const desiredOrder = index + 1;
+            if (notebook.order === desiredOrder) return null;
+            return {
+                updateOne: {
+                    filter: { _id: notebook._id },
+                    update: { $set: { order: desiredOrder } },
+                },
+            };
+        })
+        .filter(Boolean);
 }
 
 afterEach(() => {
@@ -50,7 +56,7 @@ test('reorderNotebooks compacts multiple gaps into a continuous sequence', async
         { _id: 'notebook-3', name: 'Ideas', order: 3 },
         { _id: 'notebook-5', name: 'Tasks', order: 5 },
     ];
-    let bulkOps;
+    let bulkOps = [];
 
     mockFindNotebooks(notebooks);
     replaceProperty(notebookModel, 'bulkWrite', async (ops) => {
@@ -68,7 +74,7 @@ test('reorderNotebooks shifts notebooks after deleting the first one', async () 
         { _id: 'notebook-2', name: 'Ideas', order: 2 },
         { _id: 'notebook-3', name: 'Tasks', order: 3 },
     ];
-    let bulkOps;
+    let bulkOps = [];
 
     mockFindNotebooks(notebooks);
     replaceProperty(notebookModel, 'bulkWrite', async (ops) => {
@@ -85,7 +91,7 @@ test('reorderNotebooks keeps trailing notebooks sequential after deleting the la
         { _id: 'notebook-1', name: 'Notes', order: 1 },
         { _id: 'notebook-2', name: 'Ideas', order: 2 },
     ];
-    let bulkOps;
+    let bulkOps = [];
 
     mockFindNotebooks(notebooks);
     replaceProperty(notebookModel, 'bulkWrite', async (ops) => {
@@ -122,7 +128,7 @@ test('deleteNotebook reorders remaining notebooks after any notebook is removed'
         { _id: 'notebook-3', name: 'Tasks', order: 3 },
         { _id: 'notebook-4', name: 'Ideas', order: 4 },
     ];
-    let bulkOps;
+    let bulkOps = [];
 
     let pageDeleteFilter;
 
@@ -131,10 +137,7 @@ test('deleteNotebook reorders remaining notebooks after any notebook is removed'
         pageDeleteFilter = filter;
     });
     replaceProperty(notebookModel, 'find', () => ({
-        sort: async () => remainingNotebooks.map((notebook, index) => ({
-            ...notebook,
-            order: index + 1,
-        })),
+        sort: async () => remainingNotebooks,
     }));
     replaceProperty(notebookModel, 'bulkWrite', async (ops) => {
         bulkOps = ops;
@@ -143,9 +146,9 @@ test('deleteNotebook reorders remaining notebooks after any notebook is removed'
     await deleteNotebook({
         body: {
             notebookId: 'notebook-2',
-            userId: 'user-1',
         },
-    }, res);
+        user: { id: 'user-1' }
+    }, res, () => {});
 
     assert.equal(res.body.success, true);
     assert.equal(res.body.notebooks.length, 3);
@@ -172,9 +175,9 @@ test('deleteNotebook only deletes pages owned by the authenticated user', async 
     await deleteNotebook({
         body: {
             notebookId: 'notebook-1',
-            userId: 'user-42',
         },
-    }, res);
+        user: { id: 'user-42' }
+    }, res, () => {});
 
     assert.equal(res.body.success, true);
     assert.deepEqual(pageDeleteFilter, {
@@ -199,9 +202,9 @@ test('deleteNotebook does not reorder when the notebook does not exist', async (
     await deleteNotebook({
         body: {
             notebookId: 'missing-notebook',
-            userId: 'user-1',
         },
-    }, res);
+        user: { id: 'user-1' }
+    }, res, () => {});
 
     assert.deepEqual(res.body, {
         success: false,
@@ -209,4 +212,85 @@ test('deleteNotebook does not reorder when the notebook does not exist', async (
     });
     assert.equal(deleteManyCalled, false);
     assert.equal(bulkWriteCalled, false);
+});
+
+test('createNotebook rejects duplicate names (case-insensitive)', async () => {
+    const res = mockResponse();
+    replaceProperty(notebookModel, 'findOne', async () => ({
+        _id: 'notebook-1',
+        name: 'Ideas'
+    }));
+
+    await createNotebook({
+        body: { name: '  ideas ' },
+        user: { id: 'user-1' }
+    }, res, () => {});
+
+    assert.deepEqual(res.body, {
+        success: false,
+        message: 'A notebook with this name already exists'
+    });
+});
+
+test('createNotebook creates a valid notebook successfully', async () => {
+    const res = mockResponse();
+    replaceProperty(notebookModel, 'findOne', async () => null);
+    replaceProperty(notebookModel, 'countDocuments', async () => 2);
+    let savedNotebook;
+    replaceProperty(notebookModel.prototype, 'save', async function save() {
+        savedNotebook = this;
+        return this;
+    });
+
+    await createNotebook({
+        body: { name: 'New Learnings' },
+        user: { id: '507f1f77bcf86cd799439011' }
+    }, res, () => {});
+
+    assert.equal(res.body.success, true);
+    assert.equal(savedNotebook.name, 'New Learnings');
+    assert.equal(savedNotebook.order, 3);
+    assert.equal(savedNotebook.userId.toString(), '507f1f77bcf86cd799439011');
+});
+
+test('updateNotebook rejects duplicate names (excluding itself)', async () => {
+    const res = mockResponse();
+    replaceProperty(notebookModel, 'findOne', async () => ({
+        _id: 'notebook-2',
+        name: 'Work Tasks'
+    }));
+
+    await updateNotebook({
+        body: {
+            notebookId: 'notebook-1',
+            name: '  work tasks '
+        },
+        user: { id: 'user-1' }
+    }, res, () => {});
+
+    assert.deepEqual(res.body, {
+        success: false,
+        message: 'A notebook with this name already exists'
+    });
+});
+
+test('updateNotebook updates notebook name successfully', async () => {
+    const res = mockResponse();
+    const updatedNotebook = {
+        _id: 'notebook-1',
+        name: 'Renamed Tasks'
+    };
+    replaceProperty(notebookModel, 'findOne', async () => null);
+    replaceProperty(notebookModel, 'findOneAndUpdate', async () => updatedNotebook);
+
+    await updateNotebook({
+        body: {
+            notebookId: 'notebook-1',
+            name: 'Renamed Tasks'
+        },
+        user: { id: 'user-1' }
+    }, res, () => {});
+
+    assert.equal(res.body.success, true);
+    assert.deepEqual(res.body.notebook, updatedNotebook);
 });
