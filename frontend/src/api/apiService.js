@@ -141,8 +141,8 @@ export const dailyPlanAPI = {
         return response.data;
     },
     updateTask: async (plannedTaskId, updates) => {
-        const response = await api.post('/daily-plan/update', { plannedTaskId, updates });
-        return response.data;
+    const response = await apiClient.post('/api/daily-plan/update', { plannedTaskId, updates });
+    return response.data;
     }
 };
 
