@@ -272,4 +272,49 @@ const clearDailyPlan = async (req, res, next) => {
     }
 };
 
-export { getTodayPlan, addToDailyPlan, removeFromDailyPlan, toggleDailyPlanTask, clearDailyPlan };
+const updateDailyPlanTask = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { plannedTaskId, updates } = req.body;
+
+        if (!plannedTaskId || !updates) {
+            return res.status(400).json({ success: false, message: 'Task ID and updates are required' });
+        }
+
+        const allowedFields = ['startTime', 'endTime', 'isImportant', 'title', 'notes'];
+        const updateQuery = {};
+
+        Object.keys(updates).forEach((key) => {
+            if (allowedFields.includes(key)) {
+                updateQuery[`plannedTasks.$.${key}`] = updates[key];
+            }
+        });
+
+        if (Object.keys(updateQuery).length === 0) {
+            return res.status(400).json({ success: false, message: 'No valid fields provided for update' });
+        }
+
+        const updatedPlan = await dailyPlanModel.findOneAndUpdate(
+            { userId, "plannedTasks._id": plannedTaskId },
+            { $set: updateQuery },
+            { new: true }
+        );
+
+        if (!updatedPlan) {
+            return res.status(404).json({ success: false, message: 'Daily plan or task not found' });
+        }
+
+        return res.status(200).json({ success: true, data: updatedPlan });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+export {
+    getTodayPlan,
+    addToDailyPlan,
+    removeFromDailyPlan,
+    toggleDailyPlanTask,
+    clearDailyPlan,
+    updateDailyPlanTask 
+};

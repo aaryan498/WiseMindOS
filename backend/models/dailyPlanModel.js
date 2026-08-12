@@ -9,7 +9,9 @@ const plannedTaskSchema = new mongoose.Schema({
     endTime: { type: String, required: true },
     completed: { type: Boolean, default: false },
     completedAt: { type: Date, default: null },
-    isImportant: { type: Boolean, default: false }
+    isImportant: { type: Boolean, default: false },
+    notes: { type: String, default: '' },
+    color: { type: String, default: '' }
 }, { _id: true });
 
 const dailyPlanSchema = new mongoose.Schema({
