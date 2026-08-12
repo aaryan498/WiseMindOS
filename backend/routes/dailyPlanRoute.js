@@ -4,7 +4,8 @@ import {
     addToDailyPlan,
     removeFromDailyPlan,
     toggleDailyPlanTask,
-    clearDailyPlan
+    clearDailyPlan,
+    updateDailyPlanTask
 } from '../controllers/dailyPlanController.js';
 import authUser from '../middlewares/auth.js';
 
@@ -14,6 +15,7 @@ dailyPlanRouter.get('/today', authUser, getTodayPlan);
 dailyPlanRouter.post('/tasks', authUser, addToDailyPlan);
 dailyPlanRouter.patch('/tasks/:plannedTaskId/toggle', authUser, toggleDailyPlanTask);
 dailyPlanRouter.delete('/tasks/:plannedTaskId', authUser, removeFromDailyPlan);
+dailyPlanRouter.patch('/tasks/:plannedTaskId', authUser, updateDailyPlanTask);
 dailyPlanRouter.delete('/', authUser, clearDailyPlan);
 
 export default dailyPlanRouter;

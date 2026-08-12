@@ -139,6 +139,10 @@ export const dailyPlanAPI = {
     clear: async () => {
         const response = await apiClient.delete('/api/daily-plan');
         return response.data;
+    },
+    updateTask: async (plannedTaskId, updates) => {
+    const response = await apiClient.post('/api/daily-plan/update', { plannedTaskId, updates });
+    return response.data;
     }
 };
 

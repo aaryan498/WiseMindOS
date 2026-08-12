@@ -904,21 +904,27 @@ export const AppProvider = ({ children }) => {
   };
 
   // Update daily plan task - Backend Integration
-  const updateDailyPlanTask = async (id, updates) => {
+  const updateDailyPlanTask = async (plannedTaskId, updates) => {
+    // Save previous state for rollback
+    const previousPlan = { ...dailyPlan };
+
+    // Optimistically update local UI state
+    setDailyPlan((prevPlan) => ({
+        ...prevPlan,
+        plannedTasks: prevPlan.plannedTasks.map((task) =>
+            task._id === plannedTaskId ? { ...task, ...updates } : task
+        ),
+    }));
+
     try {
-      // For now, update locally (backend doesn't have update endpoint for individual planned tasks)
-      // This is typically used for time adjustments, which are plan-specific
-      setDailyPlan(prev => ({
-        ...prev,
-        plannedTasks: prev.plannedTasks.map(item =>
-          item.id === id ? { ...item, ...updates } : item
-        )
-      }));
+        // Send updates to the server
+        await dailyPlanAPI.updateTask(plannedTaskId, updates);
     } catch (error) {
-      console.error('Error updating daily plan task:', error);
-      showToast({ message: error.message || 'Failed to update task', status: 'error' })
+        // Revert on failure
+        setDailyPlan(previousPlan);
+        toast.error('Failed to update task. Changes reverted.');
     }
-  };
+};
 
   // Clear daily plan - Backend Integration
   const clearDailyPlan = async () => {
