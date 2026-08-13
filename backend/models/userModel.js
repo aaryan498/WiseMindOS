@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema({
     password: { type: String, required: function() { return !this.googleId } },
     googleId: { type: String, unique: true, sparse: true },
     bio: { type: String, default: 'Boosting Myself...Kicking off the limits' },
-    
+    xp: { type: Number, default: 0 },
+    level: { type: Number, default: 1 },
     
 }, { minimize: false, timestamps: true })
 

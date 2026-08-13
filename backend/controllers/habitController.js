@@ -1,5 +1,6 @@
 import habitModel from '../models/habitModel.js';
 import dailyPlanModel from '../models/dailyPlanModel.js';
+import { awardXP } from './gamificationController.js';
 
 // Helper function for streak logic
 const isYesterday = (date) => {
@@ -171,6 +172,8 @@ const completeHabit = async (req, res, next) => {
                 await dailyPlan.save();
             }
         }
+        
+        await awardXP(userId, 20); // 20 XP for completing a habit
 
         return res.json({
             success: true,

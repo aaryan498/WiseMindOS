@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ListChecks, Focus, Sparkles, Library, LogOut } from 'lucide-react';
+import { Home, ListChecks, Focus, Sparkles, Library, LogOut, Trophy } from 'lucide-react';
 import { motion as Motion } from 'framer-motion';
 import { useApp } from '../store/AppContext';
 import Modal from './Modal';
@@ -24,6 +24,7 @@ const BottomNav = () => {
     { path: '/focus-room', icon: Focus, label: 'Focus' },
     { path: '/future-twin', icon: Sparkles, label: 'FutureTwin' },
     { path: '/library', icon: Library, label: 'Library' },
+    { path: '/leaderboard', icon: Trophy, label: 'Rankings' },
     { path: '/login', icon: LogOut, label: 'LogOut' },
   ];
 

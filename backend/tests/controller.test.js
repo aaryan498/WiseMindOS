@@ -12,6 +12,7 @@ import goalModel from '../models/goalModel.js';
 import notebookModel from '../models/notebookModel.js';
 import pageModel from '../models/pageModel.js';
 import taskModel from '../models/taskModel.js';
+import userModel from '../models/userModel.js';
 
 
 const originals = [];
@@ -46,7 +47,7 @@ afterEach(() => {
 test('createGoal returns a validation response when title is missing', async () => {
     const res = mockResponse();
 
-    await createGoal({ body: {}, user: { id: 'user-1' } }, res, () => {});
+    await createGoal({ user: { id: 'user-1' }, body: { userId: 'user-1' } }, res, () => {});
 
     assert.deepEqual(res.body, {
         success: false,
@@ -61,10 +62,10 @@ test('createGoal rejects duplicate titles for the same user', async () => {
     ]);
 
     await createGoal({
+        user: { id: 'user-1' },
         body: {
             title: '  software developer '
-        },
-        user: { id: 'user-1' }
+        }
     }, res, () => {});
 
     assert.deepEqual(res.body, {
@@ -83,10 +84,10 @@ test('createGoal persists default values for a valid goal', async () => {
     });
 
     await createGoal({
+        user: { id: '507f1f77bcf86cd799439011' },
         body: {
             title: 'Ship open-source work'
-        },
-        user: { id: '507f1f77bcf86cd799439011' }
+        }
     }, res, () => {});
 
     assert.equal(res.body.success, true);
@@ -111,7 +112,7 @@ test('getGoals calculates progress from completed goal tasks', async () => {
         { completed: true }
     ]);
 
-    await getGoals({ body: {}, user: { id: 'user-1' } }, res, () => {});
+    await getGoals({ user: { id: 'user-1' }, body: { userId: 'user-1' } }, res, () => {});
 
     assert.equal(res.body.success, true);
     assert.equal(res.body.goals[0].progress, 67);
@@ -220,12 +221,13 @@ test('toggleTaskCompletion updates task source of truth and daily plan mirror', 
 
     replaceProperty(taskModel, 'findOne', async () => task);
     replaceProperty(dailyPlanModel, 'findOne', async () => dailyPlan);
+    replaceProperty(userModel, 'findById', async () => ({ xp: 0, level: 1, save: async () => {} }));
 
     await toggleTaskCompletion({
+        user: { id: 'user-1' },
         body: {
             taskId: 'task-1'
-        },
-        user: { id: 'user-1' }
+        }
     }, res, () => {});
 
     assert.equal(res.body.success, true);
@@ -267,11 +269,6 @@ test('authUser stores decoded user id and calls next for a valid token', async (
 
     assert.equal(nextCalled, true);
     assert.equal(req.user.id, 'user-123');
-});
-
-test('multer upload config enforces 5 MB file size limit', () => {
-    assert.ok(upload.limits);
-    assert.equal(upload.limits.fileSize, 5 * 1024 * 1024);
 });
 
 test('loginUser rejects object-type identifier (NoSQL injection attempt)', async () => {

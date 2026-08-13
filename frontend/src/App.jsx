@@ -25,6 +25,7 @@ import HabitTracker from './modules/trackers/habit_tracker/HabitTracker';
 import DailyTaskTracker from './modules/trackers/daily_task_tracker/DailyTaskTracker';
 import FocusRoom from './modules/focus_room/FocusRoom';
 import Library from './modules/library_room/Library';
+import Leaderboard from './pages/Leaderboard';
 
 import { useApp } from './store/AppContext';
 import { ToastContainer } from 'react-toastify';
@@ -66,6 +67,7 @@ function App() {
             <Route path="/future-twin" element={<FutureTwin />} />
             <Route path="/future" element={<FutureTwin />} />
             <Route path="/library" element={<Library />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
           </Route>
 
           {/* Fallback */}

@@ -29,18 +29,15 @@ function mockFindNotebooks(notebooks) {
 }
 
 function expectedBulkOps(notebooks) {
-    return notebooks
-        .map((notebook, index) => {
-            const desiredOrder = index + 1;
-            if (notebook.order === desiredOrder) return null;
-            return {
-                updateOne: {
-                    filter: { _id: notebook._id },
-                    update: { $set: { order: desiredOrder } },
-                },
-            };
-        })
-        .filter(Boolean);
+    return notebooks.map((notebook, index) => {
+        if (notebook.order === index + 1) return null;
+        return {
+            updateOne: {
+                filter: { _id: notebook._id },
+                update: { $set: { order: index + 1 } },
+            },
+        };
+    }).filter(Boolean);
 }
 
 afterEach(() => {
@@ -144,6 +141,7 @@ test('deleteNotebook reorders remaining notebooks after any notebook is removed'
     });
 
     await deleteNotebook({
+        user: { id: 'user-1' },
         body: {
             notebookId: 'notebook-2',
         },
@@ -173,6 +171,7 @@ test('deleteNotebook only deletes pages owned by the authenticated user', async 
     replaceProperty(notebookModel, 'bulkWrite', async () => {});
 
     await deleteNotebook({
+        user: { id: 'user-42' },
         body: {
             notebookId: 'notebook-1',
         },
@@ -200,6 +199,7 @@ test('deleteNotebook does not reorder when the notebook does not exist', async (
     });
 
     await deleteNotebook({
+        user: { id: 'user-1' },
         body: {
             notebookId: 'missing-notebook',
         },

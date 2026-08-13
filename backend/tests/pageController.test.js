@@ -140,21 +140,17 @@ test('deletePage reorders remaining pages after any page is removed', async () =
     replaceProperty(pageModel, 'findOneAndDelete', async () => deletedPage);
     replaceProperty(notebookModel, 'findOne', async () => notebook);
     replaceProperty(pageModel, 'find', () => ({
-        sort: async () => remainingPages.map((page, index) => ({
-            ...page,
-            title: `Page ${index + 1}`,
-            order: index + 1,
-        })),
+        sort: async () => remainingPages,
     }));
     replaceProperty(pageModel, 'bulkWrite', async (ops) => {
         bulkOps = ops;
     });
 
     await deletePage({
+        user: { id: 'user-1' },
         body: {
             pageId: 'page-2',
             notebookId: 'notebook-1',
-            userId: 'user-1',
         },
     }, res);
 
@@ -203,9 +199,9 @@ test('updatePage returns validation error when content is missing', async () => 
     });
 
     await updatePage({
+        user: { id: 'user-1' },
         body: {
             pageId: 'page-1',
-            userId: 'user-1',
         },
     }, res);
 
@@ -225,10 +221,10 @@ test('updatePage returns validation error when content is null', async () => {
     });
 
     await updatePage({
+        user: { id: 'user-1' },
         body: {
             pageId: 'page-1',
             content: null,
-            userId: 'user-1',
         },
     }, res);
 
@@ -248,10 +244,10 @@ test('updatePage returns validation error when content is not a string', async (
     });
 
     await updatePage({
+        user: { id: 'user-1' },
         body: {
             pageId: 'page-1',
             content: 12345,
-            userId: 'user-1',
         },
     }, res);
 
@@ -271,10 +267,10 @@ test('updatePage returns validation error when content exceeds 10KB', async () =
     });
 
     await updatePage({
+        user: { id: 'user-1' },
         body: {
             pageId: 'page-1',
             content: 'x'.repeat(10001),
-            userId: 'user-1',
         },
     }, res);
 
@@ -299,10 +295,10 @@ test('updatePage persists valid content', async () => {
     });
 
     await updatePage({
+        user: { id: 'user-1' },
         body: {
             pageId: 'page-1',
             content: 'Hello world',
-            userId: 'user-1',
         },
     }, res);
 
@@ -323,10 +319,10 @@ test('deletePage does not reorder when the page does not exist', async () => {
     });
 
     await deletePage({
+        user: { id: 'user-1' },
         body: {
             pageId: 'missing-page',
             notebookId: 'notebook-1',
-            userId: 'user-1',
         },
     }, res);
 
