@@ -31,7 +31,7 @@ export const reorderNotebookPages = async (notebookId, userId) => {
 // ➤ Create Page (max 100 per notebook)
 export const createPage = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
     const { notebookId } = req.body;
 
     if (!notebookId) {
@@ -62,7 +62,7 @@ export const createPage = async (req, res, next) => {
     res.json({ success: true, page });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -71,7 +71,7 @@ export const createPage = async (req, res, next) => {
 export const getPages = async (req, res, next) => {
   try {
     const { notebookId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
 
     const pages = await pageModel
       .find({ notebookId, userId })
@@ -80,7 +80,7 @@ export const getPages = async (req, res, next) => {
     res.json({ success: true, pages });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -89,7 +89,7 @@ export const getPages = async (req, res, next) => {
 export const updatePage = async (req, res, next) => {
   try {
     const { pageId, content } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
 
     if (content === undefined || content === null) {
       return res.json({ success: false, message: "Content is required" });
@@ -119,7 +119,7 @@ export const updatePage = async (req, res, next) => {
     res.json({ success: true, page });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -128,7 +128,7 @@ export const updatePage = async (req, res, next) => {
 export const deletePage = async (req, res, next) => {
   try {
     const { pageId, notebookId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
 
     const page = await pageModel.findOneAndDelete({
       _id: pageId,
@@ -158,6 +158,6 @@ export const deletePage = async (req, res, next) => {
     res.json({ success: true, pages });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    next(error);
   }
 };

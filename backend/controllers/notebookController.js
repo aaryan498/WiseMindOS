@@ -34,7 +34,7 @@ export const reorderNotebooks = async (userId) => {
 // ➤ Create Notebook (max 40)
 export const createNotebook = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
     const { name } = req.body;
 
     if (!name || !name.trim()) {
@@ -67,7 +67,7 @@ export const createNotebook = async (req, res, next) => {
     res.json({ success: true, notebook });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -75,7 +75,7 @@ export const createNotebook = async (req, res, next) => {
 // ➤ Get all notebooks of user
 export const getNotebooks = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
 
     const notebooks = await notebookModel
       .find({ userId })
@@ -84,7 +84,7 @@ export const getNotebooks = async (req, res, next) => {
     res.json({ success: true, notebooks });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -92,7 +92,7 @@ export const getNotebooks = async (req, res, next) => {
 export const updateNotebook = async (req, res, next) => {
   try {
     const { notebookId, name } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
 
     if (!notebookId || !name || !name.trim()) {
       return res.json({ success: false, message: "NotebookId and name required" });
@@ -122,7 +122,7 @@ export const updateNotebook = async (req, res, next) => {
     res.json({ success: true, notebook });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -131,7 +131,7 @@ export const updateNotebook = async (req, res, next) => {
 export const deleteNotebook = async (req, res, next) => {
   try {
     const { notebookId } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
 
     const notebook = await notebookModel.findOneAndDelete({
       _id: notebookId,
@@ -154,6 +154,6 @@ export const deleteNotebook = async (req, res, next) => {
     res.json({ success: true, notebooks });
 
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    next(error);
   }
 };

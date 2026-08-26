@@ -10,7 +10,10 @@ const createGoal = async (req, res, next) => {
         const { title, type, description, deadline } = req.body;
         const userId = req.user.id;
 
-       const { value: cleanTitle, error: titleError } = sanitizeField(title, 'title', { required: true });
+        if (!title || (typeof title === 'string' && !title.trim())) {
+            return res.json({ success: false, message: 'Title is required' });
+        }
+        const { value: cleanTitle, error: titleError } = sanitizeField(title, 'title', { required: true });
         if (titleError) return res.json({ success: false, message: titleError });
 
         const { value: cleanDescription } = sanitizeField(description, 'description');
