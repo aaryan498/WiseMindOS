@@ -31,7 +31,7 @@ export const reorderNotebookPages = async (notebookId, userId) => {
 // ➤ Create Page (max 100 per notebook)
 export const createPage = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
     const { notebookId } = req.body;
 
     if (!notebookId) {
@@ -62,7 +62,7 @@ export const createPage = async (req, res, next) => {
     res.json({ success: true, page });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -70,8 +70,8 @@ export const createPage = async (req, res, next) => {
 // ➤ Get pages of a notebook (with user check)
 export const getPages = async (req, res, next) => {
   try {
-    const { notebookId } = req.query;
-    const userId = req.user.id;
+    const { notebookId } = req.body;
+    const userId = req.user?.id || req.body?.userId;
 
     if (!notebookId) {
       return res.json({
@@ -94,9 +94,8 @@ export const getPages = async (req, res, next) => {
 // ➤ Update Page Content (max 10KB + user check)
 export const updatePage = async (req, res, next) => {
   try {
-    const { pageId } = req.params;
-    const { content } = req.body;
-    const userId = req.user.id;
+    const { pageId, content } = req.body;
+    const userId = req.user?.id || req.body?.userId;
 
     if (content === undefined || content === null) {
       return res.status(400).json({
@@ -145,8 +144,8 @@ export const updatePage = async (req, res, next) => {
 // ➤ Delete Page (with user check)
 export const deletePage = async (req, res, next) => {
   try {
-    const { pageId } = req.params;
-    const userId = req.user.id;
+    const { pageId, notebookId } = req.body;
+    const userId = req.user?.id || req.body?.userId;
 
     const page = await pageModel.findOneAndDelete({
       _id: pageId,

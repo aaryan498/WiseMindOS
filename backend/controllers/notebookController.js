@@ -34,7 +34,7 @@ export const reorderNotebooks = async (userId) => {
 // âž¤ Create Notebook (max 40)
 export const createNotebook = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
     const { name } = req.body;
 
     if (!name || !name.trim()) {
@@ -67,7 +67,7 @@ export const createNotebook = async (req, res, next) => {
 
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -75,7 +75,7 @@ export const createNotebook = async (req, res, next) => {
 // âž¤ Get all notebooks of user
 export const getNotebooks = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id || req.body?.userId;
 
     const notebooks = await notebookModel
       .find({ userId })
@@ -84,16 +84,15 @@ export const getNotebooks = async (req, res, next) => {
     res.json({ success: true, notebooks });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
 // âž¤ Update Notebook Name
 export const updateNotebook = async (req, res, next) => {
   try {
-    const { notebookId } = req.params;
-    const { name } = req.body;
-    const userId = req.user.id;
+    const { notebookId, name } = req.body;
+    const userId = req.user?.id || req.body?.userId;
 
     if (!notebookId || !name || !name.trim()) {
       return res.status(400).json({
@@ -145,8 +144,8 @@ export const updateNotebook = async (req, res, next) => {
 // âž¤ Delete Notebook (with user check + cascade delete)
 export const deleteNotebook = async (req, res, next) => {
   try {
-    const { notebookId } = req.params;
-    const userId = req.user.id;
+    const { notebookId } = req.body;
+    const userId = req.user?.id || req.body?.userId;
 
     const notebook = await notebookModel.findOneAndDelete({
       _id: notebookId,
