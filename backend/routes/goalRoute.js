@@ -4,9 +4,9 @@ import authUser from '../middlewares/auth.js';
 
 const goalRouter = express.Router();
 
-goalRouter.post('/create', authUser, createGoal);
-goalRouter.post('/list', authUser, getGoals);
-goalRouter.post('/update', authUser, updateGoal);
-goalRouter.post('/delete', authUser, deleteGoal);
+goalRouter.get('/', authUser, getGoals);
+goalRouter.post('/', authUser, createGoal);
+goalRouter.patch('/:goalId', authUser, updateGoal);
+goalRouter.delete('/:goalId', authUser, deleteGoal);
 
 export default goalRouter;

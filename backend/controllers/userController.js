@@ -35,7 +35,7 @@ const loginUser = async (req, res, next) => {
         });
 
         if (!user) {
-            return res.json({ success: false, message: "User not found. Please Register first." })
+            return res.status(404).json({ success: false, message: "User not found. Please Register first." })
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -45,7 +45,7 @@ const loginUser = async (req, res, next) => {
             return res.json({ success: true, message: "Login Successful", token, name: user.name, email: user.email, username: user.username, bio: user.bio, profile_picture: user.profile_picture })
         }
         else {
-            return res.json({ success: false, message: "Invalid Credentials" })
+            return res.status(401).json({ success: false, message: "Invalid Credentials" })
         }
 
 
@@ -62,7 +62,7 @@ const googleLogin = async (req, res, next) => {
 
         // Check if credential is provided
         if (!credential) {
-            return res.json({ success: false, message: "Google token credential is required." });
+            return res.status(400).json({ success: false, message: "Google token credential is required." });
         }
 
         // Verify the token and get user information
@@ -174,21 +174,21 @@ const registerUser = async (req, res, next) => {
         // Checking if there is the user exists in database with the same email.
         const exists = await userModel.findOne({ email });
         if (exists) {
-            return res.json({ success: false, message: "User already Exists." })
+            return res.status(400).json({ success: false, message: "User already Exists." })
         }
 
         const existsUsername = await userModel.findOne({ username });
         if (existsUsername) {
-            return res.json({ success: false, message: "Username already taken. Try another !" })
+            return res.status(400).json({ success: false, message: "Username already taken. Try another !" })
         }
 
 
         // Validating email format and strong password
         if (!validator.isEmail(email)) {
-            return res.json({ success: false, message: "Please enter a valid email." })
+            return res.status(400).json({ success: false, message: "Please enter a valid email." })
         }
         if (password.length < 8) {
-            return res.json({ success: false, message: "Password must at least contain 8 characters." })
+            return res.status(400).json({ success: false, message: "Password must at least contain 8 characters." })
         }
 
 
@@ -227,7 +227,7 @@ const updateUser = async (req, res, next) => {
         // Find current user
         const user = await userModel.findById(userId);
         if (!user) {
-            return res.json({ success: false, message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
         let isModified = false;
@@ -239,7 +239,7 @@ const updateUser = async (req, res, next) => {
                 _id: { $ne: userId }
             });
             if (existingUsername) {
-                return res.json({
+                return res.status(400).json({
                     success: false,
                     message: "Username already taken. Try another!"
                 });
@@ -299,7 +299,7 @@ const updateUserProfilePic = async (req, res, next) => {
         // Find current user
         const user = await userModel.findById(userId);
         if (!user) {
-            return res.json({ success: false, message: "User not found" });
+            return res.status(404).json({ success: false, message: "User not found" });
         }
 
         let isModified = false;
@@ -317,7 +317,7 @@ const updateUserProfilePic = async (req, res, next) => {
                 if (fs.existsSync(profile.path)) {
                     fs.unlinkSync(profile.path);
                 }
-                return res.json({ success: false, message: "Invalid file type. Only JPEG, PNG, and WebP are allowed." });
+                return res.status(400).json({ success: false, message: "Invalid file type. Only JPEG, PNG, and WebP are allowed." });
             }
 
             const buffer = fs.readFileSync(profile.path)

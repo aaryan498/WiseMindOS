@@ -24,7 +24,7 @@ const createGoal = async (req, res, next) => {
         );
 
         if (isDuplicate) {
-            return res.json({ success: false, message: 'A goal with this title already exists' });
+            return res.status(409).json({ success: false, message: 'A goal with this title already exists' });
         }
 
        const newGoal = new goalModel({
@@ -71,16 +71,17 @@ const getGoals = async (req, res, next) => {
 // Update Goal
 const updateGoal = async (req, res, next) => {
     try {
-        const { goalId, title, type, description, deadline } = req.body;
+        const { title, type, description, deadline } = req.body;
         const userId = req.user.id;
+        const { goalId } = req.params;
 
         if (!goalId) {
-            return res.json({ success: false, message: 'Goal ID is required' });
+            return res.status(400).json({ success: false, message: 'Goal ID is required' });
         }
 
         const goal = await goalModel.findOne({ _id: goalId, userId });
         if (!goal) {
-            return res.json({ success: false, message: 'Goal not found' });
+            return res.status(404).json({ success: false, message: 'Goal not found' });
         }
 
         if (title) {
@@ -112,16 +113,16 @@ const updateGoal = async (req, res, next) => {
 // Delete Goal
 const deleteGoal = async (req, res, next) => {
     try {
-        const { goalId } = req.body;
+        const { goalId } = req.params;
         const userId = req.user.id;
 
         if (!goalId) {
-            return res.json({ success: false, message: 'Goal ID is required' });
+            return res.status(400).json({ success: false, message: 'Goal ID is required' });
         }
 
         const goal = await goalModel.findOneAndDelete({ _id: goalId, userId });
         if (!goal) {
-            return res.json({ success: false, message: 'Goal not found' });
+            return res.status(404).json({ success: false, message: 'Goal not found' });
         }
 
         await Promise.all([

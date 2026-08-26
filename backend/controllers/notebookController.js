@@ -31,48 +31,48 @@ export const reorderNotebooks = async (userId) => {
   return remainingNotebooks.length;
 };
 
-// ➤ Create Notebook (max 40)
+// âž¤ Create Notebook (max 40)
 export const createNotebook = async (req, res, next) => {
   try {
     const userId = req.user?.id || req.body?.userId;
     const { name } = req.body;
 
     if (!name || !name.trim()) {
-      return res.json({ success: false, message: "Name required" });
+      return res.status(400).json({ success: false, message: "Name required" });
+
+      const trimmedName = name.trim();
+      const existing = await notebookModel.findOne({
+        userId,
+        name: new RegExp('^' + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
+      });
+
+      if (existing) {
+        return res.json({ success: false, message: "A notebook with this name already exists" });
+      }
+
+      const count = await notebookModel.countDocuments({ userId });
+      if (count >= 40) {
+        return res.status(400).json({ success: false, message: "Max 40 notebooks allowed" });
+      }
+
+      const notebook = new notebookModel({
+        userId,
+        name: trimmedName,
+        order: count + 1
+      });
+
+      await notebook.save();
+
+      res.json({ success: true, notebook });
+
     }
-
-    const trimmedName = name.trim();
-    const existing = await notebookModel.findOne({
-      userId,
-      name: new RegExp('^' + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
-    });
-
-    if (existing) {
-      return res.json({ success: false, message: "A notebook with this name already exists" });
-    }
-
-    const count = await notebookModel.countDocuments({ userId });
-    if (count >= 40) {
-      return res.json({ success: false, message: "Max 40 notebooks allowed" });
-    }
-
-    const notebook = new notebookModel({
-      userId,
-      name: trimmedName,
-      order: count + 1
-    });
-
-    await notebook.save();
-
-    res.json({ success: true, notebook });
-
   } catch (error) {
     next(error);
   }
 };
 
 
-// ➤ Get all notebooks of user
+// âž¤ Get all notebooks of user
 export const getNotebooks = async (req, res, next) => {
   try {
     const userId = req.user?.id || req.body?.userId;
@@ -88,25 +88,37 @@ export const getNotebooks = async (req, res, next) => {
   }
 };
 
-// ➤ Update Notebook Name
+// âž¤ Update Notebook Name
 export const updateNotebook = async (req, res, next) => {
   try {
     const { notebookId, name } = req.body;
     const userId = req.user?.id || req.body?.userId;
 
     if (!notebookId || !name || !name.trim()) {
-      return res.json({ success: false, message: "NotebookId and name required" });
+      return res.status(400).json({
+        success: false,
+        message: "NotebookId and name required"
+      });
     }
 
     const trimmedName = name.trim();
+
     const existing = await notebookModel.findOne({
       userId,
       _id: { $ne: notebookId },
-      name: new RegExp('^' + trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
+      name: new RegExp(
+        '^' +
+        trimmedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') +
+        '$',
+        'i'
+      )
     });
 
     if (existing) {
-      return res.json({ success: false, message: "A notebook with this name already exists" });
+      return res.json({
+        success: false,
+        message: "A notebook with this name already exists"
+      });
     }
 
     const notebook = await notebookModel.findOneAndUpdate(
@@ -116,18 +128,20 @@ export const updateNotebook = async (req, res, next) => {
     );
 
     if (!notebook) {
-      return res.json({ success: false, message: "Notebook not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Notebook not found"
+      });
     }
 
     res.json({ success: true, notebook });
-
   } catch (error) {
     next(error);
   }
 };
 
 
-// ➤ Delete Notebook (with user check + cascade delete)
+// âž¤ Delete Notebook (with user check + cascade delete)
 export const deleteNotebook = async (req, res, next) => {
   try {
     const { notebookId } = req.body;
@@ -139,10 +153,12 @@ export const deleteNotebook = async (req, res, next) => {
     });
 
     if (!notebook) {
-      return res.json({ success: false, message: "Notebook not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Notebook not found"
+      });
     }
 
-    // delete all pages of this notebook (scoped to authenticated user)
     await pageModel.deleteMany({ notebookId, userId });
 
     await reorderNotebooks(userId);
@@ -152,7 +168,6 @@ export const deleteNotebook = async (req, res, next) => {
       .sort({ order: 1 });
 
     res.json({ success: true, notebooks });
-
   } catch (error) {
     next(error);
   }

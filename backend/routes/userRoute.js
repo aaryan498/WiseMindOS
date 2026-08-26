@@ -8,8 +8,8 @@ const userRouter = express.Router();
 userRouter.post('/register', registerUser);
 userRouter.post('/google', googleLogin);
 userRouter.post('/login', loginUser);
-userRouter.post('/update', authUser, updateUser);
-userRouter.post('/update-profile-pic', upload.fields([{name: 'profile', maxCount: 1}]), authUser, updateUserProfilePic);
-// userRouter.post('/update', upload.fields([{name: 'profile', maxCount: 1}, {name: 'cover', maxCount: 1}]), protect , updateUserData)
+userRouter.patch('/profile', authUser, updateUser);
+userRouter.patch('/profile-picture', upload.fields([{ name: 'profile', maxCount: 1 }]), authUser, updateUserProfilePic);
+
 
 export default userRouter;

@@ -35,16 +35,16 @@ export const createPage = async (req, res, next) => {
     const { notebookId } = req.body;
 
     if (!notebookId) {
-      return res.json({ success: false, message: "NotebookId required" });
+      return res.status(400).json({ success: false, message: "NotebookId required" });
     }
 
     const notebook = await notebookModel.findOne({ _id: notebookId, userId });
     if (!notebook) {
-      return res.json({ success: false, message: "Notebook not found" });
+      return res.status(404).json({ success: false, message: "Notebook not found" });
     }
 
     if (notebook.pageCount >= 100) {
-      return res.json({ success: false, message: "Max 100 pages allowed" });
+      return res.status(400).json({ success: false, message: "Max 100 pages allowed" });
     }
 
     const page = new pageModel({
@@ -73,12 +73,18 @@ export const getPages = async (req, res, next) => {
     const { notebookId } = req.body;
     const userId = req.user?.id || req.body?.userId;
 
+    if (!notebookId) {
+      return res.json({
+        success: false,
+        message: "NotebookId required"
+      });
+    }
+
     const pages = await pageModel
       .find({ notebookId, userId })
       .sort({ order: 1 });
 
     res.json({ success: true, pages });
-
   } catch (error) {
     next(error);
   }
@@ -92,15 +98,24 @@ export const updatePage = async (req, res, next) => {
     const userId = req.user?.id || req.body?.userId;
 
     if (content === undefined || content === null) {
-      return res.json({ success: false, message: "Content is required" });
+      return res.status(400).json({
+        success: false,
+        message: "Content is required"
+      });
     }
 
     if (typeof content !== "string") {
-      return res.json({ success: false, message: "Content must be a string" });
+      return res.status(400).json({
+        success: false,
+        message: "Content must be a string"
+      });
     }
 
     if (content.length > 10000) {
-      return res.json({ success: false, message: "Max 10KB content allowed" });
+      return res.status(400).json({
+        success: false,
+        message: "Max 10KB content allowed"
+      });
     }
 
     const page = await pageModel.findOneAndUpdate(
@@ -113,11 +128,13 @@ export const updatePage = async (req, res, next) => {
     );
 
     if (!page) {
-      return res.json({ success: false, message: "Page not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Page not found"
+      });
     }
 
     res.json({ success: true, page });
-
   } catch (error) {
     next(error);
   }
@@ -136,11 +153,14 @@ export const deletePage = async (req, res, next) => {
     });
 
     if (!page) {
-      return res.json({ success: false, message: "Page not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Page not found"
+      });
     }
 
     const notebook = await notebookModel.findOne({
-      _id: notebookId,
+      _id: page.notebookId,
       userId
     });
 
@@ -152,11 +172,13 @@ export const deletePage = async (req, res, next) => {
     await reorderNotebookPages(page.notebookId, userId);
 
     const pages = await pageModel
-      .find({ notebookId: page.notebookId, userId })
+      .find({
+        notebookId: page.notebookId,
+        userId
+      })
       .sort({ order: 1 });
 
     res.json({ success: true, pages });
-
   } catch (error) {
     next(error);
   }
