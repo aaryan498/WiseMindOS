@@ -9,7 +9,6 @@ userRouter.post('/register', registerUser);
 userRouter.post('/google', googleLogin);
 userRouter.post('/login', loginUser);
 userRouter.patch('/profile', authUser, updateUser);
-userRouter.patch('/profile-picture', upload.fields([{ name: 'profile', maxCount: 1 }]), authUser, updateUserProfilePic);
-
+userRouter.patch('/profile-picture', authUser, upload.fields([{ name: 'profile', maxCount: 1 }]), updateUserProfilePic);
 
 export default userRouter;
