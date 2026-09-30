@@ -62,7 +62,7 @@ export const createPage = async (req, res, next) => {
     res.json({ success: true, page });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 

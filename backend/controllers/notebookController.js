@@ -67,7 +67,7 @@ export const createNotebook = async (req, res, next) => {
 
     }
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
@@ -84,11 +84,11 @@ export const getNotebooks = async (req, res, next) => {
     res.json({ success: true, notebooks });
 
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-// âž¤ Update Notebook Name
+// Update Notebook Name
 export const updateNotebook = async (req, res, next) => {
   try {
     const { notebookId } = req.params;

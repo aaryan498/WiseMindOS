@@ -4,6 +4,7 @@ import taskModel from '../models/taskModel.js';
 import { sanitizeField } from '../utils/sanitize.js';
 
 const normalizeGoalTitle = (title) => (title ?? '').trim().toLowerCase();
+
 // Create Goal
 const createGoal = async (req, res, next) => {
     try {
